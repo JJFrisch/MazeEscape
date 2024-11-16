@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MazeEscape.LandingPage"
+             BackgroundColor="IndianRed"
+             Shell.NavBarIsVisible="False">
+
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <AbsoluteLayout>
+
+        <Image AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
+           AbsoluteLayout.LayoutFlags="All"
+           Source="maze_home_screen_3.png"
+           Aspect="AspectFit"/>
+
+
+        <ImageButton
+            AbsoluteLayout.LayoutBounds="0.5,0.88,130,110"
+            AbsoluteLayout.LayoutFlags="PositionProportional"
+            Style="{DynamicResource baseImageButtonStyle}"
+            Clicked="OnEnterClicked"
+            HorizontalOptions="Center"
+            VerticalOptions="Center"
+            Opacity=".95"
+            Source="play_button_image_1.png"
+            Aspect="Fill">
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroupList>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="Scale"
+                                    Value="1" />
+                        </VisualState.Setters>
+                    </VisualState>
+                    <VisualState x:Name="Pressed">
+                        <VisualState.Setters>
+                                <Setter Property="Opacity"
+                                        Value="0.8" />
+                                <Setter Property="Scale"
+                                        Value="0.9" />
+                        </VisualState.Setters>
+                    </VisualState>
+                        <VisualState x:Name="PointerOver">
+                            <VisualState.Setters>
+                                <Setter Property="Scale"
+                                        Value="0.9" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateGroupList>
+            </VisualStateManager.VisualStateGroups>
+        </ImageButton>
+
+
+
+
+    </AbsoluteLayout>
+
+
+
+</ContentPage>

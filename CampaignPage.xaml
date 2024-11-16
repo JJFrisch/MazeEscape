@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MazeEscape.CampaignPage"
+             Title="">
+
+
+
+    <!-- Battle Cats type of campain screen
+         Each level has a maze and is represented by a circle or somthing (image button) 
+         If the previous level is completed (at least 1 star), the next level opens up and is clickable
+         Horizontal scroll to future levels.
+    At some point is a gate where a high number of stars needs to be eared to unlock and continue
+    At the bottom of the screen is a couple "power ups" like a hint or path solver or hot/cold
+    (image) and number of power up owned (label)
+    
+    -->
+
+    <ScrollView x:Name="campaignScrollView" Orientation="Horizontal">
+        <AbsoluteLayout x:Name="CampaignAbsoluteLayout"
+            BackgroundColor="AntiqueWhite"
+            HeightRequest="700"
+            WidthRequest="2000">
+
+            <Image AbsoluteLayout.LayoutBounds="0.5,0.4,1,0.8"
+                   AbsoluteLayout.LayoutFlags="All"
+                   Source="campaign_background_1.png"
+                   Aspect="Fill"
+                   />
+
+            <Grid x:Name="campaignLevelGrid"
+                Padding="25,4"
+                AbsoluteLayout.LayoutBounds="0.5,0.4,1,0.8"
+                AbsoluteLayout.LayoutFlags="All"
+                ColumnDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*"
+                RowDefinitions="*,*,*,*,*">
+
+                <!--
+                <ImageButton Grid.Column="3"
+                        Grid.Row="3"
+                        Style="{DynamicResource campaignLevelImageButtons}"/>
+                
+                <Label Grid.Column="3"
+                        Grid.Row="3"
+                        Text="1"
+                        Style="{DynamicResource campaignLevelLabel}"/>
+
+                <ImageButton Grid.Column="19"
+        Grid.Row="0"
+        Style="{DynamicResource campaignLevelImageButtons}"/>
+
+                <Label Grid.Column="3"
+        Grid.Row="2"
+        Text="1"
+        Style="{DynamicResource campaignLevelLabel}"/> -->
+
+
+            </Grid>
+
+
+        </AbsoluteLayout>
+    </ScrollView>
+    
+    
+</ContentPage>

@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MazeEscape.MainPage"
              Title=""
-             BackgroundColor="White">
+             BackgroundColor="IndianRed"
+             Shell.NavBarIsVisible="False">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -13,139 +14,122 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <ContentPage.MenuBarItems >
-        <MenuBarItem Text="Username">
-            <MenuFlyoutItem Text="Log Out"
-            Clicked="OnLogOut"/>
-        </MenuBarItem>
+    <AbsoluteLayout Margin="0,-80,0,0">
 
-        <MenuBarItem Text="Settings">
-            <MenuFlyoutItem Text="Refresh"
-                    Clicked="OnRefreshCommand" />
-            <MenuFlyoutItem Text="Change Theme"
-                    Clicked="OnChangeTheme" />
-        </MenuBarItem>
-    </ContentPage.MenuBarItems>
+        <Image AbsoluteLayout.LayoutBounds="0.5,1,1,1"
+               AbsoluteLayout.LayoutFlags="All"
+               Source="Maze_home_screen_1.png"
+               Aspect="Fill"/>
 
-    <AbsoluteLayout>
-
-        <Image AbsoluteLayout.LayoutBounds="0,0,1,1"
-           AbsoluteLayout.LayoutFlags="All"
-           Source="maze_home_screen_2.png"
-           Aspect="Fill"/>
-
-        <!-- Could be the Player Icon and let them change their 'avatar'
-    <ImageButton AbsoluteLayout.LayoutBounds="0.5,0.5,0.2,0.2"
-           AbsoluteLayout.LayoutFlags="All"
-           Source="carousel_maze_1.png"
-                 BackgroundColor="AliceBlue"> 
         
-    </ImageButton> -->
+        <BoxView x:Name="menuBar"
+                AbsoluteLayout.LayoutBounds="0.5,0,1,0.1"
+                AbsoluteLayout.LayoutFlags="All"
+                BackgroundColor="LightGoldenrodYellow"
+                 Opacity="0.4"
+                 CornerRadius="0"/> 
 
-        <!-- Carousel of maze images -->
+        <ImageButton x:Name="settingsButton" Clicked="OnSettingsButtonClicked" 
+                     AbsoluteLayout.LayoutBounds="0.5,0,1,0.1"
+                     AbsoluteLayout.LayoutFlags="All"
+                         Style="{StaticResource menuImageButtonStyle}"
+                         HorizontalOptions="Start"
+                         Source="setting_button_image.png"/>
+            <Label x:Name="usernameLabel" 
+                    AbsoluteLayout.LayoutBounds="0.5,0,1,0.1"
+                    AbsoluteLayout.LayoutFlags="All"
+                    HorizontalOptions="Center" VerticalOptions="Center"
+                   TextColor="White"/>
+            <ImageButton x:Name="shopButton" Clicked="OnShopButtonClicked"  
+                    AbsoluteLayout.LayoutBounds="0.5,0.002,1,0.1"
+                    AbsoluteLayout.LayoutFlags="All"
+                    HorizontalOptions="End"
+                    Style="{StaticResource menuImageButtonStyle}"
+                    Source="shop_button_image.png"/>
+            
+       
+        <VerticalStackLayout
+            AbsoluteLayout.LayoutBounds="0.5,1,1,.25"
+            AbsoluteLayout.LayoutFlags="All"
+            Spacing="30"
+            HorizontalOptions="Center">
 
-        <CarouselView x:Name="carouselViewMazes"
-                  PeekAreaInsets="100"
-                  AbsoluteLayout.LayoutBounds="0.5,0.3,1,1"
-                  AbsoluteLayout.LayoutFlags="All"
-                  BackgroundColor="AliceBlue">
-            <CarouselView.ItemTemplate>
-                <DataTemplate>
-                    <StackLayout>
-
-                        <!-- <VisualStateManager.VisualStateGroups>
+            <Button
+                Text="Daily Maze"
+                Clicked="OnDailyMazeClicked"
+                Style="{DynamicResource baseButtonStyle}"
+                BorderWidth="2"
+                BorderColor="Black">
+                
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
                         <VisualStateGroup x:Name="CommonStates">
-                            <VisualState x:Name="CurrentItem">
+                            <VisualState x:Name="Normal">
                                 <VisualState.Setters>
                                     <Setter Property="Scale"
-                                    Value="1.1" />
+                    Value="1" />
                                 </VisualState.Setters>
                             </VisualState>
-                            <VisualState x:Name="PreviousItem">
+                            <VisualState x:Name="Pressed">
                                 <VisualState.Setters>
                                     <Setter Property="Opacity"
-                                    Value="0.5" />
+                        Value="0.9" />
+                                    <Setter Property="Scale"
+                        Value="0.9" />
                                 </VisualState.Setters>
                             </VisualState>
-                            <VisualState x:Name="NextItem">
+                            <VisualState x:Name="PointerOver">
                                 <VisualState.Setters>
                                     <Setter Property="Opacity"
-                                    Value="0.5" />
-                                </VisualState.Setters>
-                            </VisualState>
-                            <VisualState x:Name="DefaultItem">
-                                <VisualState.Setters>
-                                    <Setter Property="Opacity"
-                                    Value="0.25" />
+                        Value="0.9" />
                                 </VisualState.Setters>
                             </VisualState>
                         </VisualStateGroup>
-                    </VisualStateManager.VisualStateGroups> -->
-
-                        <Frame HasShadow="True"
-                           BorderColor="DarkGray"
-                           CornerRadius="5"
-                           Margin="20"
-                           HorizontalOptions="Center"
-                           VerticalOptions="Center"
-                           BackgroundColor="White"
-                           WidthRequest="400"
-                            HeightRequest="400"
-                           >
-                            <VerticalStackLayout Spacing="40">
-                                <Image Source="{Binding ImageURL}"
-                           HorizontalOptions="Center" 
-                                   Aspect="AspectFit"
-                                   />
-
-                                <Label Text="{Binding Description}"
-                           FontAttributes="Italic"
-                           HorizontalOptions="Center"
-                           MaxLines="5"
-                           LineBreakMode="TailTruncation"
-                                   TextColor="Black"
-                                   />
-                            </VerticalStackLayout>
-                        </Frame>
-
-
-                    </StackLayout>
-                </DataTemplate>
-            </CarouselView.ItemTemplate>
-        </CarouselView>
-
-
-
-
-
-        <HorizontalStackLayout
-        AbsoluteLayout.LayoutBounds="0.5,0.9,1,.1"
-        AbsoluteLayout.LayoutFlags="All"
-        Spacing="30"
-        HorizontalOptions="Center">
-
-            <Button
-            Text="Campaign Mazes"
-            Clicked="OnCampaignMazesClicked"
-            BackgroundColor="LightBlue"
-            TextColor="DarkBlue"
-            FontSize="Small"
-            HorizontalOptions="Center"
-            VerticalOptions="Center"
-            BorderColor="LightSteelBlue"
-            BorderWidth="2">
-
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
             </Button>
 
-            <!-- Daily Maze Button -->
 
             <Button
-            Text="Daily Maze"
-            Clicked="OnDailyMazeClicked"
-            Style="{DynamicResource baseButtonStyle}">
+                Text="Campaign Mazes"
+                Clicked="OnCampaignMazesClicked"
+                BackgroundColor="LightBlue"
+                TextColor="DarkBlue"
+                FontSize="Small"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                BorderColor="LightSteelBlue"
+                BorderWidth="2" >
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroupList>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter Property="Scale"
+                                    Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Property="Opacity"
+                                        Value="0.9" />
+                                        <Setter Property="Scale"
+                                        Value="0.9" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Property="Opacity"
+                                        Value="0.9" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
             </Button>
 
-        </HorizontalStackLayout>
+
+        </VerticalStackLayout>
 
     </AbsoluteLayout>
 

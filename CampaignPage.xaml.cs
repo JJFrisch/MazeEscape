@@ -1,46 +1,57 @@
 using MazeEscape.Models;
 using Microsoft.Maui.Controls;
+using System.Collections.ObjectModel;
+
+//using Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;
 using System.ComponentModel;
+
 
 
 namespace MazeEscape;
 
 public partial class CampaignPage : ContentPage 
 {
+    public int HighestLevel;
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private int highestLevel;
-    public int HighestLevel
-    {
-        get { return highestLevel; }
-        set
-        {
-            if (highestLevel != value)
-            {
-                highestLevel = value;
-                OnPropertyChanged(nameof(HighestLevel));
-            }
-        }
-    }
-
-
+    static LevelDatabase database;
+    static ObservableCollection<CampaignLevel> CampaignLevels = new ObservableCollection<CampaignLevel>();
 
     public CampaignPage()
 	{
 		InitializeComponent();
+        database = new LevelDatabase();
         HighestLevel = 0;
+
+        //InitializeLevelList();
+
+        LoadFromDatabase();
 
         InitializeLevelButtons();
 
     }
 
-    List<(int, int, int)> levelButtonPositions = new List<(int, int, int)> { (1, 3, 3), (2, 3, 4) };
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+
+        InitializeLevelButtons();
+
+        CoinCountLabel.Text = PlayerData.CoinCount.ToString();
+        starCountLabel.Text = PlayerData.StarCount.ToString();
+    }
+
+    public async void LoadFromDatabase()
+    {
+        CampaignLevels = new ObservableCollection<CampaignLevel>(await database.GetLevelsAsync());
+    }
+
+    List<(int, int)> levelButtonPositions = new List<(int, int)> { (3, 3), (3, 4), (2, 4), (2,3), (2,2), (1,2), (0,2), (0,1), (0,0)};
 
     public void InitializeLevelButtons()
     {
-        foreach ((int l, int x, int y) in levelButtonPositions)
+        foreach (CampaignLevel level in CampaignLevels)
         {
+            (int x, int y) = levelButtonPositions[level.LevelNumber-1];
             ImageButton imageButton = new ImageButton
             {
                 HorizontalOptions = LayoutOptions.Center,
@@ -49,27 +60,25 @@ public partial class CampaignPage : ContentPage
                 HeightRequest = 90,
                 Source = "level_button_icon.png",
             };
-            imageButton.Clicked += (s, e) =>
+            imageButton.Clicked += async (s, e) =>
             {
-                int w = l * 10;
-                _ = Navigation.PushAsync(new BasicGridPage(w, 20, "Maze Escape Level " + l.ToString()));
+                await GoToLevel(level, imageButton);
             };
             Grid.SetRow(imageButton, y);
             Grid.SetColumn(imageButton, x);
             campaignLevelGrid.Add(imageButton);
 
             TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
-            tapGestureRecognizer.Tapped += (s, e) =>
+            tapGestureRecognizer.Tapped += async (s, e) =>
             {
-                int w = l * 10;
-                _ = Navigation.PushAsync(new BasicGridPage(w, 20, "Maze Escape Level " + l.ToString()));
+                await GoToLevel(level, imageButton);
             };
-            Label label = new Label
+            Label label = new()
             {
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center,
                 TextColor = Colors.White,
-                Text = l.ToString(),
+                Text = level.ToString(),
                 FontSize = 16,
             };
             label.GestureRecognizers.Add(tapGestureRecognizer);
@@ -79,30 +88,63 @@ public partial class CampaignPage : ContentPage
         }
     }
 
-    public void GoToLevel(int level)
+    private (int, int) MazeDifficultyByLevel(int l)
     {
-        int w = level * 10;
-        int h = 20;
-        _ = Navigation.PushAsync(new BasicGridPage(w, h, "Maze Escape Level " + level.ToString()));
+        int w = l * 3;
+        int h = 4;
+        return (w, h);
     }
 
-    public void DrawLoadingScreen()
+    public async Task GoToLevel(CampaignLevel level, ImageButton imageButton)
     {
-        campaignLevelGrid.IsVisible = false;
-        //BoxView boxView = new BoxView
-        //{
-        //    Color = Colors.Green,
-        //    WidthRequest = 1000,
-        //    HeightRequest = 600,
-        //    HorizontalOptions = LayoutOptions.Center,
-        //};
-        //Grid.SetRowSpan(boxView, 5);
-        //Grid.SetColumnSpan(boxView, 4);
-        //campaignLevelGrid.Add(boxView);
+        _ = imageButton.FadeTo(0.5, 1000);
+        await imageButton.ScaleTo(1.2, 1000);
+
+        var page = new CampaignLevelPage(level);
+        page.LevelSaved += async (obj, copyOfLevel) => {
+            level.BestTime = copyOfLevel.BestTime;
+            level.BestMoves = copyOfLevel.BestMoves;
+            level.Completed = copyOfLevel.Completed;
+            level.Star1 = copyOfLevel.Star1;
+            level.Star2 = copyOfLevel.Star2;
+            level.Star3 = copyOfLevel.Star3;
+            await database.SaveLevelAsync(level);
+        };
+        await Navigation.PushAsync(page);
+
+
+        imageButton.Opacity = 1;
+        imageButton.Scale = 1;
     }
 
-    public void OnPropertyChanged(string propertyName)
+    public async void InitializeLevelList()
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        await database.DeleteAllLevelsAsync();
+
+        CampaignLevels = new ObservableCollection<CampaignLevel>();
+        CampaignLevels.Add(new CampaignLevel(1,10,10, "GenerateBacktracking"));
+        CampaignLevels.Add(new CampaignLevel(2,10,12, "GenerateBacktracking"));
+        CampaignLevels.Add(new CampaignLevel(3,12,12, "GenerateBacktracking"));
+        CampaignLevels.Add(new CampaignLevel(4,14, 12, "GenerateBacktracking"));
+        CampaignLevels.Add(new CampaignLevel(5,14, 14, "GenerateBacktracking"));
+        CampaignLevels.Add(new CampaignLevel(6,20, 20, "GenerateBacktracking"));
+
+
+        foreach (var level in CampaignLevels)
+        {
+            await database.AddNewLevelAsync(level);
+        }
     }
+
+
+    private async void BackButton_Clicked(object sender, EventArgs e)
+    {
+        await Navigation.PopAsync();
+    }
+
+    public async void OnShopButtonClicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new ShopPage());
+    }
+
 }

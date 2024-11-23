@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:drawables="clr-namespace:MazeEscape.Drawables"
              x:Class="MazeEscape.BasicGridPage"
-             BackgroundColor="White">
+             BackgroundColor="Green">
 
     <ContentPage.Resources>
         <drawables:PlayerDrawable x:Key="playerDrawable"/>
@@ -17,7 +17,7 @@
                     HeightRequest="600"
                     BackgroundColor="White">
 
-            <Grid x:Name="maze_grid"
+            <Grid x:Name="mazeGrid"
                   AbsoluteLayout.LayoutBounds="1,1,1,1"
                   AbsoluteLayout.LayoutFlags="All">
             

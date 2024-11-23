@@ -9,6 +9,8 @@ using SharpHook.Native;
 using SharpHook.Reactive;
 using SharpHook;
 using System.Reactive.Linq;
+using CommunityToolkit.Maui.Views;
+using System.Threading.Tasks;
 
 public partial class BasicGridPage : ContentPage
 {
@@ -16,7 +18,7 @@ public partial class BasicGridPage : ContentPage
     public double WindowHeight;
 
 
-    Maze maze = new Maze();
+    MazeModel Maze = new MazeModel();
 
     PlayerDrawable drawer;
     SimpleReactiveGlobalHook? hook;
@@ -32,7 +34,7 @@ public partial class BasicGridPage : ContentPage
         PlayerGraphicsView.Drawable = drawer;
         drawer.Initialize();
 
-        InitializeMaze(60,20);
+        InitializeMaze(60, 20);
 
         DrawMaze("line");
 
@@ -103,25 +105,25 @@ public partial class BasicGridPage : ContentPage
 
     public void InitializeMaze(int width, int height)
     {
-        // Showing the other kind of maze, each cell is open or wall, not each cell has 4 walls
-        //maze.AddRowByList(new List<int> { 2, 0, 0, 0, 1 });
-        //maze.AddRowByList(new List<int> { 1, 0, 1, 0, 1 });
-        //maze.AddRowByList(new List<int> { 0, 0, 0, 1, 0 });
-        //maze.AddRowByList(new List<int> { 1, 0, 1, 0, 1 });
-        //maze.AddRowByList(new List<int> { 1, 0, 0, 0, 0 });
-        //maze.AddRowByList(new List<int> { 0, 0, 1, 0, 1 });
-        //maze.AddRowByList(new List<int> { 0, 0, 0, 0, 3 });
+        // Showing the other kind of Maze, each cell is open or wall, not each cell has 4 walls
+        //Maze.AddRowByList(new List<int> { 2, 0, 0, 0, 1 });
+        //Maze.AddRowByList(new List<int> { 1, 0, 1, 0, 1 });
+        //Maze.AddRowByList(new List<int> { 0, 0, 0, 1, 0 });
+        //Maze.AddRowByList(new List<int> { 1, 0, 1, 0, 1 });
+        //Maze.AddRowByList(new List<int> { 1, 0, 0, 0, 0 });
+        //Maze.AddRowByList(new List<int> { 0, 0, 1, 0, 1 });
+        //Maze.AddRowByList(new List<int> { 0, 0, 0, 0, 3 });
 
-        maze.GenerateBacktracking(width, height);
-        //maze.GenerateHuntAndKill(width, height);
+        Maze.GenerateBacktracking(width, height);
+        //Maze.GenerateHuntAndKill(width, height);
 
         WindowWidth = 800;
         WindowHeight = 600;
         drawer.WindowWidth = WindowWidth;
         drawer.WindowHeight = WindowHeight;
 
-        drawer.MazeHeight = maze.Height;
-        drawer.MazeWidth = maze.Width;
+        drawer.MazeHeight = Maze.Height;
+        drawer.MazeWidth = Maze.Width;
     }
 
     public void DrawMaze(string wall_type="line")
@@ -139,36 +141,36 @@ public partial class BasicGridPage : ContentPage
         dict_str_to_color.Add("s", Colors.Green);
         dict_str_to_color.Add("F", Colors.Red);
 
-        int cell_width = (int)(WindowWidth / maze.Width);
-        int cell_height = (int)(WindowHeight / maze.Height);
+        int cell_width = (int)(WindowWidth / Maze.Width);
+        int cell_height = (int)(WindowHeight / Maze.Height);
 
         int line_thickness = 4;
 
-        for (var h = 0; h < maze.Height; h++)
+        for (var h = 0; h < Maze.Height; h++)
         {
-            for (var w = 0; w < maze.Width; w++)
+            for (var w = 0; w < Maze.Width; w++)
             {
                 if (wall_type == "rect")
                 {
-                    maze_grid.Add(new BoxView
+                    mazeGrid.Add(new BoxView
                     {
-                        Color = dict_int_to_color[maze.Cells[h][w].Value]
+                        Color = dict_int_to_color[Maze.Cells[h][w].Value]
 
                     }, w, h);
                 }
                 if (wall_type == "line")
                 {
-                    if (maze.Cells[h][w].Value != 0)
+                    if (Maze.Cells[h][w].Value != 0)
                     {
                         main_absolute_layout.Add(new BoxView
                         {
-                            Color = dict_int_to_color[maze.Cells[h][w].Value]
+                            Color = dict_int_to_color[Maze.Cells[h][w].Value]
 
                         }, new Rect(w * cell_width + (line_thickness / 2), h * cell_height + (line_thickness / 2), cell_width - line_thickness, cell_height - line_thickness));
                     }
 
 
-                    if (maze.Cells[h][w].North) // Draw North Wall is cell.North is true
+                    if (Maze.Cells[h][w].North) // Draw North Wall is cell.North is true
                     {
                         main_absolute_layout.Add(new BoxView
                         {
@@ -176,7 +178,7 @@ public partial class BasicGridPage : ContentPage
 
                         }, new Rect(w * cell_width - (line_thickness / 2), h * cell_height - (line_thickness / 2), cell_width + line_thickness, line_thickness));
                     }
-                    if (maze.Cells[h][w].East) // Draw East Wall if cell.East is true
+                    if (Maze.Cells[h][w].East) // Draw East Wall if cell.East is true
                     {
                         main_absolute_layout.Add(new BoxView
                         {
@@ -185,8 +187,8 @@ public partial class BasicGridPage : ContentPage
                         }, new Rect((w+1) * cell_width - (line_thickness / 2), h * cell_height - (line_thickness / 2), line_thickness, cell_height + line_thickness));
                     }
 
-                    // Draw South Wall if h == maze.Height-1
-                    if (h == maze.Height - 1) 
+                    // Draw South Wall if h == Maze.Height-1
+                    if (h == Maze.Height - 1) 
                     {
                         main_absolute_layout.Add(new BoxView
                         {
@@ -239,36 +241,36 @@ public partial class BasicGridPage : ContentPage
 
     public void MoveLeft()
     {
-        if (maze.Player.X > 0 && !maze.Cells[maze.Player.Y][maze.Player.X-1].East)
+        if (Maze.Player.X > 0 && !Maze.Cells[Maze.Player.Y][Maze.Player.X-1].East)
         {
-            maze.Player.X--;
+            Maze.Player.X--;
             UpdatePlayerDrawerPosition();
             RedrawPlayer();
         }
     }
     public void MoveRight()
     {
-        if (maze.Player.X < maze.Width - 1 && !maze.Cells[maze.Player.Y][maze.Player.X].East)
+        if (Maze.Player.X < Maze.Width - 1 && !Maze.Cells[Maze.Player.Y][Maze.Player.X].East)
         {
-            maze.Player.X++;
+            Maze.Player.X++;
             UpdatePlayerDrawerPosition();
             RedrawPlayer();
         }
     }
     public void MoveUp()
     {
-        if (maze.Player.Y > 0 && !maze.Cells[maze.Player.Y][maze.Player.X].North)
+        if (Maze.Player.Y > 0 && !Maze.Cells[Maze.Player.Y][Maze.Player.X].North)
         {
-            maze.Player.Y--;
+            Maze.Player.Y--;
             UpdatePlayerDrawerPosition();
             RedrawPlayer();
         }  
     }
     public void MoveDown()
     {
-        if (maze.Player.Y < maze.Height- 1 && !maze.Cells[maze.Player.Y+1][maze.Player.X].North)
+        if (Maze.Player.Y < Maze.Height- 1 && !Maze.Cells[Maze.Player.Y+1][Maze.Player.X].North)
         {
-            maze.Player.Y++;
+            Maze.Player.Y++;
             UpdatePlayerDrawerPosition();
             RedrawPlayer();
         }
@@ -305,23 +307,28 @@ public partial class BasicGridPage : ContentPage
         MoveRight();
     }
 
+
     public void UpdatePlayerDrawerPosition()
     {
-        drawer.PlayerX = maze.Player.X;
-        drawer.PlayerY = maze.Player.Y;
+        drawer.PlayerX = Maze.Player.X;
+        drawer.PlayerY = Maze.Player.Y;
 
-        if (maze.Player.X == maze.End.Item1 && maze.Player.Y == maze.End.Item2)
+        if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
         {
+            //await RedrawPlayer();
             CompletedMaze();
         }
     }
 
     public void CompletedMaze()
     {
-        // Create the winning screen over top of the maze
+        this.ShowPopup(new CampaignMazeFinishedPopupPage(5, 40, 554));
+
+
+        // Create the winning screen over top of the Maze
         // Score like time, number of moves, or amount of false steps
         // Award 0-3 stars
-        // Button to retry maze or exit back to previous screen
+        // Button to retry Maze or exit back to previous screen
     }
 
     protected override void OnSizeAllocated(double width, double height)

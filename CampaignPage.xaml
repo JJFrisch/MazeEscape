@@ -7,59 +7,91 @@
 
 
     <!-- Battle Cats type of campain screen
-         Each level has a maze and is represented by a circle or somthing (image button) 
+         Each level has a Maze and is represented by a circle or somthing (image button) 
          If the previous level is completed (at least 1 star), the next level opens up and is clickable
          Horizontal scroll to future levels.
     At some point is a gate where a high number of stars needs to be eared to unlock and continue
     At the bottom of the screen is a couple "power ups" like a hint or path solver or hot/cold
     (image) and number of power up owned (label)
     
-    -->
+    -->  
 
-    <ScrollView x:Name="campaignScrollView" Orientation="Horizontal">
-        <AbsoluteLayout x:Name="CampaignAbsoluteLayout"
-            BackgroundColor="AntiqueWhite"
-            HeightRequest="700"
-            WidthRequest="2000">
+    
+        <AbsoluteLayout x:Name="CampaignAbsoluteLayout" Margin="0,-80,0,0"
+            BackgroundColor="AntiqueWhite">
 
-            <Image AbsoluteLayout.LayoutBounds="0.5,0.4,1,0.8"
+
+        <Label x:Name="starCountLabel"
+               FontSize="28"
+               TextColor="SaddleBrown"
+               VerticalTextAlignment="Center"
+            AbsoluteLayout.LayoutBounds="1,0,60,0.1"
+            AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"/>
+
+        <Label Text="Stars:"
+               FontSize="28"
+               TextColor="SaddleBrown"
+               VerticalTextAlignment="Center"
+               HorizontalOptions="Start"
+            AbsoluteLayout.LayoutBounds="1,0,160,0.1"
+            AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"/>
+
+        <ScrollView x:Name="campaignScrollView" Orientation="Horizontal"
+                    AbsoluteLayout.LayoutBounds="0.5,0.4,1,0.8"
+                    AbsoluteLayout.LayoutFlags="All">
+
+            <AbsoluteLayout HeightRequest="500"
+                            WidthRequest="1400">
+
+                <Image AbsoluteLayout.LayoutBounds="1,1,1,1"
                    AbsoluteLayout.LayoutFlags="All"
                    Source="campaign_background_1.png"
-                   Aspect="Fill"
-                   />
+                   Aspect="Fill"/>
 
-            <Grid x:Name="campaignLevelGrid"
-                Padding="25,4"
-                AbsoluteLayout.LayoutBounds="0.5,0.4,1,0.8"
+
+                <Grid x:Name="campaignLevelGrid" 
+                Padding="3,0"
+                AbsoluteLayout.LayoutBounds="0,0,1,1"
                 AbsoluteLayout.LayoutFlags="All"
                 ColumnDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*"
                 RowDefinitions="*,*,*,*,*">
 
-                <!--
-                <ImageButton Grid.Column="3"
-                        Grid.Row="3"
-                        Style="{DynamicResource campaignLevelImageButtons}"/>
-                
-                <Label Grid.Column="3"
-                        Grid.Row="3"
-                        Text="1"
-                        Style="{DynamicResource campaignLevelLabel}"/>
 
-                <ImageButton Grid.Column="19"
-        Grid.Row="0"
-        Style="{DynamicResource campaignLevelImageButtons}"/>
+                </Grid>
 
-                <Label Grid.Column="3"
-        Grid.Row="2"
-        Text="1"
-        Style="{DynamicResource campaignLevelLabel}"/> -->
+            </AbsoluteLayout>
+
+        </ScrollView>
+
+                <ImageButton Source="back_button_image.png"
+                         AbsoluteLayout.LayoutBounds="30,0.97,50,50"
+                         AbsoluteLayout.LayoutFlags="YProportional"
+                         Clicked="BackButton_Clicked"/>
+
+            <BoxView AbsoluteLayout.LayoutBounds="1,0.983,0.5,75"
+                     AbsoluteLayout.LayoutFlags="PositionProportional,WidthProportional"
+                     BackgroundColor="Grey"
+                     Opacity="0.5"
+                     CornerRadius="20,0,20,0"/>
+
+            <ImageButton x:Name="shopButton" Clicked="OnShopButtonClicked"  
+                        AbsoluteLayout.LayoutBounds="0.95,0.982,70,70"
+                        AbsoluteLayout.LayoutFlags="PositionProportional"
+                        Source="shop_button_image.png"/>
+
+            <Image x:Name="coinImage"
+                AbsoluteLayout.LayoutBounds="0.5,0.97,60,50"
+                AbsoluteLayout.LayoutFlags="PositionProportional"
+                Source="level_button_icon.png"/>
+
+            <Label x:Name="CoinCountLabel"
+                   FontSize="18"
+                   VerticalTextAlignment="Center"
+                AbsoluteLayout.LayoutBounds="0.7,0.983,60,75"
+                AbsoluteLayout.LayoutFlags="PositionProportional"/>
 
 
-            </Grid>
-
-
-        </AbsoluteLayout>
-    </ScrollView>
+    </AbsoluteLayout>
     
     
 </ContentPage>

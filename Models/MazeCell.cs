@@ -9,7 +9,7 @@ namespace MazeEscape.Models
     
     public class MazeCell
     {
-        // X and Y positions on a maze
+        // X and Y positions on a Maze
         public int X {  get; set; }
         public int Y { get; set; }
 

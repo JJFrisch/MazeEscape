@@ -9,7 +9,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MazeEscape.Models
 {
-    public class Maze
+    public class MazeModel
     {
         public List<List<MazeCell>> Cells { get; set; }
         public List<(int, int)> Path {  get; set; }
@@ -22,10 +22,24 @@ namespace MazeEscape.Models
         public PlayerModel Player = new PlayerModel(0,0);
 
         public System.Random rnd = new System.Random();
-        public Maze()
+
+        // Types so far: GenerateBacktracking, GenerateHuntAndKill
+        public List<string> MazeTypes = new List<string> { "GenerateBacktracking", "GenerateHuntAndKill" };
+        public delegate void MazeGenerationDelegate (int width, int height);
+        public Dictionary<string, MazeGenerationDelegate> MazeGenerationDelegateList;
+
+
+
+        public MazeModel()
         {
             Cells = new List<List<MazeCell>>();
             Path = new List<(int, int)> ();
+
+            MazeGenerationDelegateList = new Dictionary<string, MazeGenerationDelegate> ();
+            MazeGenerationDelegateList.Add("GenerateBacktracking", GenerateBacktracking);
+            MazeGenerationDelegateList.Add("GenerateHuntAndKill", GenerateHuntAndKill);
+
+
         }
 
         public (int,int) RandomStart()

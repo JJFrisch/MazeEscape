@@ -18,8 +18,8 @@
 
         <Image AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
            AbsoluteLayout.LayoutFlags="All"
-           Source="maze_home_screen_3.png"
-           Aspect="AspectFit"/>
+           Source="Maze_home_screen_3.png"
+           Aspect="AspectFill"/>
 
 
         <ImageButton

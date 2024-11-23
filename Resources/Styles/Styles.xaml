@@ -27,10 +27,17 @@
                     Value="monospace" />
     </Style>
 
-    <Style x:Key="greenButtonStyle"
-           TargetType="Button">
-        <Setter Property="FontAttributes" Value="None" />
-        <Setter Property="TextColor" Value="Green" />
+    <Style x:Key="menuImageButtonStyle" TargetType="ImageButton">
+        <Setter Property="HorizontalOptions"
+                Value="Center" />
+        <Setter Property="VerticalOptions"
+                Value="Center" />
+        <Setter Property="CornerRadius"
+                Value="20" />
+        <Setter Property="WidthRequest"
+                Value="75" />
+        <Setter Property="Aspect"
+                Value="AspectFit" />
     </Style>
 
     <Style x:Key="baseImageButtonStyle" TargetType="ImageButton">
@@ -62,6 +69,17 @@
             Value="Medium" />
         <Setter Property="TextColor"
             Value="White" />
+    </Style>
+
+    <Style x:Key="dataLabel" TargetType="Label">
+        <Setter Property="HorizontalOptions"
+                Value="Center" />
+        <Setter Property="VerticalOptions"
+                Value="Center" />
+        <Setter Property="FontSize"
+                Value="Small" />
+        <Setter Property="TextColor"
+                 Value="White" />
     </Style>
 
 

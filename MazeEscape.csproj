@@ -24,7 +24,7 @@
 		<ApplicationTitle>MazeEscape</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.mazeescape</ApplicationId>
+		<ApplicationId>com.companyname.Mazeescape</ApplicationId>
 
 		<!-- Versions -->
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -62,18 +62,18 @@
 
 	<ItemGroup>
 	  <None Remove="Resources\Images\campaign_background_1.png" />
-	  <None Remove="Resources\Images\carousel_maze_1.png" />
-	  <None Remove="Resources\Images\carousel_maze_2.png" />
-	  <None Remove="Resources\Images\carousel_maze_3.png" />
-	  <None Remove="Resources\Images\carousel_maze_4.png" />
+	  <None Remove="Resources\Images\carousel_Maze_1.png" />
+	  <None Remove="Resources\Images\carousel_Maze_2.png" />
+	  <None Remove="Resources\Images\carousel_Maze_3.png" />
+	  <None Remove="Resources\Images\carousel_Maze_4.png" />
 	  <None Remove="Resources\Images\level_button_icon.png" />
-	  <None Remove="Resources\Images\maze_home_screen_1.png" />
-	  <None Remove="Resources\Images\maze_home_screen_2.png" />
-	  <None Remove="Resources\Images\maze_home_screen_3.png" />
+	  <None Remove="Resources\Images\Maze_home_screen_1.png" />
+	  <None Remove="Resources\Images\Maze_home_screen_2.png" />
+	  <None Remove="Resources\Images\Maze_home_screen_3.png" />
 	  <None Remove="Resources\Images\player_image.png" />
 	  <None Remove="Resources\Images\play_button_image_1.png" />
 	  <None Remove="Resources\Images\play_button_image_2.png" />
-	  <None Remove="Resources\Images\title_maze_escape.png" />
+	  <None Remove="Resources\Images\title_Maze_escape.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -81,14 +81,23 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.1" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="SharpHook.Reactive" Version="5.3.8" />
+		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.10" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <MauiXaml Update="BasicGridPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="CampaignLevelPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="CampaignMazeFinishedPopupPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="CampaignPage.xaml">
@@ -98,6 +107,12 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="LoadingPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="SettingsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="ShopPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

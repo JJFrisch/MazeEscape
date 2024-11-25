@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MazeEscape.FinishedMazePage"
+             Title="FinishedMazePage">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+     </ContentPage.Resources>
+
+            <AbsoluteLayout>
+
+        <Image AbsoluteLayout.LayoutBounds="1,1,1,1"
+            AbsoluteLayout.LayoutFlags="All" 
+            Source="background_paper.png"
+            Aspect="Fill"
+            Opacity="0.6"/>
+
+        <BoxView AbsoluteLayout.LayoutBounds="0.5,0.5,0.9,0.8"
+              AbsoluteLayout.LayoutFlags="All" 
+              Opacity="0.3"
+              BackgroundColor="Gray"
+              CornerRadius="40,0,0,40"/>
+
+        <Label Text="Maze Complete" AbsoluteLayout.LayoutBounds="0.5,0.15,0.5,0.2"
+            AbsoluteLayout.LayoutFlags="All"
+            Style="{DynamicResource campaignLevelLabel}"
+            FontSize="Large"
+            TextColor="CadetBlue"/>
+        <Label Text="Well Done!"
+            AbsoluteLayout.LayoutBounds="0.5,0.29,0.5,0.2"
+            AbsoluteLayout.LayoutFlags="All"
+            Style="{DynamicResource campaignLevelLabel}"
+            FontSize="Medium"
+            TextColor="CadetBlue"/>
+
+        <HorizontalStackLayout Spacing="60" HorizontalOptions="Center"
+                            AbsoluteLayout.LayoutBounds="0.5,0.5,1,0.3"
+                            AbsoluteLayout.LayoutFlags="All">
+            <Label x:Name="scoreLabel" Style="{DynamicResource dataLabel}"/>
+            <Label x:Name="timeLabel" Style="{DynamicResource dataLabel}"/>
+            <Label x:Name="movesLabel" Style="{DynamicResource dataLabel}"/>
+
+        </HorizontalStackLayout>
+
+
+        <HorizontalStackLayout AbsoluteLayout.LayoutBounds="0.5,0.8,0.8,0.2"
+                            AbsoluteLayout.LayoutFlags="All"
+                            Padding="10"
+                            Spacing="20"
+                            HorizontalOptions="Center">
+            <!--<Button Text="Retry"
+                             Clicked="OnRetryButtonClicked" 
+                             Style="{DynamicResource baseButtonStyle}"/> -->
+            <Button Text="Close"
+                             Clicked="CloseButton_Clicked" 
+                             Style="{DynamicResource baseButtonStyle}"/>
+        </HorizontalStackLayout>
+
+    </AbsoluteLayout>
+
+</ContentPage>

@@ -140,8 +140,8 @@ public partial class ShopPage : ContentPage
         }
     }
 
-    private void BackButton_Clicked(object sender, EventArgs e)
+    private async void BackButton_Clicked(object sender, EventArgs e)
     {
-        Navigation.PopAsync();
+        await Navigation.PopAsync();
     }
 }

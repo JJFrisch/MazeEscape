@@ -41,7 +41,7 @@
                     HorizontalOptions="Center" VerticalOptions="Center"
                    TextColor="White"/>
             <ImageButton x:Name="shopButton" Clicked="OnShopButtonClicked"  
-                    AbsoluteLayout.LayoutBounds="0.5,0.002,1,0.1"
+                    AbsoluteLayout.LayoutBounds="0.5,0.013,1,0.08"
                     AbsoluteLayout.LayoutFlags="All"
                     HorizontalOptions="End"
                     Style="{StaticResource menuImageButtonStyle}"

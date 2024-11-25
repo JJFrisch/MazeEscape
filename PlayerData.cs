@@ -21,6 +21,8 @@ namespace MazeEscape
 
         public static int HotAndColdsOwned = 0;
 
+        public const int WindowWidth = 400;
+        public const int WindowHeight = 670;
 
 
         public async static void Initialize()

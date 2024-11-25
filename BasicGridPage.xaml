@@ -2,23 +2,23 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:drawables="clr-namespace:MazeEscape.Drawables"
-             x:Class="MazeEscape.BasicGridPage"
-             BackgroundColor="Green">
+             x:Class="MazeEscape.BasicGridPage">
 
     <ContentPage.Resources>
         <drawables:PlayerDrawable x:Key="playerDrawable"/>
     </ContentPage.Resources>
     
     
-    <HorizontalStackLayout Padding="50" Spacing="30">
+    <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="Green">
 
-        <AbsoluteLayout x:Name="main_absolute_layout"
-                    WidthRequest="800"
-                    HeightRequest="600"
-                    BackgroundColor="White">
+        <AbsoluteLayout x:Name="main_absolute_layout">
+
+            <BoxView AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
+                     AbsoluteLayout.LayoutFlags="All"
+                     BackgroundColor="White"/>
 
             <Grid x:Name="mazeGrid"
-                  AbsoluteLayout.LayoutBounds="1,1,1,1"
+                  AbsoluteLayout.LayoutBounds="0,0,1,1"
                   AbsoluteLayout.LayoutFlags="All">
             
             </Grid>
@@ -27,7 +27,7 @@
 
             <GraphicsView Drawable="{DynamicResource playerDrawable}"
                           x:Name="PlayerGraphicsView"
-                          AbsoluteLayout.LayoutBounds="1,1,1,1"
+                          AbsoluteLayout.LayoutBounds="0,0,1,1"
                           AbsoluteLayout.LayoutFlags="All"> 
 
             </GraphicsView>
@@ -41,7 +41,7 @@
             <Button Text="Right" Clicked="OnRightClicked"/>
         </VerticalStackLayout>
 
-    </HorizontalStackLayout>
+    </AbsoluteLayout>
 
 
 </ContentPage>

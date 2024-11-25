@@ -1,12 +1,51 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:drawables="clr-namespace:MazeEscape.Drawables"
              x:Class="MazeEscape.CampaignLevelPage"
-             Title="CampaignLevelPage">
-    <VerticalStackLayout>
-        <Label x:Name="title"
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             BackgroundColor="AliceBlue">
+
+    <ContentPage.Resources>
+        <drawables:PlayerDrawable x:Key="playerDrawable"/>
+    </ContentPage.Resources>
+
+
+
+    <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="Green">
+
+        <AbsoluteLayout x:Name="main_absolute_layout">
+
+            <BoxView AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
+                 AbsoluteLayout.LayoutFlags="All"
+                 BackgroundColor="White"/>
+
+            <Grid x:Name="mazeGrid"
+              AbsoluteLayout.LayoutBounds="0,0,1,1"
+              AbsoluteLayout.LayoutFlags="All">
+
+            </Grid>
+
+
+
+            <GraphicsView Drawable="{DynamicResource playerDrawable}"
+                      x:Name="PlayerGraphicsView"
+                      AbsoluteLayout.LayoutBounds="0,0,1,1"
+                      AbsoluteLayout.LayoutFlags="All">
+
+            </GraphicsView>
+
+        </AbsoluteLayout>
+
+        <VerticalStackLayout Padding="10" Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
+            <Button Text="Up" Clicked="OnUpClicked"/>
+            <Button Text="Down" Clicked="OnDownClicked"/>
+            <Button Text="Left" Clicked="OnLeftClicked"/>
+            <Button Text="Right" Clicked="OnRightClicked"/>
+        </VerticalStackLayout>
+
+    </AbsoluteLayout>
+
+
+
+
 </ContentPage>

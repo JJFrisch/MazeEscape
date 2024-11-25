@@ -14,8 +14,8 @@ using System.Threading.Tasks;
 
 public partial class BasicGridPage : ContentPage
 {
-    public double WindowWidth;
-    public double WindowHeight;
+    public double MazeWindowWidth = PlayerData.WindowWidth * 0.95;
+    public double MazeWindowHeight = PlayerData.WindowHeight * 0.8;
 
 
     MazeModel Maze = new MazeModel();
@@ -27,6 +27,9 @@ public partial class BasicGridPage : ContentPage
     {
         InitializeComponent();
 
+        AbsoluteLayout.SetLayoutBounds(main_absolute_layout, new Rect(0.5, 0.5, MazeWindowWidth, MazeWindowHeight));
+        AbsoluteLayout.SetLayoutFlags(main_absolute_layout, AbsoluteLayoutFlags.PositionProportional);
+
         InitializeReactiveKeyboard();
 
         drawer = new PlayerDrawable();
@@ -34,7 +37,7 @@ public partial class BasicGridPage : ContentPage
         PlayerGraphicsView.Drawable = drawer;
         drawer.Initialize();
 
-        InitializeMaze(60, 20);
+        InitializeMaze(4, 4);
 
         DrawMaze("line");
 
@@ -61,6 +64,9 @@ public partial class BasicGridPage : ContentPage
     public BasicGridPage(int width, int height, string title)
     {
         InitializeComponent();
+
+        AbsoluteLayout.SetLayoutBounds(main_absolute_layout, new Rect(0.5, 0.5, MazeWindowWidth, MazeWindowHeight));
+        AbsoluteLayout.SetLayoutFlags(main_absolute_layout, AbsoluteLayoutFlags.PositionProportional);
 
         InitializeReactiveKeyboard();
 
@@ -117,10 +123,8 @@ public partial class BasicGridPage : ContentPage
         Maze.GenerateBacktracking(width, height);
         //Maze.GenerateHuntAndKill(width, height);
 
-        WindowWidth = 800;
-        WindowHeight = 600;
-        drawer.WindowWidth = WindowWidth;
-        drawer.WindowHeight = WindowHeight;
+        drawer.WindowWidth = MazeWindowWidth;
+        drawer.WindowHeight = MazeWindowHeight;
 
         drawer.MazeHeight = Maze.Height;
         drawer.MazeWidth = Maze.Width;
@@ -141,10 +145,10 @@ public partial class BasicGridPage : ContentPage
         dict_str_to_color.Add("s", Colors.Green);
         dict_str_to_color.Add("F", Colors.Red);
 
-        int cell_width = (int)(WindowWidth / Maze.Width);
-        int cell_height = (int)(WindowHeight / Maze.Height);
+        double cell_width = MazeWindowWidth / Maze.Width;
+        double cell_height = MazeWindowHeight / Maze.Height;
 
-        int line_thickness = 4;
+        int line_thickness = 2;
 
         for (var h = 0; h < Maze.Height; h++)
         {
@@ -315,30 +319,20 @@ public partial class BasicGridPage : ContentPage
 
         if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
         {
-            //await RedrawPlayer();
+            RedrawPlayer();
             CompletedMaze();
         }
     }
 
     public void CompletedMaze()
     {
-        this.ShowPopup(new CampaignMazeFinishedPopupPage(5, 40, 554));
+        //Navigation.PushAsync(new CampaignMazeFinishedPopupPage(5, 40, 554));
 
 
         // Create the winning screen over top of the Maze
         // Score like time, number of moves, or amount of false steps
         // Award 0-3 stars
         // Button to retry Maze or exit back to previous screen
-    }
-
-    protected override void OnSizeAllocated(double width, double height)
-    {
-        base.OnSizeAllocated(width, height);
-
-        //WindowWidth = Width;
-        //WindowHeight = Height;
-        //drawer.WindowHeight = Height;
-        //drawer.WindowWidth = Width;
     }
 
     protected override void OnDisappearing()

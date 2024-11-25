@@ -1,8 +1,6 @@
 using MazeEscape.Models;
 using Microsoft.Maui.Controls;
 using System.Collections.ObjectModel;
-
-//using Microsoft.Maui.Controls.PlatformConfiguration.AndroidSpecific;
 using System.ComponentModel;
 
 
@@ -19,14 +17,16 @@ public partial class CampaignPage : ContentPage
     public CampaignPage()
 	{
 		InitializeComponent();
+        campaignMazeBackgroundAbsoluteLayout.HeightRequest = 0.75 * PlayerData.WindowHeight;
+
         database = new LevelDatabase();
         HighestLevel = 0;
 
-        //InitializeLevelList();
+        InitializeLevelList();
 
         LoadFromDatabase();
 
-        InitializeLevelButtons();
+        //InitializeLevelButtons();
 
     }
 
@@ -101,15 +101,15 @@ public partial class CampaignPage : ContentPage
         await imageButton.ScaleTo(1.2, 1000);
 
         var page = new CampaignLevelPage(level);
-        page.LevelSaved += async (obj, copyOfLevel) => {
+        page.LevelSaved += (obj, copyOfLevel) => { // Any variables that may be changed
             level.BestTime = copyOfLevel.BestTime;
             level.BestMoves = copyOfLevel.BestMoves;
             level.Completed = copyOfLevel.Completed;
             level.Star1 = copyOfLevel.Star1;
             level.Star2 = copyOfLevel.Star2;
             level.Star3 = copyOfLevel.Star3;
-            await database.SaveLevelAsync(level);
         };
+        await database.SaveLevelAsync(level);
         await Navigation.PushAsync(page);
 
 
@@ -122,7 +122,7 @@ public partial class CampaignPage : ContentPage
         await database.DeleteAllLevelsAsync();
 
         CampaignLevels = new ObservableCollection<CampaignLevel>();
-        CampaignLevels.Add(new CampaignLevel(1,10,10, "GenerateBacktracking"));
+        CampaignLevels.Add(new CampaignLevel(1,4,4, "GenerateBacktracking"));
         CampaignLevels.Add(new CampaignLevel(2,10,12, "GenerateBacktracking"));
         CampaignLevels.Add(new CampaignLevel(3,12,12, "GenerateBacktracking"));
         CampaignLevels.Add(new CampaignLevel(4,14, 12, "GenerateBacktracking"));

@@ -101,8 +101,8 @@ namespace MazeEscape.Models
             }
         }
 
-        private int bestTime;
-        public int BestTime
+        private TimeSpan bestTime;
+        public TimeSpan BestTime
         {
             get { return bestTime; }
             set
@@ -126,7 +126,7 @@ namespace MazeEscape.Models
             Star2 = false;
             Star3 = false;
             BestMoves = 10000000;
-            BestTime = 100000000;
+            BestTime = new TimeSpan(20, 14, 18);
 
             Maze.MazeGenerationDelegateList[type](width, height);
 
@@ -146,7 +146,7 @@ namespace MazeEscape.Models
             Star2 = false;
             Star3 = false;
             BestMoves = 10000000;
-            BestTime = 100000000;
+            BestTime = new TimeSpan(20, 14, 18);
 
             Maze.MazeGenerationDelegateList[type](width, height);
         }
@@ -161,7 +161,7 @@ namespace MazeEscape.Models
             Star2 = false;
             Star3 = false;
             BestMoves = 10000000;
-            BestTime = 100000000;
+            BestTime = new TimeSpan(20, 14, 18);
         }
 
 

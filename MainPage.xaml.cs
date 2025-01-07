@@ -6,11 +6,26 @@ namespace MazeEscape
 {
     public partial class MainPage : ContentPage
     {
-        public List<CarouselImage> CarouselImages { get; set; } = new List<CarouselImage>();
+        //public List<CarouselImage> CarouselImages { get; set; } = new List<CarouselImage>();
 
         public MainPage()
         {
             InitializeComponent();
+        }
+        protected override async void OnAppearing()
+        {
+            base.OnAppearing();
+
+            if (PlayerData.PlayerName == "")
+            {
+                InitializePlayer();
+                await PlayerData.InitializeLevels();
+            }
+            else
+            {
+                usernameLabel.Text = "__" + PlayerData.PlayerName + "__";
+            }
+
         }
 
 
@@ -45,19 +60,6 @@ namespace MazeEscape
             await Navigation.PushAsync(new ShopPage());
         }
 
-        protected override void OnAppearing()
-        {
-            base.OnAppearing();
-
-            if (PlayerData.PlayerName == "")
-            {
-                InitializePlayer();
-            }
-            else
-            {
-                usernameLabel.Text = "__" + PlayerData.PlayerName + "__";
-            }
-        }
     }
 
 }

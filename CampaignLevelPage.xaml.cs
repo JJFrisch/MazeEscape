@@ -1,13 +1,11 @@
+using CommunityToolkit.Maui.Views;
 using MazeEscape.Drawables;
 using MazeEscape.Models;
 using Microsoft.Maui.Layouts;
 using SharpHook;
+using SharpHook.Native;
 using SharpHook.Reactive;
 using System.Reactive.Linq;
-using System.Collections.Generic;
-using System.Numerics;
-using SharpHook.Native;
-using CommunityToolkit.Maui.Core;
 
 
 namespace MazeEscape;
@@ -17,7 +15,7 @@ public partial class CampaignLevelPage : ContentPage
     public event EventHandler<CampaignLevel>? LevelSaved;
     CampaignLevel Level;
 
-    public double MazeWindowWidth = PlayerData.WindowWidth * 0.95;
+    public double MazeWindowWidth = PlayerData.WindowWidth * 0.9;
     public double MazeWindowHeight = PlayerData.WindowHeight * 0.8;
 
     MazeModel Maze = new MazeModel();
@@ -25,8 +23,10 @@ public partial class CampaignLevelPage : ContentPage
     PlayerDrawable drawer;
     SimpleReactiveGlobalHook? hook;
 
-    TimeSpan Time;
-    public int Moves;
+    private DateTime timeStarted;
+    public int numberOfMoves = 0;
+    private bool running;
+    TimeSpan TotalTime;
 
 
     public CampaignLevelPage(CampaignLevel level)
@@ -41,7 +41,7 @@ public partial class CampaignLevelPage : ContentPage
         InitializeReactiveKeyboard();
 
         drawer = new PlayerDrawable();
-        PlayerGraphicsView.Drawable = drawer;
+        mazeGraphicsView.Drawable = drawer;
         drawer.Initialize();
 
         InitializeMaze();
@@ -51,11 +51,52 @@ public partial class CampaignLevelPage : ContentPage
         UpdatePlayerDrawerPosition();
 
         AddSwipeGestures();
+    }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        StartTimer();
+
+    }
+
+    private void StartTimer()
+    {
+        timeStarted = DateTime.Now;
+        running = true;
+        Thread thread = new Thread(timer);
+        thread.Start();
+    }
+
+    private void EndTimer()
+    {
+        running = false;
+    }
+
+    private void timer() // credit for timer function: InstructionsCentral, YouTube https://www.youtube.com/watch?v=pT2qtpy9Nss
+    {
+        if (running == false)
+        {
+            DateTime time = DateTime.Now;
+            TotalTime = time - timeStarted;
+            return;
+        }
+        else
+        {
+            DateTime time = DateTime.Now;
+            TimeSpan timePassed = time - timeStarted;
+            Dispatcher.Dispatch(new Action(() =>
+            {
+                labelTimer.Text = timePassed.ToString();
+            }));
+            Thread.Sleep(10);
+            timer();
+        }
     }
 
     void OnSwiped(object sender, SwipedEventArgs e)
     {
+
         switch (e.Direction)
         {
             case SwipeDirection.Left:
@@ -195,16 +236,16 @@ public partial class CampaignLevelPage : ContentPage
             SwipeGestureRecognizer downSwipeGesture = new SwipeGestureRecognizer { Direction = SwipeDirection.Down };
             downSwipeGesture.Swiped += OnSwiped;
 
-            PlayerGraphicsView.GestureRecognizers.Add(leftSwipeGesture);
-            PlayerGraphicsView.GestureRecognizers.Add(rightSwipeGesture);
-            PlayerGraphicsView.GestureRecognizers.Add(upSwipeGesture);
-            PlayerGraphicsView.GestureRecognizers.Add(downSwipeGesture);
+            mazeGraphicsView.GestureRecognizers.Add(leftSwipeGesture);
+            mazeGraphicsView.GestureRecognizers.Add(rightSwipeGesture);
+            mazeGraphicsView.GestureRecognizers.Add(upSwipeGesture);
+            mazeGraphicsView.GestureRecognizers.Add(downSwipeGesture);
         }
     }
 
     public void RedrawPlayer()
     {
-        PlayerGraphicsView.Invalidate();
+        mazeGraphicsView.Invalidate();
     }
 
 
@@ -212,6 +253,7 @@ public partial class CampaignLevelPage : ContentPage
     {
         if (Maze.Player.X > 0 && !Maze.Cells[Maze.Player.Y][Maze.Player.X - 1].East)
         {
+
             Maze.Player.X--;
             UpdatePlayerDrawerPosition();
             RedrawPlayer();
@@ -221,6 +263,7 @@ public partial class CampaignLevelPage : ContentPage
     {
         if (Maze.Player.X < Maze.Width - 1 && !Maze.Cells[Maze.Player.Y][Maze.Player.X].East)
         {
+
             Maze.Player.X++;
             UpdatePlayerDrawerPosition();
             RedrawPlayer();
@@ -230,6 +273,7 @@ public partial class CampaignLevelPage : ContentPage
     {
         if (Maze.Player.Y > 0 && !Maze.Cells[Maze.Player.Y][Maze.Player.X].North)
         {
+
             Maze.Player.Y--;
             UpdatePlayerDrawerPosition();
             RedrawPlayer();
@@ -239,6 +283,7 @@ public partial class CampaignLevelPage : ContentPage
     {
         if (Maze.Player.Y < Maze.Height - 1 && !Maze.Cells[Maze.Player.Y + 1][Maze.Player.X].North)
         {
+
             Maze.Player.Y++;
             UpdatePlayerDrawerPosition();
             RedrawPlayer();
@@ -282,49 +327,66 @@ public partial class CampaignLevelPage : ContentPage
 
     public void UpdatePlayerDrawerPosition()
     {
-        drawer.PlayerX = Maze.Player.X;
-        drawer.PlayerY = Maze.Player.Y;
+        drawer.XPos = Maze.Player.X;
+        drawer.YPos = Maze.Player.Y;
+
+        numberOfMoves++;
 
         if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
         {
-            RedrawPlayer();
             CompletedMaze();
         }
     }
 
-    public void CompletedMaze()
+    public async void CompletedMaze()
     {
         // Score like time, number of moves, or amount of false steps
         // Award 0-3 stars
         // Button to retry Maze or exit back to previous screen
 
-        int timeTemp = 20;
-        int movesTemp = 20;
+        EndTimer();
+        double time = TotalTime.TotalSeconds;
 
         Level.Star1 = true;
 
-        if (timeTemp <= Level.ThreeStarTime)
+        if (time <= Level.ThreeStarTime)
         {
             Level.Star3 = true;
         }
-        if (movesTemp <= Level.TwoStarMoves)
+        if (numberOfMoves <= Level.TwoStarMoves)
         {
             Level.Star2 = true;
         }
         
-        if (timeTemp < Level.BestTime)
+        if (time < Level.BestTime.TotalSeconds)
         {
-            Level.BestTime = timeTemp;
+            Level.BestTime = TotalTime;
         }
-        if (movesTemp < Level.BestMoves)
+        if (numberOfMoves < Level.BestMoves)
         {
-            Level.BestMoves = movesTemp;
+            Level.BestMoves = numberOfMoves;
         }
 
+        await main_absolute_layout.FadeTo(0.2, 1000);
         LevelSaved?.Invoke(this, Level);
-        Navigation.PopAsync();
-        
-        //await Navigation.PushModalAsync(new FinishedMazePage(Level, timeTemp, movesTemp));
+
+        try
+        {
+            mazeGraphicsView.IsGameOver = false;
+            var result = await this.ShowPopupAsync(new CampaignMazeFinishedPopupPage(TotalTime, numberOfMoves, Level), CancellationToken.None);
+            if ((bool)result)
+            {
+                await Navigation.PushModalAsync(new CampaignLevelPage(Level));
+            }
+            else
+            {
+                await Navigation.PushModalAsync(new CampaignPage());
+            }
+        }
+        catch (Exception ex)
+        {
+            mazeGraphicsView.IsGameOver = true;
+        }
 
     }
 

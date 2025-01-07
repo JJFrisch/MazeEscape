@@ -3,53 +3,40 @@ using Microsoft.Maui.Controls;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 
-
-
 namespace MazeEscape;
 
 public partial class CampaignPage : ContentPage 
 {
-    public int HighestLevel;
-
-    static LevelDatabase database;
-    static ObservableCollection<CampaignLevel> CampaignLevels = new ObservableCollection<CampaignLevel>();
+    static ObservableCollection<CampaignLevel> campaignLevels = new ObservableCollection<CampaignLevel>();
 
     public CampaignPage()
 	{
-		InitializeComponent();
+        InitializeComponent();
         campaignMazeBackgroundAbsoluteLayout.HeightRequest = 0.75 * PlayerData.WindowHeight;
-
-        database = new LevelDatabase();
-        HighestLevel = 0;
-
-        InitializeLevelList();
-
-        LoadFromDatabase();
-
-        //InitializeLevelButtons();
 
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
 
+        await LoadLevelsFromDatabase();
         InitializeLevelButtons();
 
         CoinCountLabel.Text = PlayerData.CoinCount.ToString();
         starCountLabel.Text = PlayerData.StarCount.ToString();
     }
 
-    public async void LoadFromDatabase()
+    public async Task LoadLevelsFromDatabase()
     {
-        CampaignLevels = new ObservableCollection<CampaignLevel>(await database.GetLevelsAsync());
+        campaignLevels = new ObservableCollection<CampaignLevel>(await PlayerData.levelDatabase.GetLevelsAsync());
     }
 
     List<(int, int)> levelButtonPositions = new List<(int, int)> { (3, 3), (3, 4), (2, 4), (2,3), (2,2), (1,2), (0,2), (0,1), (0,0)};
 
     public void InitializeLevelButtons()
     {
-        foreach (CampaignLevel level in CampaignLevels)
+        foreach (CampaignLevel level in campaignLevels)
         {
             (int x, int y) = levelButtonPositions[level.LevelNumber-1];
             ImageButton imageButton = new ImageButton
@@ -88,13 +75,6 @@ public partial class CampaignPage : ContentPage
         }
     }
 
-    private (int, int) MazeDifficultyByLevel(int l)
-    {
-        int w = l * 3;
-        int h = 4;
-        return (w, h);
-    }
-
     public async Task GoToLevel(CampaignLevel level, ImageButton imageButton)
     {
         _ = imageButton.FadeTo(0.5, 1000);
@@ -108,32 +88,13 @@ public partial class CampaignPage : ContentPage
             level.Star1 = copyOfLevel.Star1;
             level.Star2 = copyOfLevel.Star2;
             level.Star3 = copyOfLevel.Star3;
+            //await PlayerData.levelDatabase.SaveLevelAsync(level);
         };
-        await database.SaveLevelAsync(level);
-        await Navigation.PushAsync(page);
+        await Navigation.PushModalAsync(page);
 
 
         imageButton.Opacity = 1;
         imageButton.Scale = 1;
-    }
-
-    public async void InitializeLevelList()
-    {
-        await database.DeleteAllLevelsAsync();
-
-        CampaignLevels = new ObservableCollection<CampaignLevel>();
-        CampaignLevels.Add(new CampaignLevel(1,4,4, "GenerateBacktracking"));
-        CampaignLevels.Add(new CampaignLevel(2,10,12, "GenerateBacktracking"));
-        CampaignLevels.Add(new CampaignLevel(3,12,12, "GenerateBacktracking"));
-        CampaignLevels.Add(new CampaignLevel(4,14, 12, "GenerateBacktracking"));
-        CampaignLevels.Add(new CampaignLevel(5,14, 14, "GenerateBacktracking"));
-        CampaignLevels.Add(new CampaignLevel(6,20, 20, "GenerateBacktracking"));
-
-
-        foreach (var level in CampaignLevels)
-        {
-            await database.AddNewLevelAsync(level);
-        }
     }
 
 

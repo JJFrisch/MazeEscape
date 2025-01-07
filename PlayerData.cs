@@ -7,7 +7,9 @@ namespace MazeEscape
 {
     public static class PlayerData
     {
-        private static string PathName = "PlayerData";
+        private static string FilePathName = "PlayerData";
+
+        public static LevelDatabase levelDatabase = new LevelDatabase();
 
         public static string PlayerName = "";
 
@@ -24,11 +26,24 @@ namespace MazeEscape
         public const int WindowWidth = 400;
         public const int WindowHeight = 670;
 
-
-        public async static void Initialize()
+        public async static Task InitializeLevels()
         {
 
-            // Draw from App Data
+            await levelDatabase.DeleteAllLevelsAsync();
+
+            ObservableCollection<CampaignLevel> CampaignLevels = new ObservableCollection<CampaignLevel>();
+            CampaignLevels.Add(new CampaignLevel(1, 4, 4, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(2, 10, 12, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(3, 12, 12, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(4, 14, 12, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(5, 14, 14, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(6, 20, 20, "GenerateBacktracking"));
+
+
+            foreach (var level in CampaignLevels)
+            {
+                await levelDatabase.AddNewLevelAsync(level);
+            }
 
         }
 

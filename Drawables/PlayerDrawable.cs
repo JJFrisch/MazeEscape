@@ -11,17 +11,28 @@ using System.Numerics;
 namespace MazeEscape.Drawables
 {
 
-    internal class PlayerDrawable : BindableObject, IDrawable
+    internal class PlayerDrawable : View, IDrawable
     {
         IImage image;
 
-        public int PlayerX;
-        public int PlayerY;
-        public int Moves;
+        public int XPos;
+        public int YPos;
+        private int moves = 0;
+        public int Moves  
+        {
+            get => moves;
+            set
+            {
+                moves = value; OnPropertyChanged();
+            }
+        }
+
+
         public double WindowWidth;
         public double WindowHeight;
         public int MazeWidth;
         public int MazeHeight;
+
         //PlatformImage image;
         public void Initialize()
         {
@@ -36,8 +47,8 @@ namespace MazeEscape.Drawables
         {
             var cell_width = (float)(WindowWidth / MazeWidth);
             var cell_height = (float)(WindowHeight / MazeHeight);
-            var x_pos = (float)(PlayerX * cell_width);
-            var y_pos = (float)(PlayerY * cell_height);
+            var x_pos = (float)(XPos * cell_width);
+            var y_pos = (float)(YPos * cell_height);
             float scale = 1;
 
             if (image.Width > cell_width || image.Height > cell_height)
@@ -54,11 +65,9 @@ namespace MazeEscape.Drawables
 
             if (image != null)
             {
-                canvas.DrawImage(image, x_pos+xPadding, y_pos+yPadding, (image.Width * scale), (image.Height * scale));
+                canvas.DrawImage(image, x_pos + xPadding, y_pos + yPadding, (image.Width * scale), (image.Height * scale));
             }
 
         }
-
-
     }
 }

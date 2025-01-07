@@ -14,46 +14,58 @@
                Aspect="Fill"
                Opacity="0.6"/>
 
-        <BoxView AbsoluteLayout.LayoutBounds="0.5,0.5,0.9,0.8"
+        <BoxView AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
                  AbsoluteLayout.LayoutFlags="All" 
                  Opacity="0.3"
                  BackgroundColor="Gray"
                  CornerRadius="40,0,0,40"/>
 
-        <Label Text="Maze Complete" AbsoluteLayout.LayoutBounds="0.5,0.15,0.5,0.2"
-               AbsoluteLayout.LayoutFlags="All"
-               Style="{DynamicResource campaignLevelLabel}"
-               FontSize="Large"
-               TextColor="CadetBlue"/>
-        <Label Text="Well Done!"
-               AbsoluteLayout.LayoutBounds="0.5,0.29,0.5,0.2"
+        <Label Text="Maze Complete" AbsoluteLayout.LayoutBounds="0.5,0,0.7,0.2"
                AbsoluteLayout.LayoutFlags="All"
                Style="{DynamicResource campaignLevelLabel}"
                FontSize="Medium"
                TextColor="CadetBlue"/>
 
-        <HorizontalStackLayout Spacing="60" HorizontalOptions="Center"
-                               AbsoluteLayout.LayoutBounds="0.5,0.5,1,0.3"
-                               AbsoluteLayout.LayoutFlags="All">
-            <Label x:Name="scoreLabel" Style="{DynamicResource dataLabel}"/>
-            <Label x:Name="timeLabel" Style="{DynamicResource dataLabel}"/>
-            <Label x:Name="movesLabel" Style="{DynamicResource dataLabel}"/>
 
-        </HorizontalStackLayout>
+        
+        <Label x:Name="starTotalLabel"
+               Text="10"
+               AbsoluteLayout.LayoutBounds="0,0,50,50"  
+               AbsoluteLayout.LayoutFlags="None"
+               Style="{DynamicResource dataLabel}"/>
 
 
-        <HorizontalStackLayout AbsoluteLayout.LayoutBounds="0.5,0.8,0.8,0.2"
-                               AbsoluteLayout.LayoutFlags="All"
-                               Padding="10"
-                               Spacing="20"
-                               HorizontalOptions="Center">
-                        <Button Text="Retry"
-                                Clicked="OnRetryButtonClicked" 
-                                Style="{DynamicResource baseButtonStyle}"/>
-                        <Button Text="Close"
-                                Clicked="OnCloseButtonClicked" 
-                                Style="{DynamicResource baseButtonStyle}"/>
-        </HorizontalStackLayout>
+        <Image AbsoluteLayout.LayoutBounds="0.15,0.35,0.25,0.25"
+               AbsoluteLayout.LayoutFlags="All"
+               x:Name="starOneImage"/>
+
+        <Image AbsoluteLayout.LayoutBounds="0.5,0.2,0.25,0.25"
+               AbsoluteLayout.LayoutFlags="All"
+               x:Name="starTwoImage"/>      
+
+        <Image AbsoluteLayout.LayoutBounds="0.83,0.35,0.25,0.25"
+               AbsoluteLayout.LayoutFlags="All"
+               x:Name="starThreeImage"/>
+
+
+        <Label x:Name="timeLabel" Style="{DynamicResource dataLabel}"
+               AbsoluteLayout.LayoutBounds="0.4,0.8,0.2,0.2"
+               AbsoluteLayout.LayoutFlags="All"/>
+        <Label x:Name="movesLabel" Style="{DynamicResource dataLabel}"
+               AbsoluteLayout.LayoutBounds="0.6,0.8,0.2,0.2"
+               AbsoluteLayout.LayoutFlags="All"/>
+
+
+        <Button Text="Retry"
+                AbsoluteLayout.LayoutBounds="0.25,0.8,0.2,0.1"
+                AbsoluteLayout.LayoutFlags="All"
+                Clicked="OnRetryButtonClicked" 
+                Style="{DynamicResource baseButtonStyle}"/>
+        <Button Text="Close"
+                AbsoluteLayout.LayoutBounds="0.75,0.8,0.2,0.1"
+                AbsoluteLayout.LayoutFlags="All"
+                Clicked="OnCloseButtonClicked" 
+                Style="{DynamicResource baseButtonStyle}"/>
 
     </AbsoluteLayout>
 

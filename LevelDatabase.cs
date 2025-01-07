@@ -66,6 +66,5 @@ namespace MazeEscape
             await database.DeleteAllAsync<CampaignLevel>();
         }
 
-
     }
 }

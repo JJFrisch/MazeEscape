@@ -314,8 +314,8 @@ public partial class BasicGridPage : ContentPage
 
     public void UpdatePlayerDrawerPosition()
     {
-        drawer.PlayerX = Maze.Player.X;
-        drawer.PlayerY = Maze.Player.Y;
+        drawer.XPos = Maze.Player.X;
+        drawer.YPos = Maze.Player.Y;
 
         if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
         {

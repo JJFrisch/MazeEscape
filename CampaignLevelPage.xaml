@@ -9,7 +9,7 @@
         <drawables:PlayerDrawable x:Key="playerDrawable"/>
     </ContentPage.Resources>
 
-
+  
 
     <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="Green">
 
@@ -27,23 +27,37 @@
 
 
 
-            <GraphicsView Drawable="{DynamicResource playerDrawable}"
+            <!--   <GraphicsView Drawable="{DynamicResource playerDrawable}"
                       x:Name="PlayerGraphicsView"
                       AbsoluteLayout.LayoutBounds="0,0,1,1"
                       AbsoluteLayout.LayoutFlags="All">
 
-            </GraphicsView>
+            </GraphicsView> -->
+
+            <drawables:MazeGraphicsView AbsoluteLayout.LayoutBounds="0,0,1,1"
+                                        AbsoluteLayout.LayoutFlags="All"
+                                         x:Name="mazeGraphicsView" />
 
         </AbsoluteLayout>
 
-        <VerticalStackLayout Padding="10" Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
+
+        <Label x:Name="labelTimer" Text="00:00:00" 
+               AbsoluteLayout.LayoutBounds="0.5,0.5,0.5,0.5"
+               AbsoluteLayout.LayoutFlags="All" />
+
+        <Label x:Name="moveNumberText" Text="" 
+               AbsoluteLayout.LayoutBounds="0.8,0.5,0.5,0.5"
+               AbsoluteLayout.LayoutFlags="All" />
+
+
+        <!-- <VerticalStackLayout Padding="10" Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
             <Button Text="Up" Clicked="OnUpClicked"/>
             <Button Text="Down" Clicked="OnDownClicked"/>
             <Button Text="Left" Clicked="OnLeftClicked"/>
             <Button Text="Right" Clicked="OnRightClicked"/>
-        </VerticalStackLayout>
+        </VerticalStackLayout>  -->
 
-    </AbsoluteLayout>
+    </AbsoluteLayout> 
 
 
 

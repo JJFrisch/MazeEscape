@@ -93,13 +93,10 @@
             <Button
                 Text="Campaign Mazes"
                 Clicked="OnCampaignMazesClicked"
-                BackgroundColor="LightBlue"
-                TextColor="DarkBlue"
+                Style="{DynamicResource baseButtonStyle}"
                 FontSize="Small"
-                HorizontalOptions="Center"
-                VerticalOptions="Center"
-                BorderColor="LightSteelBlue"
-                BorderWidth="2" >
+                BorderWidth="2"
+                BorderColor="Black">
                     <VisualStateManager.VisualStateGroups>
                         <VisualStateGroupList>
                             <VisualStateGroup x:Name="CommonStates">

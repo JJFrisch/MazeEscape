@@ -39,49 +39,49 @@ namespace MazeEscape.Drawables
             //Initializegestures();
 
 
-            var ms = 1000.0 / _fps;
-            var ts = TimeSpan.FromMilliseconds(ms);
-            IsGameOver = false;
-            //Device.StartTimer(ts, TimerLoop);
+            //var ms = 1000.0 / _fps;
+            //var ts = TimeSpan.FromMilliseconds(ms);
+            //IsGameOver = false;
+            ////Device.StartTimer(ts, TimerLoop);
 
-            IDispatcherTimer timer = Application.Current.Dispatcher.CreateTimer();
-            timer.Interval = TimeSpan.FromSeconds(1);
-            timer.Tick += (s, e) => TimerLoop();
-            timer.Start();
+            //IDispatcherTimer timer = Application.Current.Dispatcher.CreateTimer();
+            //timer.Interval = TimeSpan.FromSeconds(1);
+            //timer.Tick += (s, e) => TimerLoop();
+            //timer.Start();
 
 
         }
 
-        private bool TimerLoop()
-        {
-            // get the elapsed time from the stopwatch because the 1/30 timer interval is not accurate and can be off by 2 ms
-            var dt = _stopWatch.Elapsed.TotalSeconds;
-            _stopWatch.Restart();
-            // calculate current fps
-            var fps = dt > 0 ? 1.0 / dt : 0;
-            // when the fps is too low reduce the load by skipping the frame
-            if (fps < _fps / 2)
-                return true;
+        //private bool TimerLoop()
+        //{
+        //    // get the elapsed time from the stopwatch because the 1/30 timer interval is not accurate and can be off by 2 ms
+        //    var dt = _stopWatch.Elapsed.TotalSeconds;
+        //    _stopWatch.Restart();
+        //    // calculate current fps
+        //    var fps = dt > 0 ? 1.0 / dt : 0;
+        //    // when the fps is too low reduce the load by skipping the frame
+        //    if (fps < _fps / 2)
+        //        return true;
 
-            _fpsCount++;
-            _fpsElapsed++;
-            if (_fpsCount == 20)
-                _fpsCount = 0;
+        //    _fpsCount++;
+        //    _fpsElapsed++;
+        //    if (_fpsCount == 20)
+        //        _fpsCount = 0;
 
-            //Its been a second
-            if (_fpsElapsed == _fps)
-            {
-                _fpsElapsed = 0;
-                if (IsGameOver)
-                {
-                    Navigation.PopModalAsync();
-                }
-            }
+        //    //Its been a second
+        //    if (_fpsElapsed == _fps)
+        //    {
+        //        _fpsElapsed = 0;
+        //        if (IsGameOver)
+        //        {
+        //            Navigation.PopAsync();
+        //        }
+        //    }
 
-            //CheckIfGameOver();
-            Invalidate();
-            return true;
-        }
+        //    //CheckIfGameOver();
+        //    Invalidate();
+        //    return true;
+        //}
 
         //private void Initializegestures()
         //{

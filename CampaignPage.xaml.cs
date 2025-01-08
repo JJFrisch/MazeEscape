@@ -32,46 +32,78 @@ public partial class CampaignPage : ContentPage
         campaignLevels = new ObservableCollection<CampaignLevel>(await PlayerData.levelDatabase.GetLevelsAsync());
     }
 
-    List<(int, int)> levelButtonPositions = new List<(int, int)> { (3, 3), (3, 4), (2, 4), (2,3), (2,2), (1,2), (0,2), (0,1), (0,0)};
+    List<(int, int)> levelButtonPositions = new List<(int, int)> { (3, 3), (3, 4), (2, 4), (2,3), (2,2), (1,2), (0,2), (0,1), (0,0), (1, 0), (2, 0), (3, 0), (3, 1) };
 
     public void InitializeLevelButtons()
     {
         foreach (CampaignLevel level in campaignLevels)
         {
             (int x, int y) = levelButtonPositions[level.LevelNumber-1];
-            ImageButton imageButton = new ImageButton
+            if (!PlayerData.UnlockedMazesNumbers.Contains(level.LevelNumber))
             {
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Center,
-                Aspect = Aspect.AspectFit,
-                HeightRequest = 90,
-                Source = "level_button_icon.png",
-            };
-            imageButton.Clicked += async (s, e) =>
-            {
-                await GoToLevel(level, imageButton);
-            };
-            Grid.SetRow(imageButton, y);
-            Grid.SetColumn(imageButton, x);
-            campaignLevelGrid.Add(imageButton);
+                ImageButton imageButton = new ImageButton
+                {
+                    HorizontalOptions = LayoutOptions.Center,
+                    VerticalOptions = LayoutOptions.Center,
+                    Aspect = Aspect.AspectFit,
+                    HeightRequest = 90,
+                    Source = "level_button_icon_locked.png",
+                };
 
-            TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
-            tapGestureRecognizer.Tapped += async (s, e) =>
+                Grid.SetRow(imageButton, y);
+                Grid.SetColumn(imageButton, x);
+                campaignLevelGrid.Add(imageButton);
+
+                Label label = new()
+                {
+                    HorizontalOptions = LayoutOptions.Center,
+                    VerticalOptions = LayoutOptions.Center,
+                    TextColor = Colors.LightGray,
+                    Text = level.ToString(),
+                    FontSize = 16,
+                };
+
+                Grid.SetRow(label, y);
+                Grid.SetColumn(label, x);
+                campaignLevelGrid.Add(label);
+            }
+            else
             {
-                await GoToLevel(level, imageButton);
-            };
-            Label label = new()
-            {
-                HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.Center,
-                TextColor = Colors.White,
-                Text = level.ToString(),
-                FontSize = 16,
-            };
-            label.GestureRecognizers.Add(tapGestureRecognizer);
-            Grid.SetRow(label, y);
-            Grid.SetColumn(label, x);
-            campaignLevelGrid.Add(label);
+                ImageButton imageButton = new ImageButton
+                {
+                    HorizontalOptions = LayoutOptions.Center,
+                    VerticalOptions = LayoutOptions.Center,
+                    Aspect = Aspect.AspectFit,
+                    HeightRequest = 90,
+                    Source = "level_button_icon.png",
+                };
+            
+                imageButton.Clicked += async (s, e) =>
+                {
+                    await GoToLevel(level, imageButton);
+                };
+                Grid.SetRow(imageButton, y);
+                Grid.SetColumn(imageButton, x);
+                campaignLevelGrid.Add(imageButton);
+
+                TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
+                tapGestureRecognizer.Tapped += async (s, e) =>
+                {
+                    await GoToLevel(level, imageButton);
+                };
+                Label label = new()
+                {
+                    HorizontalOptions = LayoutOptions.Center,
+                    VerticalOptions = LayoutOptions.Center,
+                    TextColor = Colors.White,
+                    Text = level.ToString(),
+                    FontSize = 16,
+                };
+                label.GestureRecognizers.Add(tapGestureRecognizer);
+                Grid.SetRow(label, y);
+                Grid.SetColumn(label, x);
+                campaignLevelGrid.Add(label);
+            }
         }
     }
 
@@ -90,7 +122,7 @@ public partial class CampaignPage : ContentPage
             level.Star3 = copyOfLevel.Star3;
             //await PlayerData.levelDatabase.SaveLevelAsync(level);
         };
-        await Navigation.PushModalAsync(page);
+        await Navigation.PushAsync(page);
 
 
         imageButton.Opacity = 1;
@@ -100,7 +132,7 @@ public partial class CampaignPage : ContentPage
 
     private async void BackButton_Clicked(object sender, EventArgs e)
     {
-        await Navigation.PopAsync();
+        await Navigation.PushAsync(new MainPage());
     }
 
     public async void OnShopButtonClicked(object sender, EventArgs e)

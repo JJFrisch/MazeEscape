@@ -13,11 +13,17 @@
 
     <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="Green">
 
+        <ImageButton Source="back_button_image.png"
+             AbsoluteLayout.LayoutBounds="10,15,50,50"
+             AbsoluteLayout.LayoutFlags="None"
+             Clicked="BackButton_Clicked"
+             CornerRadius="50"/>
+
         <AbsoluteLayout x:Name="main_absolute_layout">
 
-            <BoxView AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
+            <BoxView AbsoluteLayout.LayoutBounds="0.5,1,1,1"
                  AbsoluteLayout.LayoutFlags="All"
-                 BackgroundColor="White"/>
+                 BackgroundColor="White"/> 
 
             <Grid x:Name="mazeGrid"
               AbsoluteLayout.LayoutBounds="0,0,1,1"
@@ -41,13 +47,30 @@
         </AbsoluteLayout>
 
 
-        <Label x:Name="labelTimer" Text="00:00:00" 
-               AbsoluteLayout.LayoutBounds="0.5,0.5,0.5,0.5"
-               AbsoluteLayout.LayoutFlags="All" />
+        <BoxView BackgroundColor="BurlyWood"
+                 AbsoluteLayout.LayoutBounds="0.5,0,0.6,80"
+                 AbsoluteLayout.LayoutFlags="XProportional,WidthProportional"
+                 CornerRadius="0,0,50,50"/>
+
+        <Label Text="Time" 
+               HorizontalOptions="Center"
+               AbsoluteLayout.LayoutBounds="0.35,15,0.2,0.1"
+               AbsoluteLayout.LayoutFlags="XProportional,SizeProportional"/>
+        
+        <Label x:Name="labelTimer" Text="00:00" 
+               HorizontalOptions="Center"
+               AbsoluteLayout.LayoutBounds="0.35,40,0.2,0.1"
+               AbsoluteLayout.LayoutFlags="XProportional,SizeProportional" />
+
+        <Label Text="Moves" 
+               HorizontalOptions="Center"
+               AbsoluteLayout.LayoutBounds="0.65,15,0.2,0.1"
+               AbsoluteLayout.LayoutFlags="XProportional,SizeProportional"/>
 
         <Label x:Name="moveNumberText" Text="" 
-               AbsoluteLayout.LayoutBounds="0.8,0.5,0.5,0.5"
-               AbsoluteLayout.LayoutFlags="All" />
+               HorizontalOptions="Center"
+               AbsoluteLayout.LayoutBounds="0.65,40,0.2,0.1"
+               AbsoluteLayout.LayoutFlags="XProportional,SizeProportional" />
 
 
         <!-- <VerticalStackLayout Padding="10" Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">

@@ -49,23 +49,32 @@
 
 
         <Label x:Name="timeLabel" Style="{DynamicResource dataLabel}"
-               AbsoluteLayout.LayoutBounds="0.4,0.8,0.2,0.2"
-               AbsoluteLayout.LayoutFlags="All"/>
+               AbsoluteLayout.LayoutBounds="0.2,0.7,0.3,0.3"
+               AbsoluteLayout.LayoutFlags="All"
+               WidthRequest="100"
+               HeightRequest="100"/>
         <Label x:Name="movesLabel" Style="{DynamicResource dataLabel}"
-               AbsoluteLayout.LayoutBounds="0.6,0.8,0.2,0.2"
+               WidthRequest="100"
+               HeightRequest="100"
+               AbsoluteLayout.LayoutBounds="0.8,0.7,0.3,0.3"
                AbsoluteLayout.LayoutFlags="All"/>
 
 
         <Button Text="Retry"
-                AbsoluteLayout.LayoutBounds="0.25,0.8,0.2,0.1"
+                AbsoluteLayout.LayoutBounds="0.2,0.95,0.15,0.15"
                 AbsoluteLayout.LayoutFlags="All"
                 Clicked="OnRetryButtonClicked" 
-                Style="{DynamicResource baseButtonStyle}"/>
+                Style="{DynamicResource baseButtonStyle}"
+                WidthRequest="100"
+                HeightRequest="50"
+                />
         <Button Text="Close"
-                AbsoluteLayout.LayoutBounds="0.75,0.8,0.2,0.1"
+                AbsoluteLayout.LayoutBounds="0.8,0.95,0.15,0.15"
                 AbsoluteLayout.LayoutFlags="All"
                 Clicked="OnCloseButtonClicked" 
-                Style="{DynamicResource baseButtonStyle}"/>
+                Style="{DynamicResource baseButtonStyle}"
+                WidthRequest="100"
+                HeightRequest="50"/>
 
     </AbsoluteLayout>
 

@@ -22,7 +22,7 @@ public partial class CampaignMazeFinishedPopupPage : Popup
         Moves = moves;
         Level = level;
 
-        timeLabel.Text = $"Time: {Time.TotalSeconds:3N} seconds";
+        timeLabel.Text = $"Time: {Math.Round(Time.TotalSeconds,3)} seconds";
         movesLabel.Text = $"Moves: {Moves}";
 
         Dictionary<bool, string> starType =

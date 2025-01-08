@@ -16,7 +16,7 @@ public partial class CampaignLevelPage : ContentPage
     CampaignLevel Level;
 
     public double MazeWindowWidth = PlayerData.WindowWidth * 0.9;
-    public double MazeWindowHeight = PlayerData.WindowHeight * 0.8;
+    public double MazeWindowHeight = PlayerData.WindowHeight * 0.7;
 
     MazeModel Maze = new MazeModel();
 
@@ -35,7 +35,7 @@ public partial class CampaignLevelPage : ContentPage
 
         Level = level;
 
-        AbsoluteLayout.SetLayoutBounds(main_absolute_layout, new Rect(0.5, 0.5, MazeWindowWidth, MazeWindowHeight));
+        AbsoluteLayout.SetLayoutBounds(main_absolute_layout, new Rect(0.5, 0.6, MazeWindowWidth, MazeWindowHeight));
         AbsoluteLayout.SetLayoutFlags(main_absolute_layout, AbsoluteLayoutFlags.PositionProportional);
 
         InitializeReactiveKeyboard();
@@ -87,7 +87,8 @@ public partial class CampaignLevelPage : ContentPage
             TimeSpan timePassed = time - timeStarted;
             Dispatcher.Dispatch(new Action(() =>
             {
-                labelTimer.Text = timePassed.ToString();
+                labelTimer.Text = Level.ThreeStarTime.ToString() + ":  " +  Math.Round(timePassed.TotalSeconds, 0).ToString();
+                moveNumberText.Text = Level.TwoStarMoves.ToString() + ":  " + numberOfMoves.ToString();
             }));
             Thread.Sleep(10);
             timer();
@@ -347,12 +348,22 @@ public partial class CampaignLevelPage : ContentPage
         EndTimer();
         double time = TotalTime.TotalSeconds;
 
+        if (Level.Star1 == false)
+        {
+            PlayerData.UnlockedMazesNumbers.Add(Level.LevelNumber + 1);
+        }
+
         Level.Star1 = true;
 
-        if (time <= Level.ThreeStarTime)
+        if (time < Level.ThreeStarTime)
         {
             Level.Star3 = true;
         }
+        else
+        {
+            Level.Star3 = false;
+        }
+
         if (numberOfMoves <= Level.TwoStarMoves)
         {
             Level.Star2 = true;
@@ -376,11 +387,11 @@ public partial class CampaignLevelPage : ContentPage
             var result = await this.ShowPopupAsync(new CampaignMazeFinishedPopupPage(TotalTime, numberOfMoves, Level), CancellationToken.None);
             if ((bool)result)
             {
-                await Navigation.PushModalAsync(new CampaignLevelPage(Level));
+                await Navigation.PushAsync(new CampaignLevelPage(Level));
             }
             else
             {
-                await Navigation.PushModalAsync(new CampaignPage());
+                await Navigation.PushAsync(new CampaignPage());
             }
         }
         catch (Exception ex)
@@ -388,6 +399,11 @@ public partial class CampaignLevelPage : ContentPage
             mazeGraphicsView.IsGameOver = true;
         }
 
+    }
+
+    private async void BackButton_Clicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new CampaignPage());
     }
 
     protected override void OnDisappearing()

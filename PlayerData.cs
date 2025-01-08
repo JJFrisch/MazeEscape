@@ -26,6 +26,8 @@ namespace MazeEscape
         public const int WindowWidth = 400;
         public const int WindowHeight = 670;
 
+        public static List<int> UnlockedMazesNumbers = new List<int> {1};
+
         public async static Task InitializeLevels()
         {
 
@@ -33,11 +35,17 @@ namespace MazeEscape
 
             ObservableCollection<CampaignLevel> CampaignLevels = new ObservableCollection<CampaignLevel>();
             CampaignLevels.Add(new CampaignLevel(1, 4, 4, "GenerateBacktracking"));
-            CampaignLevels.Add(new CampaignLevel(2, 10, 12, "GenerateBacktracking"));
-            CampaignLevels.Add(new CampaignLevel(3, 12, 12, "GenerateBacktracking"));
-            CampaignLevels.Add(new CampaignLevel(4, 14, 12, "GenerateBacktracking"));
-            CampaignLevels.Add(new CampaignLevel(5, 14, 14, "GenerateBacktracking"));
-            CampaignLevels.Add(new CampaignLevel(6, 20, 20, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(2, 6, 6, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(3, 7, 7, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(4, 5, 10, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(5, 12, 8, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(6, 12, 12, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(7, 15, 12, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(8, 15, 15, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(9, 25, 10, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(10, 20, 20, "GenerateBacktracking"));
+            CampaignLevels.Add(new CampaignLevel(11, 6, 8, "GenerateHuntAndKill"));
+            CampaignLevels.Add(new CampaignLevel(12, 12, 12, "GenerateHuntAndKill"));
 
 
             foreach (var level in CampaignLevels)

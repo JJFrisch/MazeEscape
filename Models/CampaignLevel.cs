@@ -15,17 +15,19 @@ namespace MazeEscape.Models
         [PrimaryKey, AutoIncrement]
         public int LevelID { get; set; } //must be unique for the levels
 
-        MazeModel Maze = new MazeModel();
-
         public int Width { get; set; }
         public int Height { get; set; }
 
         public string LevelType { get; set; }  // Must be an implemented level type: GenerateBacktracking, GenerateHuntAndKill    ||||| Not Yet: GeneratePrim, GenerateRecursiveDivision, GenerateSidewinder, GenerateWilson, GenerateKruskal, GenerateAldousBroder, GenerateBinaryTree, GenerateEllers, GenerateCellularAutomata, GenerateGrowingTree
 
-        public int LevelNumber { get; set; }
+        public string LevelNumber { get; set; }
 
         public int TwoStarMoves { get; set; } // number of moves or less to get 2 stars
         public int ThreeStarTime { get; set; } // time in seconds or less to get 3 stars
+
+        public int NumberOfStars { get; set; }
+
+        public int MinimumStarsToUnlock { get; set; }
 
 
         private bool completed;
@@ -115,7 +117,7 @@ namespace MazeEscape.Models
             }
         }
 
-        public CampaignLevel(int levelNum, int width, int height, string type)
+        public CampaignLevel(string levelNum, int width, int height, string type, List<string> connects_to, int minimum_stars_to_unlock=0)
         {
             Width = width;
             Height = height;
@@ -127,29 +129,35 @@ namespace MazeEscape.Models
             Star3 = false;
             BestMoves = 10000000;
             BestTime = new TimeSpan(20, 14, 18);
+            MinimumStarsToUnlock = minimum_stars_to_unlock;
+            NumberOfStars = 0;
 
-            Maze.MazeGenerationDelegateList[type](width, height);
+            PlayerData.LevelConnectsToDictionary.Add(levelNum, connects_to);
 
-            TwoStarMoves = Maze.Path.Count + 5;
-            ThreeStarTime = Maze.Path.Count * 2;
+
+            //Maze.MazeGenerationDelegateList[type](width, height);
+
+            //TwoStarMoves = Math.Max(Width * Height / 3, Maze.PathLength + 5);
+            //ThreeStarTime = Maze.PathLength / 2;
         }
 
-        public CampaignLevel(int width, int height, string type, int twoStarMoves, int threeStarTime)
-        {
-            Width = width;
-            Height = height;
-            LevelType = type;
-            TwoStarMoves = twoStarMoves;
-            ThreeStarTime = threeStarTime;
-            Completed = false;
-            Star1 = false;
-            Star2 = false;
-            Star3 = false;
-            BestMoves = 10000000;
-            BestTime = new TimeSpan(20, 14, 18);
+        //public CampaignLevel(int width, int height, string type, int twoStarMoves, int threeStarTime)
+        //{
+        //    Width = width;
+        //    Height = height;
+        //    LevelType = type;
+        //    TwoStarMoves = twoStarMoves;
+        //    ThreeStarTime = threeStarTime;
+        //    Completed = false;
+        //    Star1 = false;
+        //    Star2 = false;
+        //    Star3 = false;
+        //    NumberOfStars = 0;
+        //    BestMoves = 10000000;
+        //    BestTime = new TimeSpan(20, 14, 18);
 
-            Maze.MazeGenerationDelegateList[type](width, height);
-        }
+        //    Maze.MazeGenerationDelegateList[type](width, height);
+        //}
 
         public CampaignLevel()
         {
@@ -160,8 +168,14 @@ namespace MazeEscape.Models
             Star1 = false;
             Star2 = false;
             Star3 = false;
+
             BestMoves = 10000000;
             BestTime = new TimeSpan(20, 14, 18);
+            MinimumStarsToUnlock = 0;
+            NumberOfStars = 0;
+
+            //PlayerData.LevelConnectsToDictionary.Add(-1, new List<int> { 0,1});
+
         }
 
 

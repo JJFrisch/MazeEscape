@@ -66,5 +66,11 @@ namespace MazeEscape
             await database.DeleteAllAsync<CampaignLevel>();
         }
 
+        public async Task<CampaignLevel> GetItemAsync(string name)
+        {
+            await Init();
+            return await database.Table<CampaignLevel>().Where(i => i.LevelNumber == name).FirstOrDefaultAsync();
+        }
+
     }
 }

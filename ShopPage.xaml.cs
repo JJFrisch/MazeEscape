@@ -3,21 +3,27 @@ namespace MazeEscape;
 
 public partial class ShopPage : ContentPage
 {
-	public List<string> NamesOfPowerUps = new List<string> { "Hint", "Hot or Cold" };
+	public List<string> NamesOfPowerUps = new List<string> { "Hint", "ExtraTime" };
     Dictionary<string, int> CostsOfPowerUps = new Dictionary<string, int>();
     Dictionary<string, Label> NumberOwnedLabels = new Dictionary<string, Label>();
     public ShopPage()
 	{
 		InitializeComponent();
 
-        CostsOfPowerUps.Add("Hint", 300);
-        CostsOfPowerUps.Add("Hot or Cold", 50);
+        timeNumberLabel.Text = PlayerData.ExtraTimesOwned.ToString();
 
-        DrawPowerUps();
+        CostsOfPowerUps.Add("Hint", 200);
+        CostsOfPowerUps.Add("ExtraTime", 50);
+
+        NumberOwnedLabels.Add("ExtraTime", timeNumberLabel);
+        NumberOwnedLabels.Add("Hint", hintNumberLabel);
+
+        //DrawPowerUps();
 
         CoinCountLabel.Text = PlayerData.CoinCount.ToString();
 
     }
+
 
 	public void DrawPowerUps()
 	{
@@ -106,12 +112,12 @@ public partial class ShopPage : ContentPage
             Grid.SetColumn(powerupIconimage, 5);
             Grid.SetRow(powerupIconimage, row);
 
-            shopItemGrid.Add(backgroundImage);
-            shopItemGrid.Add(nameLabel);
-            shopItemGrid.Add(costLabel);
-            shopItemGrid.Add(seperationLine);
-            shopItemGrid.Add(numberOwnedLabel);
-            shopItemGrid.Add(powerupIconimage);
+            //shopItemGrid.Add(backgroundImage);
+            //shopItemGrid.Add(nameLabel);
+            //shopItemGrid.Add(costLabel);
+            //shopItemGrid.Add(seperationLine);
+            //shopItemGrid.Add(numberOwnedLabel);
+            //shopItemGrid.Add(powerupIconimage);
 
             row++;
         }
@@ -135,9 +141,15 @@ public partial class ShopPage : ContentPage
         }
         else
         {
-            await imageButton.ScaleTo(1.5, 500);
-            await imageButton.ScaleTo(1, 500);
+            await DisplayAlert("Not Enough Coins", "You can earn more by beating mazes or opening chests.", "OK");
+            //await imageButton.ScaleTo(1.5, 500);
+            //await imageButton.ScaleTo(1, 500);
         }
+    }
+
+    private async void BuyTimeClicked(object sender, EventArgs e)
+    {
+        await Buy("ExtraTime", timeImageButton);
     }
 
     private async void BackButton_Clicked(object sender, EventArgs e)

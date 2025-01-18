@@ -8,75 +8,152 @@
     <ScrollView Margin="0,-80,0,0">
         <AbsoluteLayout>
 
-        <Image Source="background_Maze_1.png"
+        <Image Source="background_maze_3_skinny.png"
                AbsoluteLayout.LayoutBounds="0,0,1,1"
                AbsoluteLayout.LayoutFlags="All"
-               Aspect="Fill"/>
+               Aspect="AspectFill"/>
 
-            <ImageButton Source="Back_button_image.png"
+            <ImageButton Source="back_button_normal.png"
                          AbsoluteLayout.LayoutBounds="20,20,60,60"
                          AbsoluteLayout.LayoutFlags="None"
-                         Clicked="BackButton_Clicked"/>
+                         Clicked="BackButton_Clicked"
+                         CornerRadius="50">
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="Scale"
+                                    Value="1" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Pressed">
+                                <VisualState.Setters>
+                                    <Setter Property="Source"
+                                        Value="back_button_clicked.png" />
+                                    <Setter Property="Opacity"
+                                        Value="0.6" />
+                                    <Setter Property="Scale"
+                                        Value="0.9" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="PointerOver">
+                                <VisualState.Setters>
+                                    <Setter Property="Opacity"
+                                        Value="0.7" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+            </ImageButton>
 
-            <Label Text="Shop"
+        <!--    <Label Text="Shop"
                AbsoluteLayout.LayoutBounds="0.5,0,300,100"
                AbsoluteLayout.LayoutFlags="PositionProportional"
                VerticalOptions="Center"
                HorizontalOptions="Center"
                FontSize="50"
-               FontAttributes="Bold"/>
+               FontAttributes="Bold"/> -->
 
         <BoxView BackgroundColor="Gray" Opacity="0.6" CornerRadius="20,0,20,0"
                  AbsoluteLayout.LayoutBounds="1,30,100,50"
                  AbsoluteLayout.LayoutFlags="XProportional"/>
+            <Image Source="coin.png"
+               AbsoluteLayout.LayoutBounds="0.8, 0.06, 35, 35"
+               AbsoluteLayout.LayoutFlags="PositionProportional" />
 
-        <Label x:Name="CoinCountLabel" HorizontalOptions="Center" VerticalOptions="Start" FontSize="22"
+            <Label x:Name="CoinCountLabel" HorizontalOptions="Center" VerticalOptions="Start" FontSize="22"
                AbsoluteLayout.LayoutBounds="1,40,80,100"
                AbsoluteLayout.LayoutFlags="XProportional"/>
 
+            <Grid
+                  AbsoluteLayout.LayoutBounds="0.5,0.2,0.95,0.1"
+                  AbsoluteLayout.LayoutFlags="All"
+                  ColumnDefinitions="30,*,2*,*,2*,*,2*,30"
+                  RowDefinitions="*">
 
-        <Grid x:Name="shopItemGrid"
-                AbsoluteLayout.LayoutBounds="0.5,1,300,0.75"
-                AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
-                ColumnDefinitions="*,5*,5*,2*,3*,3*,2*" 
-                RowDefinitions="100,100,100"
-                RowSpacing="20"
-            ColumnSpacing="5"
-              BackgroundColor="AntiqueWhite">
-            
-            <!-- "20,60,80,10,*,*,20" 
-                2*,6*,8*,*,3*,3*,2* -->
 
-                <BoxView Grid.ColumnSpan="7" VerticalOptions="Center" BackgroundColor="AliceBlue"
-                         Grid.RowSpan="2"/>
-                <!--
-            <Image Source="button_background_1.png" Aspect="Fill"
-                       Grid.ColumnSpan="7" VerticalOptions="Center"/>
-            
-                <Label Text="Hint:" Grid.Column="1" VerticalTextAlignment="Center"
-                       FontSize="26" HorizontalOptions="Center" TextColor="Black"/>
-            
-            <Label Text="300" Grid.Column="2" VerticalTextAlignment="Center"
-                        FontSize="Large" HorizontalOptions="Center"
-                   TextColor="SaddleBrown" FontAttributes="Bold"/>
-            
-            <BoxView BackgroundColor="OrangeRed" WidthRequest="5" Grid.Column="3" Opacity="0.7"/>
-            
-            <Label Text="4"  Grid.Column="4" VerticalOptions="Center" HorizontalOptions="Center"
-                   FontSize="18" TextColor="Black"/>
-            
-            <Image Source="play_button_image_2.png"  Grid.Column="5" HorizontalOptions="Center"/>
+                <BoxView BackgroundColor="AntiqueWhite" CornerRadius="10" Grid.ColumnSpan="8" Opacity="0.6"/>
 
-                
--->
+                <Image Source="time.png" Grid.Column="1" HorizontalOptions="Center"/>
+                <Label x:Name="timeNumberLabel" Grid.Column="2" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Start"/>
+
+                <Image Source="hint.png" Grid.Column="3"/>
+                <Label x:Name="hintNumberLabel" Grid.Column="4"/>
+
+                <Image Source="time.png" Grid.Column="5"/>
+                <Label x:Name="movesNumberLabel" Grid.Column="6"/>
 
 
             </Grid>
+            
+
+            <BoxView BackgroundColor="Azure"
+                     AbsoluteLayout.LayoutBounds="0.5,1,0.8,0.65"
+                     AbsoluteLayout.LayoutFlags="All"
+                     Opacity="0.6"
+                     CornerRadius="50,50,10,10"/>
+
+            <ScrollView Orientation="Vertical" AbsoluteLayout.LayoutBounds="0.5,1,0.8,0.65"
+                        AbsoluteLayout.LayoutFlags="All">
+
+                <AbsoluteLayout>
+
+                    <ImageButton Source="store_item_background.png"
+                         AbsoluteLayout.LayoutBounds="0.5,0.05,0.8,0.2"
+                         AbsoluteLayout.LayoutFlags="All"
+                         Aspect="AspectFit"
+                         Clicked="BuyTimeClicked"
+                         x:Name="timeImageButton"/>
+
+                <ImageButton Source="time.png" x:Name="timeImageButton2"
+                         AbsoluteLayout.LayoutBounds="0.25,0.05,0.2,0.2"
+                         AbsoluteLayout.LayoutFlags="All"
+                             WidthRequest="30"
+                         Clicked="BuyTimeClicked"
+                         Aspect="AspectFit"/>
+
+                    <Label x:Name="timeCostLabel"
+                   Text="50"
+                   FontSize="28"
+                   HorizontalOptions="Start"
+                   AbsoluteLayout.LayoutBounds="0.86,0.115,0.3,0.2"
+                   AbsoluteLayout.LayoutFlags="All"/>
+
+
+                    <ImageButton Source="store_item_background.png"
+                         AbsoluteLayout.LayoutBounds="0.5,0.35,0.8,0.2"
+                        AbsoluteLayout.LayoutFlags="All"
+                        Aspect="AspectFit"
+                        Clicked="BuyTimeClicked"
+                        x:Name="hintImageButton"/>
+
+                <Label x:Name="hintCostLabel"
+                   Text="200"
+                   FontSize="28"
+                   AbsoluteLayout.LayoutBounds="0.86,0.42,0.3,0.2"
+                   AbsoluteLayout.LayoutFlags="All"
+                   HorizontalOptions="Start"/>
+
+                <ImageButton Source="hint.png"
+             AbsoluteLayout.LayoutBounds="0.25,0.35,0.2,0.2"
+             AbsoluteLayout.LayoutFlags="All"
+             WidthRequest="30"/>
+
+
+                <ImageButton Source="store_item_background.png"
+                         AbsoluteLayout.LayoutBounds="0.5,0.8,0.6,0.2"
+                         AbsoluteLayout.LayoutFlags="All"/>
+
+
+                </AbsoluteLayout>
+            </ScrollView>
 
 
 
 
-    </AbsoluteLayout>
+        </AbsoluteLayout>
 
     </ScrollView>
 

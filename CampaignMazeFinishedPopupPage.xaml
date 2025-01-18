@@ -23,16 +23,21 @@
         <Label Text="Maze Complete" AbsoluteLayout.LayoutBounds="0.5,0,0.7,0.2"
                AbsoluteLayout.LayoutFlags="All"
                Style="{DynamicResource campaignLevelLabel}"
-               FontSize="Medium"
+               FontSize="28"
+               FontAttributes="Bold,Italic"
                TextColor="CadetBlue"/>
 
-
-        
-        <Label x:Name="starTotalLabel"
-               Text="10"
-               AbsoluteLayout.LayoutBounds="0,0,50,50"  
-               AbsoluteLayout.LayoutFlags="None"
+        <Label x:Name="coinsEarnedLabel"
+               Text="-10"
+               AbsoluteLayout.LayoutBounds="0.6,0.75,50,50"  
+               AbsoluteLayout.LayoutFlags="PositionProportional"
                Style="{DynamicResource dataLabel}"/>
+
+
+        <Image AbsoluteLayout.LayoutBounds="0.4,0.76,50,50"
+               AbsoluteLayout.LayoutFlags="PositionProportional"
+               x:Name="coinImage"
+               Source="coin.png"/>
 
 
         <Image AbsoluteLayout.LayoutBounds="0.15,0.35,0.25,0.25"
@@ -60,21 +65,35 @@
                AbsoluteLayout.LayoutFlags="All"/>
 
 
-        <Button Text="Retry"
-                AbsoluteLayout.LayoutBounds="0.2,0.95,0.15,0.15"
-                AbsoluteLayout.LayoutFlags="All"
-                Clicked="OnRetryButtonClicked" 
-                Style="{DynamicResource baseButtonStyle}"
-                WidthRequest="100"
-                HeightRequest="50"
-                />
-        <Button Text="Close"
-                AbsoluteLayout.LayoutBounds="0.8,0.95,0.15,0.15"
+        <Button Text="World Map"
+                AbsoluteLayout.LayoutBounds="0.15,0.95,0.15,0.15"
                 AbsoluteLayout.LayoutFlags="All"
                 Clicked="OnCloseButtonClicked" 
-                Style="{DynamicResource baseButtonStyle}"
+                FontSize="14"
+                BackgroundColor="Azure"
                 WidthRequest="100"
                 HeightRequest="50"/>
+        
+        <Button Text="Retry"
+                AbsoluteLayout.LayoutBounds="0.5,0.95,0.15,0.15"
+                AbsoluteLayout.LayoutFlags="All"
+                Clicked="OnRetryButtonClicked" 
+                FontSize="14"
+                BackgroundColor="LightGoldenrodYellow"
+                WidthRequest="70"
+                HeightRequest="50"
+                />
+
+        <Button Text="Next Level" x:Name="nextLevelButton"
+                AbsoluteLayout.LayoutBounds="0.85,0.95,0.15,0.15"
+                AbsoluteLayout.LayoutFlags="All"
+                Clicked="OnNextLevelButtonClicked" 
+                FontSize="14"
+                TextColor="Black"
+                BackgroundColor="LightGreen"
+                WidthRequest="100"
+                HeightRequest="50"
+                />  
 
     </AbsoluteLayout>
 

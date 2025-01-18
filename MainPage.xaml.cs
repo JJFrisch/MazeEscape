@@ -47,7 +47,8 @@ namespace MazeEscape
 
         public async void OnDailyMazeClicked(object sender, EventArgs e)
         {
-            await Navigation.PushAsync(new BasicGridPage(20, 5, "Your First Maze"));
+            await DisplayAlert("Wait", "This game mode has not been implemented. Try the campaign mode!", "OK");
+            //await Navigation.PushAsync(new BasicGridPage(20, 5, "Your First Maze"));
         }
 
         public async void OnSettingsButtonClicked(object sender, EventArgs e)

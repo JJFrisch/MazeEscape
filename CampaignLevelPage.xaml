@@ -73,6 +73,56 @@
                AbsoluteLayout.LayoutFlags="XProportional,SizeProportional" />
 
 
+        <ImageButton x:Name="extraTimePowerUpImage"
+            AbsoluteLayout.LayoutBounds="0.1,0.985,60,60"
+            AbsoluteLayout.LayoutFlags="PositionProportional"
+            Source="time.png"
+            Clicked="OnExtraTimeButtonClicked"/>
+
+        <Label x:Name="extraTimePowerUpLabel"
+               FontSize="18"
+               Text="00"
+               TextColor="AntiqueWhite"
+               FontAttributes="Bold"
+               VerticalTextAlignment="Center"
+              AbsoluteLayout.LayoutBounds="0.28,0.965,30,30"
+              AbsoluteLayout.LayoutFlags="PositionProportional"/>
+
+        <ImageButton x:Name="hintPowerUpImage"
+            AbsoluteLayout.LayoutBounds="0.45,0.984,55,55"
+            AbsoluteLayout.LayoutFlags="PositionProportional"
+            Source="hint.png"
+            Aspect="AspectFit"
+            Clicked="OnHintButtonClicked"/>
+
+        <Label x:Name="hintPowerUpLabel"
+               FontSize="18"
+               Text="3"
+               VerticalTextAlignment="Center"
+               AbsoluteLayout.LayoutBounds="0.6,0.965,30,30"
+               AbsoluteLayout.LayoutFlags="PositionProportional"
+               FontAttributes="Bold"/>
+
+        <BoxView AbsoluteLayout.LayoutBounds="1,0.988,0.3,60"
+         AbsoluteLayout.LayoutFlags="PositionProportional,WidthProportional"
+         BackgroundColor="Black"
+         Opacity="0.5"
+         CornerRadius="20,0,20,0"/>
+
+
+        <Image x:Name="coinImage"
+            AbsoluteLayout.LayoutBounds="0.74,0.97,40,40"
+            AbsoluteLayout.LayoutFlags="PositionProportional"
+            Source="coin.png"/>
+
+        <Label x:Name="CoinCountLabel"
+           FontSize="18"
+           VerticalTextAlignment="Center"
+           Text="-1"
+        AbsoluteLayout.LayoutBounds="0.9,0.970,40,40"
+        AbsoluteLayout.LayoutFlags="PositionProportional"/>
+
+
         <!-- <VerticalStackLayout Padding="10" Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
             <Button Text="Up" Clicked="OnUpClicked"/>
             <Button Text="Down" Clicked="OnDownClicked"/>

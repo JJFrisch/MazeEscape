@@ -1,6 +1,7 @@
 namespace MazeEscape;
 using CommunityToolkit.Maui.Views;
 using MazeEscape.Models;
+using Microsoft.Maui.Graphics;
 
 public partial class CampaignMazeFinishedPopupPage : Popup
 {
@@ -9,7 +10,7 @@ public partial class CampaignMazeFinishedPopupPage : Popup
     private int Moves { get; set; }
     private CampaignLevel Level { get; set; }
 
-    public CampaignMazeFinishedPopupPage(TimeSpan time, int moves, CampaignLevel level)
+    public CampaignMazeFinishedPopupPage(TimeSpan time, int moves, CampaignLevel level, int coinsEarned)
 	{
 		InitializeComponent();
         double width = PlayerData.WindowWidth * 0.8;  // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Width / 4;
@@ -22,8 +23,9 @@ public partial class CampaignMazeFinishedPopupPage : Popup
         Moves = moves;
         Level = level;
 
-        timeLabel.Text = $"Time: {Math.Round(Time.TotalSeconds,3)} seconds";
+        timeLabel.Text = $"Time: {Math.Round(Time.TotalSeconds,1)} seconds";
         movesLabel.Text = $"Moves: {Moves}";
+        coinsEarnedLabel.Text = $"{coinsEarned}";
 
         Dictionary<bool, string> starType =
                       new Dictionary<bool, string>();
@@ -31,21 +33,47 @@ public partial class CampaignMazeFinishedPopupPage : Popup
         starType.Add(false, "empty_star.png");
 
         starOneImage.Source = starType[level.Star1];
-        starTwoImage.Source = starType[level.Star2];
-        starThreeImage.Source = starType[level.Star3];
+        starTwoImage.Source = starType[(moves <= Level.TwoStarMoves)];
+        starThreeImage.Source = starType[(time.TotalSeconds <= Level.ThreeStarTime)];
 
+        CheckIfNextLevelWorks();
+        
+    }
 
+    public async void CheckIfNextLevelWorks()
+    {
+        CampaignLevel next_level = await PlayerData.levelDatabase.GetItemAsync(PlayerData.LevelConnectsToDictionary[Level.LevelNumber][0]);
+        if (next_level == null)
+        {
+            nextLevelButton.IsEnabled = false;
+            nextLevelButton.BackgroundColor = Colors.Grey;
+
+        }
+        else if (!next_level.LevelNumber.Contains('c') && PlayerData.StarCount >= next_level.MinimumStarsToUnlock){
+            nextLevelButton.IsEnabled = true;
+        }
+        else
+        {
+            nextLevelButton.IsEnabled = false;
+            nextLevelButton.BackgroundColor = Colors.Grey;
+        }
     }
 
     async void OnCloseButtonClicked(object sender, EventArgs e)
     {
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        await CloseAsync(false, cts.Token);
+        await CloseAsync("Close", cts.Token);
     }
 
     async void OnRetryButtonClicked(object? sender, EventArgs e)
     {
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        await CloseAsync(true, cts.Token);
+        await CloseAsync("Retry", cts.Token);
+    }
+
+    async void OnNextLevelButtonClicked(object? sender, EventArgs e)
+    {
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await CloseAsync("Next Level", cts.Token);
     }
 }

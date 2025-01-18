@@ -13,6 +13,7 @@ namespace MazeEscape.Models
     {
         public List<List<MazeCell>> Cells { get; set; }
         public List<(int, int)> Path {  get; set; }
+        public int PathLength { get; set; }
 
         public (int, int) Start { get; set; }
         public (int, int) End { get; set; }
@@ -310,6 +311,7 @@ namespace MazeEscape.Models
             End = (max_key.Item1, max_key.Item2);
             Cells[max_key.Item2][max_key.Item1].Value = 3;
 
+            PathLength = max_len;
             Path = path[max_key];
         }
 

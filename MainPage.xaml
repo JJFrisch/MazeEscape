@@ -49,15 +49,18 @@
             
        
         <VerticalStackLayout
-            AbsoluteLayout.LayoutBounds="0.5,1,1,.25"
+            AbsoluteLayout.LayoutBounds="0.5,1,1,.30"
             AbsoluteLayout.LayoutFlags="All"
-            Spacing="30"
+            Spacing="20"
             HorizontalOptions="Center">
 
+            
             <Button
                 Text="Daily Maze"
                 Clicked="OnDailyMazeClicked"
                 Style="{DynamicResource baseButtonStyle}"
+                BackgroundColor="Grey"
+                Opacity="0.5"
                 BorderWidth="2"
                 BorderColor="Black">
                 
@@ -88,15 +91,15 @@
                     </VisualStateGroupList>
                 </VisualStateManager.VisualStateGroups>
             </Button>
+          
 
-
-            <Button
-                Text="Campaign Mazes"
+            <ImageButton
+                
                 Clicked="OnCampaignMazesClicked"
-                Style="{DynamicResource baseButtonStyle}"
-                FontSize="Small"
-                BorderWidth="2"
-                BorderColor="Black">
+                Source="button_background_1.png"
+                WidthRequest="230"
+                HeightRequest="70"
+                Aspect="AspectFit">
                     <VisualStateManager.VisualStateGroups>
                         <VisualStateGroupList>
                             <VisualStateGroup x:Name="CommonStates">
@@ -123,7 +126,7 @@
                             </VisualStateGroup>
                         </VisualStateGroupList>
                 </VisualStateManager.VisualStateGroups>
-            </Button>
+            </ImageButton>
 
 
         </VerticalStackLayout>

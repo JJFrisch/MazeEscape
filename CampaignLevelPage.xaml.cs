@@ -6,6 +6,8 @@ using SharpHook;
 using SharpHook.Native;
 using SharpHook.Reactive;
 using System.Reactive.Linq;
+using System.Timers;
+
 
 
 namespace MazeEscape;
@@ -23,12 +25,46 @@ public partial class CampaignLevelPage : ContentPage
     PlayerDrawable drawer;
     SimpleReactiveGlobalHook? hook;
 
-    private DateTime timeStarted;
+    //private DateTime timeStarted;
     public int numberOfMoves = 0;
     private bool running;
     TimeSpan TotalTime;
 
+    private System.Timers.Timer _timer;
+    private DateTime timeStarted;
 
+    public void StartTimer()
+    {
+        timeStarted = DateTime.Now;
+        _timer = new System.Timers.Timer(10); // Interval in milliseconds
+        _timer.Elapsed += OnTimedEvent;
+        _timer.AutoReset = true;
+        _timer.Enabled = true;
+        running = true;
+    }
+
+    private void OnTimedEvent(object? source, ElapsedEventArgs e)
+    {
+        if (!running)
+        {
+            TotalTime = DateTime.Now - timeStarted;
+            _timer.Stop();
+            return;
+        }
+
+        TimeSpan timePassed = DateTime.Now - timeStarted;
+        Dispatcher.Dispatch(new Action(() =>
+        {
+            labelTimer.Text = Level.ThreeStarTime.ToString() + ":  " + Math.Round(timePassed.TotalSeconds, 1).ToString();
+            moveNumberText.Text = Level.TwoStarMoves.ToString() + ":  " + numberOfMoves.ToString();
+
+            if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
+            {
+                TotalTime = DateTime.Now - timeStarted;
+                CompletedMaze();
+            }
+        }));
+    }
     public CampaignLevelPage(CampaignLevel level)
     {
         InitializeComponent();
@@ -58,15 +94,19 @@ public partial class CampaignLevelPage : ContentPage
         base.OnAppearing();
         StartTimer();
 
+        extraTimePowerUpLabel.Text = PlayerData.ExtraTimesOwned.ToString();
+        hintPowerUpLabel.Text = PlayerData.HintsOwned.ToString();
+        CoinCountLabel.Text = PlayerData.CoinCount.ToString();
+
     }
 
-    private void StartTimer()
-    {
-        timeStarted = DateTime.Now;
-        running = true;
-        Thread thread = new Thread(timer);
-        thread.Start();
-    }
+    //private void StartTimer()
+    //{
+    //    timeStarted = DateTime.Now;
+    //    running = true;
+    //    Thread thread = new Thread(timer);
+    //    thread.Start();
+    //}
 
     private void EndTimer()
     {
@@ -87,8 +127,17 @@ public partial class CampaignLevelPage : ContentPage
             TimeSpan timePassed = time - timeStarted;
             Dispatcher.Dispatch(new Action(() =>
             {
-                labelTimer.Text = Level.ThreeStarTime.ToString() + ":  " +  Math.Round(timePassed.TotalSeconds, 0).ToString();
+                labelTimer.Text = Level.ThreeStarTime.ToString() + ":  " +  Math.Round(timePassed.TotalSeconds, 1).ToString();
                 moveNumberText.Text = Level.TwoStarMoves.ToString() + ":  " + numberOfMoves.ToString();
+
+                if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
+                {
+                    DateTime time = DateTime.Now;
+                    TotalTime = time - timeStarted;
+                    CompletedMaze();
+                }
+
+
             }));
             Thread.Sleep(10);
             timer();
@@ -134,11 +183,29 @@ public partial class CampaignLevelPage : ContentPage
         double cell_width = MazeWindowWidth / Maze.Width;
         double cell_height = MazeWindowHeight / Maze.Height;
 
-        int line_thickness = 2;
+        int line_thickness = 4;
 
-        for (var h = 0; h < Maze.Height; h++)
+
+        // Color in the Start and Finish Squares before drawing lines
+        (int w, int h) = Maze.Start;
+        main_absolute_layout.Add(new BoxView
         {
-            for (var w = 0; w < Maze.Width; w++)
+            Color = dict_int_to_color[2]
+
+        }, new Rect(w * cell_width + (line_thickness / 2), h * cell_height + (line_thickness / 2), cell_width - line_thickness, cell_height - line_thickness));
+
+        (w, h) = Maze.End;
+        main_absolute_layout.Add(new BoxView
+        {
+            Color = dict_int_to_color[3]
+
+        }, new Rect(w * cell_width + (line_thickness / 2), h * cell_height + (line_thickness / 2), cell_width - line_thickness, cell_height - line_thickness));
+
+
+
+        for (h = 0; h < Maze.Height; h++)
+        {
+            for (w = 0; w < Maze.Width; w++)
             {
                 if (wall_type == "rect")
                 {
@@ -150,14 +217,14 @@ public partial class CampaignLevelPage : ContentPage
                 }
                 if (wall_type == "line")
                 {
-                    if (Maze.Cells[h][w].Value != 0)
-                    {
-                        main_absolute_layout.Add(new BoxView
-                        {
-                            Color = dict_int_to_color[Maze.Cells[h][w].Value]
+                    //if (Maze.Cells[h][w].Value != 0)
+                    //{
+                    //    main_absolute_layout.Add(new BoxView
+                    //    {
+                    //        Color = dict_int_to_color[Maze.Cells[h][w].Value]
 
-                        }, new Rect(w * cell_width + (line_thickness / 2), h * cell_height + (line_thickness / 2), cell_width - line_thickness, cell_height - line_thickness));
-                    }
+                    //    }, new Rect(w * cell_width + (line_thickness / 2), h * cell_height + (line_thickness / 2), cell_width - line_thickness, cell_height - line_thickness));
+                    //}
 
 
                     if (Maze.Cells[h][w].North) // Draw North Wall is cell.North is true
@@ -205,6 +272,9 @@ public partial class CampaignLevelPage : ContentPage
     public void InitializeMaze()
     {
         Maze.MazeGenerationDelegateList[Level.LevelType](Level.Width, Level.Height);
+
+        Level.TwoStarMoves = Math.Max(Level.Width * Level.Height / 3, Maze.PathLength + 5);
+        Level.ThreeStarTime = Maze.PathLength / 2;
 
         drawer.WindowWidth = MazeWindowWidth;
         drawer.WindowHeight = MazeWindowHeight;
@@ -333,10 +403,10 @@ public partial class CampaignLevelPage : ContentPage
 
         numberOfMoves++;
 
-        if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
-        {
-            CompletedMaze();
-        }
+        //if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
+        //{
+        //    CompletedMaze();
+        //}
     }
 
     public async void CompletedMaze()
@@ -344,29 +414,41 @@ public partial class CampaignLevelPage : ContentPage
         // Score like time, number of moves, or amount of false steps
         // Award 0-3 stars
         // Button to retry Maze or exit back to previous screen
+        running = false;
+        hook?.Dispose();
 
-        EndTimer();
         double time = TotalTime.TotalSeconds;
+        int coinsEarned = 0;
+
+        char[] charsToTrim = { 'c', 'b' };
+        int num = Int32.Parse(Level.LevelNumber.Trim(charsToTrim));
 
         if (Level.Star1 == false)
         {
-            PlayerData.UnlockedMazesNumbers.Add(Level.LevelNumber + 1);
+            PlayerData.UnlockedMazesNumbers.AddRange(PlayerData.LevelConnectsToDictionary[Level.LevelNumber]);
+            PlayerData.StarCount++;
+            Level.NumberOfStars++;
+            coinsEarned += num;
         }
 
         Level.Star1 = true;
 
-        if (time < Level.ThreeStarTime)
+        if (time < Level.ThreeStarTime && !Level.Star3)
         {
             Level.Star3 = true;
-        }
-        else
-        {
-            Level.Star3 = false;
+            Level.NumberOfStars++;
+            PlayerData.StarCount++;
+            
+            coinsEarned += num * 3;
         }
 
-        if (numberOfMoves <= Level.TwoStarMoves)
+
+        if (numberOfMoves <= Level.TwoStarMoves && !Level.Star2)
         {
             Level.Star2 = true;
+            Level.NumberOfStars++;
+            PlayerData.StarCount++;
+            coinsEarned += num * 2;
         }
         
         if (time < Level.BestTime.TotalSeconds)
@@ -378,20 +460,49 @@ public partial class CampaignLevelPage : ContentPage
             Level.BestMoves = numberOfMoves;
         }
 
+        PlayerData.CoinCount += coinsEarned;
+
         await main_absolute_layout.FadeTo(0.2, 1000);
         LevelSaved?.Invoke(this, Level);
 
         try
         {
             mazeGraphicsView.IsGameOver = false;
-            var result = await this.ShowPopupAsync(new CampaignMazeFinishedPopupPage(TotalTime, numberOfMoves, Level), CancellationToken.None);
-            if ((bool)result)
+            var result = await this.ShowPopupAsync(new CampaignMazeFinishedPopupPage(TotalTime, numberOfMoves, Level, coinsEarned), CancellationToken.None);
+            if (result == "Retry")
             {
-                await Navigation.PushAsync(new CampaignLevelPage(Level));
+                var page = new CampaignLevelPage(Level);
+                page.LevelSaved += async (obj, copyOfLevel) => { // Any variables that may be changed
+                    Level.BestTime = copyOfLevel.BestTime;
+                    Level.BestMoves = copyOfLevel.BestMoves;
+                    Level.Completed = copyOfLevel.Completed;
+                    Level.Star1 = copyOfLevel.Star1;
+                    Level.Star2 = copyOfLevel.Star2;
+                    Level.Star3 = copyOfLevel.Star3;
+                    Level.NumberOfStars = copyOfLevel.NumberOfStars;
+                    await PlayerData.levelDatabase.SaveLevelAsync(Level);
+                };
+                await Navigation.PushAsync(page);
             }
-            else
+            else if (result == "Close")
             {
                 await Navigation.PushAsync(new CampaignPage());
+            }
+            else if (result == "Next Level")
+            {
+                CampaignLevel next_level = await PlayerData.levelDatabase.GetItemAsync(PlayerData.LevelConnectsToDictionary[Level.LevelNumber][0]);
+                var page = new CampaignLevelPage(next_level);
+                page.LevelSaved += async (obj, copyOfLevel) => { // Any variables that may be changed
+                    next_level.BestTime = copyOfLevel.BestTime;
+                    next_level.BestMoves = copyOfLevel.BestMoves;
+                    next_level.Completed = copyOfLevel.Completed;
+                    next_level.Star1 = copyOfLevel.Star1;
+                    next_level.Star2 = copyOfLevel.Star2;
+                    next_level.Star3 = copyOfLevel.Star3;
+                    next_level.NumberOfStars = copyOfLevel.NumberOfStars;
+                    await PlayerData.levelDatabase.SaveLevelAsync(next_level);
+                };
+                await Navigation.PushAsync(page);
             }
         }
         catch (Exception ex)
@@ -404,6 +515,65 @@ public partial class CampaignLevelPage : ContentPage
     private async void BackButton_Clicked(object sender, EventArgs e)
     {
         await Navigation.PushAsync(new CampaignPage());
+    }
+
+    public async void OnShopButtonClicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new ShopPage());
+    }
+
+    public async void OnHintButtonClicked(object sender, EventArgs e)
+    {
+        if (PlayerData.HintsOwned > 0)
+        {
+            PlayerData.HintsOwned--;
+            hintPowerUpLabel.Text = PlayerData.HintsOwned.ToString();
+            //Maze.Path.Find()
+        }
+        else
+        {
+            await DisplayAlert("No Hints", "You do not have any hints left", "OK");
+        }
+    }
+
+    public async void OnExtraTimeButtonClicked(object sender, EventArgs e)
+    {
+        if (PlayerData.ExtraTimesOwned > 0)
+        {
+            PlayerData.ExtraTimesOwned--;
+            extraTimePowerUpLabel.Text = PlayerData.ExtraTimesOwned.ToString();
+            timeStarted = timeStarted.AddSeconds(10);
+        }
+        else
+        {
+            await DisplayAlert("No Extra Time", "You do not have any extra time left", "OK");
+        }
+    }
+
+    public async void OnExtraMovesButtonClicked(object sender, EventArgs e)
+    {
+        //if (PlayerData.ExtraMovesOwned > 0)
+        //{
+        //    PlayerData.ExtraMovesOwned--;
+        //    extraMovesPowerUpLabel.Text = PlayerData.ExtraMovesOwned.ToString();
+        //    await DisplayAlert("Extra Moves", "You have been given an extra 5 moves", "OK");
+        //    Level.TwoStarMoves += 5;
+        //}
+        //else
+        //{
+        //    await DisplayAlert("No Extra Moves", "You do not have any extra moves left", "OK");
+        //}
+    }
+
+    public async void OnResetButtonClicked(object sender, EventArgs e)
+    {
+        bool ans = await DisplayAlert("Reset", "Are you sure you want to reset the maze?", "Yes", "No");
+        if (ans)
+        {
+            InitializeMaze();
+            UpdatePlayerDrawerPosition();
+            RedrawPlayer();
+        }
     }
 
     protected override void OnDisappearing()

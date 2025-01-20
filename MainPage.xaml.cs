@@ -1,12 +1,14 @@
 ﻿using MazeEscape.Models;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using static SQLite.SQLite3;
 
 namespace MazeEscape
 {
     public partial class MainPage : ContentPage
     {
-        //public List<CarouselImage> CarouselImages { get; set; } = new List<CarouselImage>();
+
+        private const string toRestart = "YES";
 
         public MainPage()
         {
@@ -16,26 +18,31 @@ namespace MazeEscape
         {
             base.OnAppearing();
 
-            if (PlayerData.PlayerName == "")
+            // Uncomment these out to restart all progress
+            if (toRestart == "YES")
             {
-                InitializePlayer();
                 await PlayerData.InitializeLevels();
+                PlayerData.Save();
+                await InitializePlayer();
             }
-            else
+
+            if (toRestart != "YES")
             {
+                PlayerData.Load();
                 usernameLabel.Text = "__" + PlayerData.PlayerName + "__";
             }
 
         }
 
 
-        public async void InitializePlayer()
+        public async Task InitializePlayer()
         {
             string result = await DisplayPromptAsync("Hey there! Welcome to Maze Escape", "What do you want your name to be?","OK", "");
             if (result == "")
             {
-                InitializePlayer();
+                await InitializePlayer();
             }
+
             PlayerData.PlayerName = result;
             usernameLabel.Text = "__" + result + "__";
         }

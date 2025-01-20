@@ -3,20 +3,26 @@ namespace MazeEscape;
 
 public partial class ShopPage : ContentPage
 {
-	public List<string> NamesOfPowerUps = new List<string> { "Hint", "ExtraTime" };
+	public List<string> NamesOfPowerUps = new List<string> { "Hint", "ExtraTime", "ExtraMoves" };
     Dictionary<string, int> CostsOfPowerUps = new Dictionary<string, int>();
     Dictionary<string, Label> NumberOwnedLabels = new Dictionary<string, Label>();
     public ShopPage()
 	{
 		InitializeComponent();
 
-        timeNumberLabel.Text = PlayerData.ExtraTimesOwned.ToString();
 
         CostsOfPowerUps.Add("Hint", 200);
-        CostsOfPowerUps.Add("ExtraTime", 50);
+        CostsOfPowerUps.Add("ExtraTime", 150);
+        CostsOfPowerUps.Add("ExtraMoves", 50);
 
-        NumberOwnedLabels.Add("ExtraTime", timeNumberLabel);
+        NumberOwnedLabels.Add("ExtraTime", extraTimeNumberLabel);
         NumberOwnedLabels.Add("Hint", hintNumberLabel);
+        NumberOwnedLabels.Add("ExtraMoves", extraMovesNumberLabel);
+
+        foreach (string name in NamesOfPowerUps)
+        {
+            NumberOwnedLabels[name].Text = PlayerData.GetPowerupCountFromName(name).ToString();
+        }
 
         //DrawPowerUps();
 

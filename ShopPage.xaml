@@ -77,22 +77,22 @@
                 <BoxView BackgroundColor="AntiqueWhite" CornerRadius="10" Grid.ColumnSpan="8" Opacity="0.6"/>
 
                 <Image Source="time.png" Grid.Column="1" HorizontalOptions="Center"/>
-                <Label x:Name="timeNumberLabel" Grid.Column="2" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Start"/>
+                <Label x:Name="extraTimeNumberLabel" Grid.Column="2" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Start"/>
 
                 <Image Source="hint.png" Grid.Column="3"/>
-                <Label x:Name="hintNumberLabel" Grid.Column="4"/>
+                <Label x:Name="hintNumberLabel" Grid.Column="4" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Start"/>
 
-                <Image Source="time.png" Grid.Column="5"/>
-                <Label x:Name="movesNumberLabel" Grid.Column="6"/>
+                <Image Source="maze_box.png" Grid.Column="5"/>
+                <Label x:Name="extraMovesNumberLabel" Grid.Column="6" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Start"/>
 
 
             </Grid>
             
 
-            <BoxView BackgroundColor="Azure"
+            <BoxView BackgroundColor="Black"
                      AbsoluteLayout.LayoutBounds="0.5,1,0.8,0.65"
                      AbsoluteLayout.LayoutFlags="All"
-                     Opacity="0.6"
+                     Opacity="0.8"
                      CornerRadius="50,50,10,10"/>
 
             <ScrollView Orientation="Vertical" AbsoluteLayout.LayoutBounds="0.5,1,0.8,0.65"

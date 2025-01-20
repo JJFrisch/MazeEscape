@@ -29,6 +29,9 @@ namespace MazeEscape.Models
 
         public int MinimumStarsToUnlock { get; set; }
 
+        public string ConnectTo1 { get; set; }
+
+        public string ConnectTo2 { get; set; }
 
         private bool completed;
 
@@ -117,6 +120,14 @@ namespace MazeEscape.Models
             }
         }
 
+        public void Init()
+        {
+            var l = new List<String>() { ConnectTo1, ConnectTo2};
+            l.Remove("");
+            PlayerData.LevelConnectsToDictionary.Add(LevelNumber, l);
+        }
+
+
         public CampaignLevel(string levelNum, int width, int height, string type, List<string> connects_to, int minimum_stars_to_unlock=0)
         {
             Width = width;
@@ -132,7 +143,22 @@ namespace MazeEscape.Models
             MinimumStarsToUnlock = minimum_stars_to_unlock;
             NumberOfStars = 0;
 
-            PlayerData.LevelConnectsToDictionary.Add(levelNum, connects_to);
+            if (connects_to.Count == 1)
+            {
+                ConnectTo1 = connects_to[0];
+                ConnectTo2 = "";
+            }
+            else if(connects_to.Count == 1)
+            {
+                ConnectTo1 = connects_to[0];
+                ConnectTo2 = connects_to[1];
+            }
+            else
+            {
+                ConnectTo1 = "";
+                ConnectTo2 = "";
+            }
+            //PlayerData.LevelConnectsToDictionary.Add(levelNum, connects_to);
 
 
             //Maze.MazeGenerationDelegateList[type](width, height);

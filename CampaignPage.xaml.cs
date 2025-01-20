@@ -1,8 +1,6 @@
 using CommunityToolkit.Maui.Views;
 using MazeEscape.Models;
-using Microsoft.Maui.Controls;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 
 namespace MazeEscape;
 
@@ -16,11 +14,12 @@ public partial class CampaignPage : ContentPage
 	{
         InitializeComponent();
 
-        campaignMazeBackgroundAbsoluteLayout.HeightRequest = 0.75 * PlayerData.WindowHeight;
+        campaignMazeBackgroundAbsoluteLayout.HeightRequest = 0.7 * PlayerData.WindowHeight;
 
         _ = checkAreasUnlocked();
 
         campaignScrollView.ScrollToAsync(gateImage2, ScrollToPosition.End, true);
+        _ = campaignScrollView.ScrollToAsync(PlayerData.distanceScrolled, 0, true);
     }
 
     protected override async void OnAppearing()
@@ -37,22 +36,32 @@ public partial class CampaignPage : ContentPage
         CoinCountLabel.Text = PlayerData.CoinCount.ToString();
         starCountLabel.Text = PlayerData.StarCount.ToString();
 
-        await ScrollTo(campaignScrollView, 999, true);
+        await ScrollTo(campaignScrollView, PlayerData.distanceScrolled, true);
     }
 
     public async Task LoadLevelsFromDatabase()
     {
         campaignLevels = new ObservableCollection<CampaignLevel>(await PlayerData.levelDatabase.GetLevelsAsync());
+        if (PlayerData.LevelConnectsToDictionary.Count == 0)
+        {
+            foreach (var level in campaignLevels)
+            {
+                level.Init();
+            }
+        }
+
     }
 
     List<(int, int)> area_1_LevelButtonPositions = new List<(int, int)> { (3, 3), (3, 4), (2, 4), (2,3), (2,2), (1,2), (0,2), (0,1), (0,0), (1, 0), (2, 0), (3, 0), (3, 1), (3, 2)};
     List<(int, int)> area_1_BonusLevelButtonPositions = new List<(int, int)> { (0, 3), (0, 4), (1, 4), (2, 1) };
     List<(int, int)> area_2_LevelButtonPositions = new List<(int, int)> { (4, 2), (4, 1), (5, 1), (5, 0), (6, 0), (6, 1), (6, 2), (5, 2), (5, 3), (4, 3), (4, 4), (5, 4), (6, 4), (7, 4) };
     List<(int, int)> area_2_BonusLevelButtonPositions = new List<(int, int)> { (7, 1), (7, 2), (7, 3) };
-    List<(int, int)> area_3_LevelButtonPositions = new List<(int, int)> { }; //  (4, 2), (4, 1), (5, 1), (5, 0), (6, 0), (6, 1), (6, 2), (5, 2), (5, 3), (4, 3), (4, 4), (5, 4), (6, 4), (7, 4) };
-    List<(int, int)> area_3_BonusLevelButtonPositions = new List<(int, int)> { }; //   (7, 1), (7, 2), (7, 3) };
-    List<(int, int)> area_4_LevelButtonPositions = new List<(int, int)> { }; //   (4, 2), (4, 1), (5, 1), (5, 0), (6, 0), (6, 1), (6, 2), (5, 2), (5, 3), (4, 3), (4, 4), (5, 4), (6, 4), (7, 4) };
-    List<(int, int)> area_4_BonusLevelButtonPositions = new List<(int, int)> { }; //   (7, 1), (7, 2), (7, 3) };
+    List<(int, int)> area_3_LevelButtonPositions = new List<(int, int)> { (8, 4), (9, 4), (9, 3), (9, 2), (8, 2), (8, 1), (9, 1), (10, 1), (10, 0), (11, 0), (12, 0), (12, 1), (11, 1), (11, 2), (12, 2) };
+    List<(int, int)> area_3_BonusLevelButtonPositions = new List<(int, int)> { (9, 0), (8, 0) };
+    List<(int, int)> area_4_LevelButtonPositions = new List<(int, int)> { (13, 2), (14, 2), (14, 1), (13, 1), (13, 0), (14, 0), (15, 0), (15, 1), (15, 2), (16, 2), (16, 3), (16, 4) };
+    List<(int, int)> area_4_BonusLevelButtonPositions = new List<(int, int)> { (15, 4), (14, 4), (13, 4), (12, 4), (11, 4), (10, 4), (10, 3), (11, 3), (12, 3), (13, 3), (14, 3)};
+    List<(int, int)> area_5_LevelButtonPositions = new List<(int, int)> { (17, 4), (17, 3), (18, 3), (18, 4), (19, 4), (19, 3), (19, 2), (19, 1), (18, 1), (17, 1), (17, 0), (18, 0), (19,0) };
+    List<(int, int)> area_5_BonusLevelButtonPositions = new List<(int, int)> { (17, 2), (16, 0) };
 
 
     List<(int, int)> all_button_positions = new List<(int, int)>();
@@ -76,6 +85,11 @@ public partial class CampaignPage : ContentPage
         {
             all_button_positions.AddRange(area_4_LevelButtonPositions);
             all_button_positions.AddRange(area_4_BonusLevelButtonPositions);
+        }
+        if (PlayerData.HighestAreaUnlocked >= 4)
+        {
+            all_button_positions.AddRange(area_5_LevelButtonPositions);
+            all_button_positions.AddRange(area_5_BonusLevelButtonPositions);
         }
 
         for (int i = 0; i < all_button_positions.Count; i++) {
@@ -203,12 +217,54 @@ public partial class CampaignPage : ContentPage
     {
         int num_stars = PlayerData.StarCount;
 
-        gateImage1.IsVisible = num_stars < 20;
-        gateLabel1.IsVisible = num_stars < 20;
-        gateImage2.IsVisible = num_stars < 45;
-        gateLabel2.IsVisible = num_stars < 45;
-        gateImage3.IsVisible = num_stars < 30;
-        gateLabel3.IsVisible = num_stars < 30;
+        gateImage1.IsVisible = num_stars < PlayerData.gateCoinRequired[0];
+        gateLabel1.IsVisible = num_stars < PlayerData.gateCoinRequired[0];
+        gateLabel1.Text = PlayerData.gateCoinRequired[0].ToString();
+
+        gateImage2.IsVisible = num_stars < PlayerData.gateCoinRequired[1];
+        gateLabel2.IsVisible = num_stars < PlayerData.gateCoinRequired[1];
+        gateLabel2.Text = PlayerData.gateCoinRequired[1].ToString();
+
+        gateImage3.IsVisible = num_stars < PlayerData.gateCoinRequired[2];
+        gateLabel3.IsVisible = num_stars < PlayerData.gateCoinRequired[2];
+        gateLabel3.Text = PlayerData.gateCoinRequired[2].ToString();
+
+        gateImage4.IsVisible = num_stars < PlayerData.gateCoinRequired[3];
+        gateLabel4.IsVisible = num_stars < PlayerData.gateCoinRequired[3];
+        gateLabel4.Text = PlayerData.gateCoinRequired[3].ToString();
+
+        gateImage5.IsVisible = num_stars < PlayerData.gateCoinRequired[4];
+        gateLabel5.IsVisible = num_stars < PlayerData.gateCoinRequired[4];
+        gateLabel5.Text = PlayerData.gateCoinRequired[4].ToString();
+
+        gateImage6.IsVisible = num_stars < PlayerData.gateCoinRequired[5];
+        gateLabel6.IsVisible = num_stars < PlayerData.gateCoinRequired[5];
+        gateLabel6.Text = PlayerData.gateCoinRequired[5].ToString();
+
+        gateImage7.IsVisible = num_stars < PlayerData.gateCoinRequired[6];
+        gateLabel7.IsVisible = num_stars < PlayerData.gateCoinRequired[6];
+        gateLabel7.Text = PlayerData.gateCoinRequired[6].ToString();
+
+        gateImage8.IsVisible = num_stars < PlayerData.gateCoinRequired[7];
+        gateLabel8.IsVisible = num_stars < PlayerData.gateCoinRequired[7];
+        gateLabel8.Text = PlayerData.gateCoinRequired[7].ToString();
+
+        gateImage9.IsVisible = num_stars < PlayerData.gateCoinRequired[8];
+        gateLabel9.IsVisible = num_stars < PlayerData.gateCoinRequired[8];
+        gateLabel9.Text = PlayerData.gateCoinRequired[8].ToString();
+
+        gateImage10.IsVisible = num_stars < PlayerData.gateCoinRequired[9];
+        gateLabel10.IsVisible = num_stars < PlayerData.gateCoinRequired[9];
+        gateLabel10.Text = PlayerData.gateCoinRequired[9].ToString();
+
+        gateImage11.IsVisible = num_stars < PlayerData.gateCoinRequired[10];
+        gateLabel11.IsVisible = num_stars < PlayerData.gateCoinRequired[10];
+        gateLabel11.Text = PlayerData.gateCoinRequired[10].ToString();
+
+        gateImage12.IsVisible = num_stars < PlayerData.gateCoinRequired[11];
+        gateLabel12.IsVisible = num_stars < PlayerData.gateCoinRequired[11];
+        gateLabel12.Text = PlayerData.gateCoinRequired[11].ToString();
+
     }
 
     public async void InitializeFogs()
@@ -216,8 +272,7 @@ public partial class CampaignPage : ContentPage
         fog_area_1_image.IsVisible = PlayerData.HighestAreaUnlocked == 1;
         fog_area_2_image.IsVisible = PlayerData.HighestAreaUnlocked == 2;
         fog_area_3_image.IsVisible = PlayerData.HighestAreaUnlocked == 3;
-        fog_area_4_image1.IsVisible = PlayerData.HighestAreaUnlocked == 4;
-        fog_area_4_image2.IsVisible = PlayerData.HighestAreaUnlocked == 4;
+        fog_area_4_image.IsVisible = PlayerData.HighestAreaUnlocked == 4;
 
         await campaignScrollView.ScrollToAsync(PlayerData.distanceScrolled, 0, true);
     }
@@ -299,14 +354,22 @@ public partial class CampaignPage : ContentPage
             // Fog changing animation
             await fog_area_3_image.FadeTo(0, 1000);
             fog_area_3_image.IsVisible = false;
-            fog_area_4_image1.Opacity = 0;
-            fog_area_4_image1.IsVisible = true;
-            fog_area_4_image2.Opacity = 0;
-            fog_area_4_image2.IsVisible = true;
+            fog_area_4_image.Opacity = 0;
+            fog_area_4_image.IsVisible = true;
             await fog_area_3_image.FadeTo(1, 1000);
 
             PlayerData.HighestAreaUnlocked = 4;
         }
+        if (PlayerData.HighestAreaUnlocked == 4 && PlayerData.UnlockedMazesNumbers.Contains("56"))
+        {
+            // Fog changing animation
+            await fog_area_4_image.FadeTo(0, 1000);
+            fog_area_4_image.IsVisible = false;
+            await fog_area_4_image.FadeTo(1, 1000);
+
+            PlayerData.HighestAreaUnlocked = 5;
+        }
+
     }
 
     public async Task LockedWallClicked(ImageButton imageButton)

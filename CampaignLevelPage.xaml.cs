@@ -462,6 +462,8 @@ public partial class CampaignLevelPage : ContentPage
 
         PlayerData.CoinCount += coinsEarned;
 
+        PlayerData.Save();
+
         await main_absolute_layout.FadeTo(0.2, 1000);
         LevelSaved?.Invoke(this, Level);
 

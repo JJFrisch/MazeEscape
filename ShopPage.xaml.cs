@@ -11,9 +11,14 @@ public partial class ShopPage : ContentPage
 		InitializeComponent();
 
 
+
         CostsOfPowerUps.Add("Hint", 200);
         CostsOfPowerUps.Add("ExtraTime", 150);
         CostsOfPowerUps.Add("ExtraMoves", 50);
+
+        hintCostLabel.Text = CostsOfPowerUps["Hint"].ToString();
+        extraTimeCostLabel.Text = CostsOfPowerUps["ExtraTime"].ToString();
+        extraMovesCostLabel.Text = CostsOfPowerUps["ExtraMoves"].ToString();
 
         NumberOwnedLabels.Add("ExtraTime", extraTimeNumberLabel);
         NumberOwnedLabels.Add("Hint", hintNumberLabel);
@@ -157,6 +162,16 @@ public partial class ShopPage : ContentPage
     {
         await Buy("ExtraTime", timeImageButton);
     }
+    private async void BuyHintClicked(object sender, EventArgs e)
+    {
+        await Buy("Hint", hintImageButton);
+    }
+    private async void BuyMovesClicked(object sender, EventArgs e)
+    {
+        await Buy("ExtraMoves", movesImageButton);
+    }
+
+
 
     private async void BackButton_Clicked(object sender, EventArgs e)
     {

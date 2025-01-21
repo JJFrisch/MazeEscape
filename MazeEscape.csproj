@@ -59,6 +59,13 @@
 	  <MauiImage Remove="Resources\Images\character_ball.png" />
 	  <MauiImage Remove="Resources\Images\dotnet_bot.png" />
 	  <MauiImage Remove="Resources\Images\player_image.png" />
+	  <MauiImage Remove="Resources\Images\player_image0.png" />
+	  <MauiImage Remove="Resources\Images\player_image1.png" />
+	  <MauiImage Remove="Resources\Images\player_image2.png" />
+	  <MauiImage Remove="Resources\Images\player_image3.png" />
+	  <MauiImage Remove="Resources\Images\player_image4.png" />
+	  <MauiImage Remove="Resources\Images\player_image5.png" />
+	  <MauiImage Remove="Resources\Images\player_image6.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -84,6 +91,13 @@
 
 	<ItemGroup>
 	  <EmbeddedResource Include="Resources\Images\character_ball.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image0.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image1.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image2.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image3.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image4.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image5.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image6.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -110,6 +124,9 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="CampaignPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="EquipPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="FinishedMazePage.xaml">

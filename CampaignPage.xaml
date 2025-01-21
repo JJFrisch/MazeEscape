@@ -18,8 +18,14 @@
 
     
         <AbsoluteLayout x:Name="CampaignAbsoluteLayout" Margin="0,-80,0,0"
-            BackgroundColor="LightSkyBlue">
+            Background="AliceBlue">
         <!-- LightSkyBlue -->
+
+        <Image   
+            AbsoluteLayout.LayoutBounds="1,1,1,1"
+            AbsoluteLayout.LayoutFlags="All"
+            Source="background_blue_1.png"
+            Aspect="AspectFill" />
 
         <Image AbsoluteLayout.LayoutBounds="0,0,1,0.129"
          AbsoluteLayout.LayoutFlags="All"
@@ -32,13 +38,13 @@
                FontSize="35"
                TextColor="White"
                VerticalTextAlignment="Center"
-            AbsoluteLayout.LayoutBounds="0.216,0,60,0.1"
+            AbsoluteLayout.LayoutBounds="0.216,0,60,0.12"
             AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"/>
 
         <Image
             Source="full_star.png"
             HorizontalOptions="Start"
-            AbsoluteLayout.LayoutBounds="0.05,0,40,0.1"
+            AbsoluteLayout.LayoutBounds="0.05,0,40,0.12"
             AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"/>
 
         <Label x:Name="CoinCountLabel"  
@@ -47,13 +53,13 @@
                TextColor="White"
                VerticalTextAlignment="Center"
                HorizontalTextAlignment="End"
-               AbsoluteLayout.LayoutBounds="0.636,0,100,0.1"
+               AbsoluteLayout.LayoutBounds="0.636,0,100,0.12"
                AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"/>
             
         <Image
             Source="coin.png"
             HorizontalOptions="Start"
-            AbsoluteLayout.LayoutBounds="0.45,0,40,0.1"
+            AbsoluteLayout.LayoutBounds="0.45,0,40,0.12"
             AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"/>
 
 
@@ -350,7 +356,7 @@
         <ImageButton Source="toolkit.png"
              AbsoluteLayout.LayoutBounds="0.2,0.982,50,70"
              AbsoluteLayout.LayoutFlags="PositionProportional"
-             Clicked="BackButton_Clicked">
+             Clicked="OnEquipButtonClicked">
             <VisualStateManager.VisualStateGroups>
                 <VisualStateGroupList>
                     <VisualStateGroup x:Name="CommonStates">

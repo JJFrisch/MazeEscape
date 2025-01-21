@@ -148,7 +148,7 @@ namespace MazeEscape.Models
                 ConnectTo1 = connects_to[0];
                 ConnectTo2 = "";
             }
-            else if(connects_to.Count == 1)
+            else if(connects_to.Count == 2)
             {
                 ConnectTo1 = connects_to[0];
                 ConnectTo2 = connects_to[1];

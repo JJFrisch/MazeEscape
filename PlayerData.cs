@@ -15,6 +15,8 @@ namespace MazeEscape
 
         public static string PlayerName = "";
 
+        public static string PlayerImageName = "player_image0.png";
+
         public static int PlayerId = 0;
 
         public static int StarCount = 0;
@@ -71,7 +73,7 @@ namespace MazeEscape
             // area 1 Bonus Level Buttons
             CampaignLevels.Add(new CampaignLevel("1b", 20, 12, "GenerateHuntAndKill", new List<string> { "2b" }, gateCoinRequired[0]));
             CampaignLevels.Add(new CampaignLevel("2b", 17, 15, "GenerateBacktracking", new List<string> { "3b" }));
-            CampaignLevels.Add(new CampaignLevel("3b", 4, 4, "GenerateHuntAndKill", new List<string> { "c1" }));
+            CampaignLevels.Add(new CampaignLevel("3b", 20, 20, "GenerateHuntAndKill", new List<string> { "c1" }));
             CampaignLevels.Add(new CampaignLevel("4b", 20, 12, "GenerateHuntAndKill", new List<string> { "c2" }, gateCoinRequired[1]));
 
             // area 1 Chests
@@ -106,19 +108,19 @@ namespace MazeEscape
             // area 3 Level Buttons
             CampaignLevels.Add(new CampaignLevel("29", 20, 12, "GenerateHuntAndKill", new List<string> { "30" }, gateCoinRequired[4]));
             CampaignLevels.Add(new CampaignLevel("30", 20, 12, "GenerateHuntAndKill", new List<string> { "31" }));
-            CampaignLevels.Add(new CampaignLevel("31", 20, 20, "GenerateHuntAndKill", new List<string> { "32" }));
-            CampaignLevels.Add(new CampaignLevel("32", 20, 20, "GenerateHuntAndKill", new List<string> { "33" }));
-            CampaignLevels.Add(new CampaignLevel("33", 20, 20, "GenerateHuntAndKill", new List<string> { "34", "c5" }));
-            CampaignLevels.Add(new CampaignLevel("34", 20, 22, "GenerateHuntAndKill", new List<string> { "35" }));
-            CampaignLevels.Add(new CampaignLevel("35", 20, 23, "GenerateHuntAndKill", new List<string> { "36" }));
-            CampaignLevels.Add(new CampaignLevel("36", 20, 24, "GenerateHuntAndKill", new List<string> { "37" }));
-            CampaignLevels.Add(new CampaignLevel("37", 20, 25, "GenerateHuntAndKill", new List<string> { "38", "8b" }));
-            CampaignLevels.Add(new CampaignLevel("38", 20, 26, "GenerateHuntAndKill", new List<string> { "39" }));
-            CampaignLevels.Add(new CampaignLevel("39", 20, 27, "GenerateHuntAndKill", new List<string> { "40" }));
-            CampaignLevels.Add(new CampaignLevel("40", 20, 18, "GenerateHuntAndKill", new List<string> { "41" }));
-            CampaignLevels.Add(new CampaignLevel("41", 20, 29, "GenerateHuntAndKill", new List<string> { "42" }));
-            CampaignLevels.Add(new CampaignLevel("42", 25, 25, "GenerateHuntAndKill", new List<string> { "43" }));
-            CampaignLevels.Add(new CampaignLevel("43", 25, 25, "GenerateHuntAndKill", new List<string> { "44" }));
+            CampaignLevels.Add(new CampaignLevel("31", 21, 20, "GenerateHuntAndKill", new List<string> { "32" }));
+            CampaignLevels.Add(new CampaignLevel("32", 22, 20, "GenerateHuntAndKill", new List<string> { "33" }));
+            CampaignLevels.Add(new CampaignLevel("33", 22, 20, "GenerateHuntAndKill", new List<string> { "34", "c5" }));
+            CampaignLevels.Add(new CampaignLevel("34", 23, 22, "GenerateHuntAndKill", new List<string> { "35" }));
+            CampaignLevels.Add(new CampaignLevel("35", 24, 23, "GenerateHuntAndKill", new List<string> { "36" }));
+            CampaignLevels.Add(new CampaignLevel("36", 25, 24, "GenerateHuntAndKill", new List<string> { "37" }));
+            CampaignLevels.Add(new CampaignLevel("37", 25, 25, "GenerateHuntAndKill", new List<string> { "38", "8b" }));
+            CampaignLevels.Add(new CampaignLevel("38", 24, 26, "GenerateHuntAndKill", new List<string> { "39" }));
+            CampaignLevels.Add(new CampaignLevel("39", 23, 27, "GenerateHuntAndKill", new List<string> { "40" }));
+            CampaignLevels.Add(new CampaignLevel("40", 22, 18, "GenerateHuntAndKill", new List<string> { "41" }));
+            CampaignLevels.Add(new CampaignLevel("41", 21, 29, "GenerateHuntAndKill", new List<string> { "42" }));
+            CampaignLevels.Add(new CampaignLevel("42", 22, 25, "GenerateHuntAndKill", new List<string> { "43" }));
+            CampaignLevels.Add(new CampaignLevel("43", 21, 25, "GenerateHuntAndKill", new List<string> { "44" }));
 
             // area 3 Bonus Level Buttons
             CampaignLevels.Add(new CampaignLevel("8b", 20, 12, "GenerateHuntAndKill", new List<string> { "9b" }, gateCoinRequired[5]));
@@ -130,28 +132,28 @@ namespace MazeEscape
 
 
             // area 4 Level Buttons
-            CampaignLevels.Add(new CampaignLevel("44", 20, 12, "GenerateHuntAndKill", new List<string> { "45" }, gateCoinRequired[6]));
-            CampaignLevels.Add(new CampaignLevel("45", 20, 12, "GenerateHuntAndKill", new List<string> { "46" }));
-            CampaignLevels.Add(new CampaignLevel("46", 20, 20, "GenerateHuntAndKill", new List<string> { "47" }));
-            CampaignLevels.Add(new CampaignLevel("47", 20, 20, "GenerateHuntAndKill", new List<string> { "48" }));
-            CampaignLevels.Add(new CampaignLevel("48", 20, 20, "GenerateHuntAndKill", new List<string> { "49"}));
-            CampaignLevels.Add(new CampaignLevel("49", 20, 22, "GenerateHuntAndKill", new List<string> { "50" }));
-            CampaignLevels.Add(new CampaignLevel("50", 20, 23, "GenerateHuntAndKill", new List<string> { "51" }));
-            CampaignLevels.Add(new CampaignLevel("51", 20, 24, "GenerateHuntAndKill", new List<string> { "52" }));
-            CampaignLevels.Add(new CampaignLevel("52", 20, 25, "GenerateHuntAndKill", new List<string> { "53" }));
-            CampaignLevels.Add(new CampaignLevel("53", 20, 26, "GenerateHuntAndKill", new List<string> { "54" }));
-            CampaignLevels.Add(new CampaignLevel("54", 20, 27, "GenerateHuntAndKill", new List<string> { "55" }));
-            CampaignLevels.Add(new CampaignLevel("55", 20, 18, "GenerateHuntAndKill", new List<string> { "56", "10b" }));
+            CampaignLevels.Add(new CampaignLevel("44", 21, 12, "GenerateHuntAndKill", new List<string> { "45" }, gateCoinRequired[6]));
+            CampaignLevels.Add(new CampaignLevel("45", 22, 12, "GenerateHuntAndKill", new List<string> { "46" }));
+            CampaignLevels.Add(new CampaignLevel("46", 23, 20, "GenerateHuntAndKill", new List<string> { "47" }));
+            CampaignLevels.Add(new CampaignLevel("47", 23, 20, "GenerateHuntAndKill", new List<string> { "48" }));
+            CampaignLevels.Add(new CampaignLevel("48", 24, 20, "GenerateHuntAndKill", new List<string> { "49"}));
+            CampaignLevels.Add(new CampaignLevel("49", 25, 22, "GenerateHuntAndKill", new List<string> { "50" }));
+            CampaignLevels.Add(new CampaignLevel("50", 25, 23, "GenerateHuntAndKill", new List<string> { "51" }));
+            CampaignLevels.Add(new CampaignLevel("51", 26, 24, "GenerateHuntAndKill", new List<string> { "52" }));
+            CampaignLevels.Add(new CampaignLevel("52", 27, 25, "GenerateHuntAndKill", new List<string> { "53" }));
+            CampaignLevels.Add(new CampaignLevel("53", 28, 26, "GenerateHuntAndKill", new List<string> { "54" }));
+            CampaignLevels.Add(new CampaignLevel("54", 27, 20, "GenerateHuntAndKill", new List<string> { "55" }));
+            CampaignLevels.Add(new CampaignLevel("55", 28, 23, "GenerateHuntAndKill", new List<string> { "56", "10b" }));
 
 
             // area 4 Bonus Level Buttons
-            CampaignLevels.Add(new CampaignLevel("10b", 20, 12, "GenerateHuntAndKill", new List<string> { "11b" }, gateCoinRequired[7]));
-            CampaignLevels.Add(new CampaignLevel("11b", 20, 12, "GenerateHuntAndKill", new List<string> { "12b" }));
-            CampaignLevels.Add(new CampaignLevel("12b", 20, 12, "GenerateHuntAndKill", new List<string> { "13b" }));
-            CampaignLevels.Add(new CampaignLevel("13b", 20, 12, "GenerateHuntAndKill", new List<string> { "14b" }));
+            CampaignLevels.Add(new CampaignLevel("10b", 22, 12, "GenerateHuntAndKill", new List<string> { "11b" }, gateCoinRequired[7]));
+            CampaignLevels.Add(new CampaignLevel("11b", 23, 12, "GenerateHuntAndKill", new List<string> { "12b" }));
+            CampaignLevels.Add(new CampaignLevel("12b", 24, 12, "GenerateHuntAndKill", new List<string> { "13b" }));
+            CampaignLevels.Add(new CampaignLevel("13b", 25, 12, "GenerateHuntAndKill", new List<string> { "14b" }));
             CampaignLevels.Add(new CampaignLevel("14b", 20, 12, "GenerateHuntAndKill", new List<string> { "15b" }));
-            CampaignLevels.Add(new CampaignLevel("15b", 20, 12, "GenerateHuntAndKill", new List<string> { "16b" }));
-            CampaignLevels.Add(new CampaignLevel("16b", 20, 12, "GenerateHuntAndKill", new List<string> { "17b" }));
+            CampaignLevels.Add(new CampaignLevel("15b", 26, 12, "GenerateHuntAndKill", new List<string> { "16b" }));
+            CampaignLevels.Add(new CampaignLevel("16b", 27, 12, "GenerateHuntAndKill", new List<string> { "17b" }));
             CampaignLevels.Add(new CampaignLevel("17b", 20, 12, "GenerateHuntAndKill", new List<string> { "18b" }));
             CampaignLevels.Add(new CampaignLevel("18b", 20, 12, "GenerateHuntAndKill", new List<string> { "19b" }));
             CampaignLevels.Add(new CampaignLevel("19b", 20, 12, "GenerateHuntAndKill", new List<string> { "20b" }));
@@ -212,6 +214,7 @@ namespace MazeEscape
                 ChestModels = ChestModels,
                 HighestAreaUnlocked = HighestAreaUnlocked,
                 distanceScrolled = distanceScrolled,
+                PlayerImageName = PlayerImageName,
             };
 
             var serializedData = JsonSerializer.Serialize(data);
@@ -236,6 +239,7 @@ namespace MazeEscape
             ChestModels = data.ChestModels;
             HighestAreaUnlocked = data.HighestAreaUnlocked;
             distanceScrolled = data.distanceScrolled;
+            PlayerImageName = PlayerImageName;
 
 
         }
@@ -307,6 +311,9 @@ namespace MazeEscape
         public int HighestAreaUnlocked { get; set; }
 
         public double distanceScrolled { get; set; }
+
+        public string PlayerImageName { get; set; }
+
 
     }
 }

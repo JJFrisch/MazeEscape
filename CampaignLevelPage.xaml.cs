@@ -95,8 +95,9 @@ public partial class CampaignLevelPage : ContentPage
         StartTimer();
 
         extraTimePowerUpLabel.Text = PlayerData.ExtraTimesOwned.ToString();
+        extraMovesPowerUpLabel.Text = PlayerData.ExtraMovesOwned.ToString();
         hintPowerUpLabel.Text = PlayerData.HintsOwned.ToString();
-        CoinCountLabel.Text = PlayerData.CoinCount.ToString();
+        //CoinCountLabel.Text = PlayerData.CoinCount.ToString();
 
     }
 
@@ -544,7 +545,12 @@ public partial class CampaignLevelPage : ContentPage
         {
             PlayerData.ExtraTimesOwned--;
             extraTimePowerUpLabel.Text = PlayerData.ExtraTimesOwned.ToString();
-            timeStarted = timeStarted.AddSeconds(10);
+            Level.ThreeStarTime += 10;
+            labelTimer.TextColor = Colors.Green;
+            await labelTimer.ScaleTo(1.2, 200);
+            await labelTimer.ScaleTo(1, 200);
+            labelTimer.TextColor = Colors.White;
+
         }
         else
         {
@@ -554,17 +560,20 @@ public partial class CampaignLevelPage : ContentPage
 
     public async void OnExtraMovesButtonClicked(object sender, EventArgs e)
     {
-        //if (PlayerData.ExtraMovesOwned > 0)
-        //{
-        //    PlayerData.ExtraMovesOwned--;
-        //    extraMovesPowerUpLabel.Text = PlayerData.ExtraMovesOwned.ToString();
-        //    await DisplayAlert("Extra Moves", "You have been given an extra 5 moves", "OK");
-        //    Level.TwoStarMoves += 5;
-        //}
-        //else
-        //{
-        //    await DisplayAlert("No Extra Moves", "You do not have any extra moves left", "OK");
-        //}
+        if (PlayerData.ExtraMovesOwned > 0)
+        {
+            PlayerData.ExtraMovesOwned--;
+            extraMovesPowerUpLabel.Text = PlayerData.ExtraMovesOwned.ToString();
+            Level.TwoStarMoves += 10;
+            moveNumberText.TextColor = Colors.Green;
+            await moveNumberText.ScaleTo(1.2, 200);
+            await moveNumberText.ScaleTo(1, 200);
+            moveNumberText.TextColor = Colors.White;
+        }
+        else
+        {
+            await DisplayAlert("No Extra Moves", "You do not have any extra time left", "OK");
+        }
     }
 
     public async void OnResetButtonClicked(object sender, EventArgs e)

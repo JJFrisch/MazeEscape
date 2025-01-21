@@ -72,10 +72,13 @@
                AbsoluteLayout.LayoutBounds="0.65,40,0.2,0.1"
                AbsoluteLayout.LayoutFlags="XProportional,SizeProportional" />
 
+        <HorizontalStackLayout AbsoluteLayout.LayoutBounds="0,0.985,650,60"
+                               AbsoluteLayout.LayoutFlags="PositionProportional"
+                               Spacing="20"
+                               Padding="50,5,0,5">
 
-        <ImageButton x:Name="extraTimePowerUpImage"
-            AbsoluteLayout.LayoutBounds="0.1,0.985,60,60"
-            AbsoluteLayout.LayoutFlags="PositionProportional"
+            <ImageButton x:Name="extraTimePowerUpImage"
+
             Source="time.png"
             Clicked="OnExtraTimeButtonClicked"/>
 
@@ -85,12 +88,10 @@
                TextColor="AntiqueWhite"
                FontAttributes="Bold"
                VerticalTextAlignment="Center"
-              AbsoluteLayout.LayoutBounds="0.28,0.965,30,30"
-              AbsoluteLayout.LayoutFlags="PositionProportional"/>
+/>
 
         <ImageButton x:Name="hintPowerUpImage"
-            AbsoluteLayout.LayoutBounds="0.45,0.984,55,55"
-            AbsoluteLayout.LayoutFlags="PositionProportional"
+
             Source="hint.png"
             Aspect="AspectFit"
             Clicked="OnHintButtonClicked"/>
@@ -99,11 +100,25 @@
                FontSize="18"
                Text="3"
                VerticalTextAlignment="Center"
-               AbsoluteLayout.LayoutBounds="0.6,0.965,30,30"
-               AbsoluteLayout.LayoutFlags="PositionProportional"
+
                FontAttributes="Bold"/>
 
-        <BoxView AbsoluteLayout.LayoutBounds="1,0.988,0.3,60"
+        <ImageButton x:Name="extraMovesPowerUpImage"
+
+            Source="maze_box.png"
+            Aspect="AspectFit"
+            Clicked="OnExtraMovesButtonClicked"/>
+
+        <Label x:Name="extraMovesPowerUpLabel"
+               FontSize="18"
+               Text="3"
+               VerticalTextAlignment="Center"
+
+               FontAttributes="Bold"/>
+
+        </HorizontalStackLayout>
+
+        <!--   <BoxView AbsoluteLayout.LayoutBounds="1,0.988,0.3,60"
          AbsoluteLayout.LayoutFlags="PositionProportional,WidthProportional"
          BackgroundColor="Black"
          Opacity="0.5"
@@ -123,7 +138,7 @@
         AbsoluteLayout.LayoutFlags="PositionProportional"/>
 
 
-        <!-- <VerticalStackLayout Padding="10" Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
+         <VerticalStackLayout Padding="10" Spacing="10" HorizontalOptions="Center" VerticalOptions="Center">
             <Button Text="Up" Clicked="OnUpClicked"/>
             <Button Text="Down" Clicked="OnDownClicked"/>
             <Button Text="Left" Clicked="OnLeftClicked"/>

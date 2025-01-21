@@ -18,20 +18,22 @@ namespace MazeEscape
         {
             base.OnAppearing();
 
-            // Uncomment these out to restart all progress
-            if (toRestart == "YES")
+            if (PlayerData.PlayerName == "")
             {
-                await PlayerData.InitializeLevels();
-                PlayerData.Save();
-                await InitializePlayer();
-            }
+                // Uncomment these out to restart all progress
+                if (toRestart == "YES")
+                {
+                    await PlayerData.InitializeLevels();
+                    PlayerData.Save();
+                    await InitializePlayer();
+                }   
 
-            if (toRestart != "YES")
-            {
-                PlayerData.Load();
-                usernameLabel.Text = "__" + PlayerData.PlayerName + "__";
+                if (toRestart != "YES")
+                {
+                    PlayerData.Load();
+                    usernameLabel.Text = "__" + PlayerData.PlayerName + "__";
+                }
             }
-
         }
 
 
@@ -66,6 +68,11 @@ namespace MazeEscape
         public async void OnShopButtonClicked(object sender, EventArgs e)
         {
             await Navigation.PushAsync(new ShopPage());
+        }
+
+        public async void OnEquipButtonClicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new EquipPage());
         }
 
     }

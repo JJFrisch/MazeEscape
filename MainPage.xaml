@@ -29,12 +29,12 @@
                  Opacity="0.4"
                  CornerRadius="0"/> 
 
-        <ImageButton x:Name="settingsButton" Clicked="OnSettingsButtonClicked" 
-                     AbsoluteLayout.LayoutBounds="0.5,0,1,0.1"
-                     AbsoluteLayout.LayoutFlags="All"
+        <ImageButton x:Name="equipButton" Clicked="OnEquipButtonClicked" 
+                     AbsoluteLayout.LayoutBounds="0.5,0.013,1,0.08"
+                    AbsoluteLayout.LayoutFlags="All"
                          Style="{StaticResource menuImageButtonStyle}"
                          HorizontalOptions="Start"
-                         Source="setting_button_image.png"/>
+                         Source="toolkit.png"/>
             <Label x:Name="usernameLabel" 
                     AbsoluteLayout.LayoutBounds="0.5,0,1,0.1"
                     AbsoluteLayout.LayoutFlags="All"

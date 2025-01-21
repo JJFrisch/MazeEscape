@@ -77,13 +77,13 @@
                 <BoxView BackgroundColor="AntiqueWhite" CornerRadius="10" Grid.ColumnSpan="8" Opacity="0.6"/>
 
                 <Image Source="time.png" Grid.Column="1" HorizontalOptions="Center"/>
-                <Label x:Name="extraTimeNumberLabel" Grid.Column="2" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Start"/>
+                <Label x:Name="extraTimeNumberLabel" Grid.Column="2" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Center"/>
 
                 <Image Source="hint.png" Grid.Column="3"/>
-                <Label x:Name="hintNumberLabel" Grid.Column="4" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Start"/>
+                <Label x:Name="hintNumberLabel" Grid.Column="4" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Center"/>
 
                 <Image Source="maze_box.png" Grid.Column="5"/>
-                <Label x:Name="extraMovesNumberLabel" Grid.Column="6" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Start"/>
+                <Label x:Name="extraMovesNumberLabel" Grid.Column="6" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Center"/>
 
 
             </Grid>
@@ -114,7 +114,7 @@
                          Clicked="BuyTimeClicked"
                          Aspect="AspectFit"/>
 
-                    <Label x:Name="timeCostLabel"
+                    <Label x:Name="extraTimeCostLabel"
                    Text="50"
                    FontSize="28"
                    HorizontalOptions="Start"
@@ -126,7 +126,7 @@
                          AbsoluteLayout.LayoutBounds="0.5,0.35,0.8,0.2"
                         AbsoluteLayout.LayoutFlags="All"
                         Aspect="AspectFit"
-                        Clicked="BuyTimeClicked"
+                        Clicked="BuyHintClicked"
                         x:Name="hintImageButton"/>
 
                 <Label x:Name="hintCostLabel"
@@ -139,12 +139,31 @@
                 <ImageButton Source="hint.png"
              AbsoluteLayout.LayoutBounds="0.25,0.35,0.2,0.2"
              AbsoluteLayout.LayoutFlags="All"
-             WidthRequest="30"/>
+             WidthRequest="30"
+                             Clicked="BuyHintClicked"
+                             x:Name="hintImageButton2"/>
 
 
-                <ImageButton Source="store_item_background.png"
-                         AbsoluteLayout.LayoutBounds="0.5,0.8,0.6,0.2"
-                         AbsoluteLayout.LayoutFlags="All"/>
+                    <ImageButton Source="store_item_background.png"
+                         AbsoluteLayout.LayoutBounds="0.5,0.65,0.8,0.2"
+                         AbsoluteLayout.LayoutFlags="All"
+                         Aspect="AspectFit"
+                         Clicked="BuyMovesClicked"
+                         x:Name="movesImageButton"/>
+
+                    <ImageButton Source="maze_box.png" x:Name="movesImageButton2"
+                         AbsoluteLayout.LayoutBounds="0.25,0.65,0.2,0.2"
+                         AbsoluteLayout.LayoutFlags="All"
+                             WidthRequest="30"
+                         Clicked="BuyMovesClicked"
+                         Aspect="AspectFit"/>
+
+                    <Label x:Name="extraMovesCostLabel"
+                       Text="50"
+                       FontSize="28"
+                       HorizontalOptions="Start"
+                       AbsoluteLayout.LayoutBounds="0.86,0.715,0.3,0.2"
+                       AbsoluteLayout.LayoutFlags="All"/>
 
 
                 </AbsoluteLayout>

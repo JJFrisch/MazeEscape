@@ -389,6 +389,11 @@ public partial class CampaignPage : ContentPage
         await Navigation.PushAsync(new ShopPage());
     }
 
+    public async void OnEquipButtonClicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new EquipPage());
+    }
+
     public async void OnLockedGateImageButtonClicked(object sender, EventArgs e)
     {
         ImageButton self = (ImageButton)sender;

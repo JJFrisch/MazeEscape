@@ -315,6 +315,62 @@ namespace MazeEscape.Models
             Path = path[max_key];
         }
 
+        public void FindPathFrom(int x, int y)
+        {
+            // for every n too to queue
+            // if nei end: return path + this 
+            // call find path
+
+
+
+            //(int, int) Start = (x, y);
+            //Queue<(int, int)> myQueue = new Queue<(int, int)>();
+            //myQueue.Enqueue(Start);
+            //Dictionary<(int, int), (int, int)?> came_from = new Dictionary<(int, int), (int, int)?>();
+            //Dictionary<(int, int), List<(int, int)>> path = new Dictionary<(int, int), List<(int, int)>>();
+            //came_from[Start] = null;
+            //path[Start] = new List<(int, int)> { Start };
+
+            //while (myQueue.Count != 0)
+            //{
+            //    (int, int) current_cell = myQueue.Dequeue();
+
+            //    foreach ((int, int) next_cell in Neighbors(current_cell))
+            //    {
+            //        if (next_cell == End)
+            //        {
+
+            //        }
+
+            //        if (!came_from.ContainsKey(next_cell))
+            //        {
+            //            path[next_cell] = [.. path[current_cell], current_cell];
+            //            myQueue.Enqueue(next_cell);
+            //            came_from[next_cell] = current_cell;
+            //        }
+            //    }
+            //}
+
+            //(int, int) least_key = Start;
+            //int least_len = 10000000;
+            //foreach ((int, int) key in path.Keys)
+            //{
+            //    int current_len = path[key].Count;
+            //    if (current_len < least_len)
+            //    {
+            //        least_key = key;
+            //        least_len = current_len;
+            //    }
+            //}
+
+            //Cells[End.Item2][End.Item1].Value = 0;
+            //End = (max_key.Item1, max_key.Item2);
+            //Cells[max_key.Item2][max_key.Item1].Value = 3;
+
+            //PathLength = max_len;
+            //Path = path[max_key];
+        }
+
         public void MakePathRecursive(Dictionary<(int, int), bool> visited, (int,int) cell)
         {
             var neighbors = AdjacentNotVisited(visited,cell).OrderBy(_ => rnd.Next()).ToList();

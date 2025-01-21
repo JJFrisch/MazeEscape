@@ -37,7 +37,7 @@ namespace MazeEscape.Drawables
         public void Initialize()
         {
             Assembly assembly = GetType().GetTypeInfo().Assembly;
-            using (Stream stream = assembly.GetManifestResourceStream("MazeEscape.Resources.Images.character_ball.png"))
+            using (Stream stream = assembly.GetManifestResourceStream($"MazeEscape.Resources.Images.{PlayerData.PlayerImageName}"))
             {
                 image = PlatformImage.FromStream(stream);
             }

@@ -3,22 +3,39 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"
              x:Class="MazeEscape.CampaignChestOpenedPopupPage"
-             CanBeDismissedByTappingOutsideOfPopup="True">
-    <VerticalStackLayout>
+             CanBeDismissedByTappingOutsideOfPopup="True"
+             >
+    <AbsoluteLayout>
+        <Image Source="background_blue_3.png"
+               AbsoluteLayout.LayoutBounds="1,1,1,1"
+               AbsoluteLayout.LayoutFlags="All"
+               Aspect="Fill"
+               Opacity="0.8"/>
+
+        <VerticalStackLayout Spacing="10" Padding="10"
+                             AbsoluteLayout.LayoutBounds="0.5,0.9,1,0.8"
+                             AbsoluteLayout.LayoutFlags="All">
         <Label 
             Text="You Won"
             VerticalOptions="Center" 
-            HorizontalOptions="Center" />
+            HorizontalOptions="Center"
+            TextColor="White"
+            FontAttributes="Bold"
+            FontSize="25"/>
         <Label 
             x:Name="coinLabel"
             VerticalOptions="Center" 
-            HorizontalOptions="Center" />
+            HorizontalOptions="Center" 
+            TextColor="White"
+            FontAttributes="Bold"
+            FontSize="25"/>
         <Image 
             x:Name="coinImage"
             Source="coin.png"
             HorizontalOptions="Center"
-            WidthRequest="200"
+            WidthRequest="80"
             Aspect="AspectFit"/>
 
-    </VerticalStackLayout>
+         </VerticalStackLayout>
+    </AbsoluteLayout>
 </mct:Popup>

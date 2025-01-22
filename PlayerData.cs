@@ -32,7 +32,7 @@ namespace MazeEscape
         public const int WindowWidth = 400;
         public const int WindowHeight = 670;
 
-        public static List<string> UnlockedMazesNumbers = new List<string> {"1"};
+        public static List<string> UnlockedMazesNumbers = new List<string> { "1" };
 
         public static List<ChestModel> ChestModels = new List<ChestModel>();
 
@@ -40,7 +40,7 @@ namespace MazeEscape
         // dictionary of maze connections
         public static Dictionary<string, List<string>> LevelConnectsToDictionary = new Dictionary<string, List<string>>();
 
-        public static int HighestAreaUnlocked = 5;
+        public static int HighestAreaUnlocked = 1;
         public static double distanceScrolled = 0;
 
         public static List<int> gateCoinRequired = new List<int>() { 20, 45, 30, 60, 80, 100, 120, 150, 200, 230, 240, 250};
@@ -57,24 +57,24 @@ namespace MazeEscape
             // area 1 Level Buttons
             CampaignLevels.Add(new CampaignLevel("1", 4, 4, "GenerateHuntAndKill", new List<string>{ "2" }));
             CampaignLevels.Add(new CampaignLevel("2", 6, 6, "GenerateHuntAndKill", new List<string> { "3" }));
-            CampaignLevels.Add(new CampaignLevel("3", 7, 7, "GenerateHuntAndKill", new List<string> { "4" }));
-            CampaignLevels.Add(new CampaignLevel("4", 5, 10, "GenerateHuntAndKill", new List<string> { "5" }));
-            CampaignLevels.Add(new CampaignLevel("5", 12, 8, "GenerateHuntAndKill", new List<string> { "6" }));
-            CampaignLevels.Add(new CampaignLevel("6", 12, 12, "GenerateHuntAndKill", new List<string> { "7" }));
-            CampaignLevels.Add(new CampaignLevel("7", 15, 12, "GenerateHuntAndKill", new List<string> { "8", "1b" }));
-            CampaignLevels.Add(new CampaignLevel("8", 15, 15, "GenerateHuntAndKill", new List<string> { "9" }));
-            CampaignLevels.Add(new CampaignLevel("9", 25, 10, "GenerateHuntAndKill", new List<string> { "10" }));
+            CampaignLevels.Add(new CampaignLevel("3", 7, 7, "GeneratePrims", new List<string> { "4" }));
+            CampaignLevels.Add(new CampaignLevel("4", 5, 10, "GenerateKruskals", new List<string> { "5" }));
+            CampaignLevels.Add(new CampaignLevel("5", 12, 8, "GenerateGrowingTree_50_50", new List<string> { "6" }));
+            CampaignLevels.Add(new CampaignLevel("6", 12, 12, "GenerateGrowingTree_75_25", new List<string> { "7" }));
+            CampaignLevels.Add(new CampaignLevel("7", 15, 12, "GenerateGrowingTree_25_75", new List<string> { "8", "1b" }));
+            CampaignLevels.Add(new CampaignLevel("8", 15, 15, "GenerateGrowingTree_50_0", new List<string> { "9" }));
+            CampaignLevels.Add(new CampaignLevel("9", 30, 30, "GenerateKruskals", new List<string> { "10" }));
             CampaignLevels.Add(new CampaignLevel("10", 20, 20, "GenerateHuntAndKill", new List<string> { "11" }));
-            CampaignLevels.Add(new CampaignLevel("11", 17, 15, "GenerateBacktracking", new List<string> { "12" }));
+            CampaignLevels.Add(new CampaignLevel("11", 30, 30, "GenerateHuntAndKill", new List<string> { "12" }));
             CampaignLevels.Add(new CampaignLevel("12", 20, 12, "GenerateHuntAndKill", new List<string> { "13" }));
-            CampaignLevels.Add(new CampaignLevel("13", 17, 15, "GenerateBacktracking", new List<string> { "14", "4b" }));
+            CampaignLevels.Add(new CampaignLevel("13", 17, 15, "GenerateHuntAndKill", new List<string> { "14", "4b" }));
             CampaignLevels.Add(new CampaignLevel("14", 20, 12, "GenerateHuntAndKill", new List<string> { "15" }));
 
             // area 1 Bonus Level Buttons
-            CampaignLevels.Add(new CampaignLevel("1b", 20, 12, "GenerateHuntAndKill", new List<string> { "2b" }, gateCoinRequired[0]));
+            CampaignLevels.Add(new CampaignLevel("1b", 20, 12, "GeneratePrims", new List<string> { "2b" }, gateCoinRequired[0]));
             CampaignLevels.Add(new CampaignLevel("2b", 17, 15, "GenerateBacktracking", new List<string> { "3b" }));
-            CampaignLevels.Add(new CampaignLevel("3b", 20, 20, "GenerateHuntAndKill", new List<string> { "c1" }));
-            CampaignLevels.Add(new CampaignLevel("4b", 20, 12, "GenerateHuntAndKill", new List<string> { "c2" }, gateCoinRequired[1]));
+            CampaignLevels.Add(new CampaignLevel("3b", 20, 20, "GenerateGrowingTree_75_25", new List<string> { "c1" }));
+            CampaignLevels.Add(new CampaignLevel("4b", 20, 12, "GeneratePrims", new List<string> { "c2" }, gateCoinRequired[1]));
 
             // area 1 Chests
             ChestModels.Add(new ChestModel(1,3,"c1"));

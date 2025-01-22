@@ -14,5 +14,6 @@ public partial class CampaignChestOpenedPopupPage : Popup
         this.Size = new Size(width, height);
 
         coinLabel.Text = $"{coinsEarned} coins!";
+        PlayerData.CoinCount += coinsEarned;
     }
 }

@@ -58,10 +58,12 @@
                AbsoluteLayout.LayoutFlags="All"
                WidthRequest="100"
                HeightRequest="100"/>
+        
         <Label x:Name="movesLabel" Style="{DynamicResource dataLabel}"
-               WidthRequest="100"
+               WidthRequest="150"
                HeightRequest="100"
-               AbsoluteLayout.LayoutBounds="0.8,0.7,0.3,0.3"
+               
+               AbsoluteLayout.LayoutBounds="0.88,0.7,0.4,0.3"
                AbsoluteLayout.LayoutFlags="All"/>
 
 

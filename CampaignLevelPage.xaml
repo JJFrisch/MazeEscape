@@ -13,6 +13,9 @@
 
     <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="Green">
 
+        <ActivityIndicator IsRunning="true"
+                   Color="Orange" x:Name="activityIndicator" />
+
         <ImageButton Source="back_button_image.png"
              AbsoluteLayout.LayoutBounds="10,15,50,50"
              AbsoluteLayout.LayoutFlags="None"

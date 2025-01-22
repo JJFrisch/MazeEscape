@@ -8,7 +8,7 @@ namespace MazeEscape
     public partial class MainPage : ContentPage
     {
 
-        private const string toRestart = "YES";
+        private string toRestart = "YES";
 
         public MainPage()
         {
@@ -24,11 +24,11 @@ namespace MazeEscape
                 if (toRestart == "YES")
                 {
                     await PlayerData.InitializeLevels();
-                    PlayerData.Save();
                     await InitializePlayer();
-                }   
+                    PlayerData.Save();
 
-                if (toRestart != "YES")
+                }   
+                else if (toRestart != "YES")
                 {
                     PlayerData.Load();
                     usernameLabel.Text = "__" + PlayerData.PlayerName + "__";

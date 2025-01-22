@@ -422,6 +422,7 @@ public partial class CampaignPage : ContentPage
         Random rnd = new Random();
         int coinsEarned = rnd.Next(100, 1000);
         await this.ShowPopupAsync(new CampaignChestOpenedPopupPage(coinsEarned), CancellationToken.None);
+        CoinCountLabel.Text = PlayerData.CoinCount.ToString();
         await self.FadeTo(0, 1000);
         self.IsVisible = false;
     }

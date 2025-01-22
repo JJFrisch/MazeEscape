@@ -45,6 +45,7 @@ public partial class EquipPage : ContentPage
     {
         PlayerData.PlayerImageName = name+".png";
         characterImage.Source = $"{name}_icon.png";
+        PlayerData.Save();
 
         await imageButton.FadeTo(0.8, 200);
         await imageButton.FadeTo(1, 200);

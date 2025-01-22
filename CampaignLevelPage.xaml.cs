@@ -1,6 +1,7 @@
 using CommunityToolkit.Maui.Views;
 using MazeEscape.Drawables;
 using MazeEscape.Models;
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Layouts;
 using SharpHook;
 using SharpHook.Native;
@@ -17,8 +18,8 @@ public partial class CampaignLevelPage : ContentPage
     public event EventHandler<CampaignLevel>? LevelSaved;
     CampaignLevel Level;
 
-    public double MazeWindowWidth = PlayerData.WindowWidth * 0.9;
-    public double MazeWindowHeight = PlayerData.WindowHeight * 0.7;
+    public double MazeWindowWidth = Application.Current.MainPage.Width * 0.9;
+    public double MazeWindowHeight = Application.Current.MainPage.Height * 0.8;
 
     MazeModel Maze = new MazeModel();
 
@@ -87,12 +88,15 @@ public partial class CampaignLevelPage : ContentPage
         UpdatePlayerDrawerPosition();
 
         AddSwipeGestures();
+
+        StartTimer();
+
+        //activityIndicator.isRunning = false;
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-        StartTimer();
 
         extraTimePowerUpLabel.Text = PlayerData.ExtraTimesOwned.ToString();
         extraMovesPowerUpLabel.Text = PlayerData.ExtraMovesOwned.ToString();
@@ -189,11 +193,11 @@ public partial class CampaignLevelPage : ContentPage
 
         // Color in the Start and Finish Squares before drawing lines
         (int w, int h) = Maze.Start;
-        main_absolute_layout.Add(new BoxView
-        {
-            Color = dict_int_to_color[2]
+        //main_absolute_layout.Add(new BoxView
+        //{
+        //    Color = dict_int_to_color[2]
 
-        }, new Rect(w * cell_width + (line_thickness / 2), h * cell_height + (line_thickness / 2), cell_width - line_thickness, cell_height - line_thickness));
+        //}, new Rect(w * cell_width + (line_thickness / 2), h * cell_height + (line_thickness / 2), cell_width - line_thickness, cell_height - line_thickness));
 
         (w, h) = Maze.End;
         main_absolute_layout.Add(new BoxView
@@ -274,8 +278,15 @@ public partial class CampaignLevelPage : ContentPage
     {
         Maze.MazeGenerationDelegateList[Level.LevelType](Level.Width, Level.Height);
 
-        Level.TwoStarMoves = Math.Max(Level.Width * Level.Height / 3, Maze.PathLength + 5);
-        Level.ThreeStarTime = Maze.PathLength / 2;
+        Level.TwoStarMoves = Math.Max((int)(Maze.PathLength * 1.01), Maze.PathLength + 5);
+        if (Level.Width * Level.Height < 100)
+        {
+            Level.ThreeStarTime = Maze.PathLength / 2;
+        }
+        else
+        {
+            Level.ThreeStarTime = Maze.PathLength / (1 + (int)(Maze.PathLength / 100));
+        }
 
         drawer.WindowWidth = MazeWindowWidth;
         drawer.WindowHeight = MazeWindowHeight;

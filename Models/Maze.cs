@@ -25,7 +25,9 @@ namespace MazeEscape.Models
         public System.Random rnd = new System.Random();
 
         // Types so far: GenerateBacktracking, GenerateHuntAndKill
-        public List<string> MazeTypes = new List<string> { "GenerateBacktracking", "GenerateHuntAndKill" };
+        public List<string> MazeTypes = new List<string> { "GenerateBacktracking", "GenerateHuntAndKill", "GeneratePrims", 
+            "GenerateGrowingTree_50_50", "GenerateGrowingTree_75_25", "GenerateGrowingTree_25_75", "GenerateGrowingTree_50_0", 
+            "GenerateKruskals"};
         public delegate void MazeGenerationDelegate (int width, int height);
         public Dictionary<string, MazeGenerationDelegate> MazeGenerationDelegateList;
 
@@ -39,6 +41,12 @@ namespace MazeEscape.Models
             MazeGenerationDelegateList = new Dictionary<string, MazeGenerationDelegate> ();
             MazeGenerationDelegateList.Add("GenerateBacktracking", GenerateBacktracking);
             MazeGenerationDelegateList.Add("GenerateHuntAndKill", GenerateHuntAndKill);
+            MazeGenerationDelegateList.Add("GeneratePrims", GeneratePrims);
+            MazeGenerationDelegateList.Add("GenerateGrowingTree_50_50", GenerateGrowingTree_50_50);
+            MazeGenerationDelegateList.Add("GenerateGrowingTree_75_25", GenerateGrowingTree_75_25);
+            MazeGenerationDelegateList.Add("GenerateGrowingTree_25_75", GenerateGrowingTree_25_75);
+            MazeGenerationDelegateList.Add("GenerateGrowingTree_50_0", GenerateGrowingTree_50_0);
+            MazeGenerationDelegateList.Add("GenerateKruskals", GenerateKruskals);
 
 
         }
@@ -270,6 +278,40 @@ namespace MazeEscape.Models
             return neighbors;
         }
 
+        public List<(int, int)> WalledOffNeighbors((int, int) cell)
+        {
+            List<(int, int)> neighbors = new List<(int, int)>();
+            var acessable = new List<bool> { !Cells[cell.Item2][cell.Item1].North };
+            if (cell.Item2 + 1 < Height)
+            {
+                acessable.Add(!Cells[cell.Item2 + 1][cell.Item1].North);
+            }
+            else
+            {
+                acessable.Add(false);
+            }
+            acessable.Add(!Cells[cell.Item2][cell.Item1].East);
+            if (cell.Item1 - 1 >= 0)
+            {
+                acessable.Add(!Cells[cell.Item2][cell.Item1 - 1].East);
+            }
+            else
+            {
+                acessable.Add(false);
+            }
+            var directions = new List<MethodDelegate> { North, South, East, West };
+            for (int i = 0; i < 4; i++)
+            {
+                (int, int) new_cell = directions[i](cell);
+
+                if (InBounds(new_cell) && !acessable[i])
+                {
+                    neighbors.Add(new_cell);
+                }
+            }
+            return neighbors;
+        }
+
         public void OptimizeMaze()
         {
             Queue<(int,int)> myQueue = new Queue< (int, int) > ();
@@ -315,7 +357,7 @@ namespace MazeEscape.Models
             Path = path[max_key];
         }
 
-        public void FindPathFrom(int x, int y)
+        public void FindPathFrom(int x, int y) // Used for the hint power-up. Finds path from current position to the finish and returns the path.
         {
             // for every n too to queue
             // if nei end: return path + this 
@@ -369,6 +411,7 @@ namespace MazeEscape.Models
 
             //PathLength = max_len;
             //Path = path[max_key];
+            //return Path;
         }
 
         public void MakePathRecursive(Dictionary<(int, int), bool> visited, (int,int) cell)
@@ -411,6 +454,200 @@ namespace MazeEscape.Models
             OptimizeMaze();
 
         }
+
+        public void GeneratePrims(int width, int height)
+        {
+            Cells = InitializeMaze(width, height, 0);
+            Width = width;
+            Height = height;
+
+            (int, int) current_cell = RandomStart();
+
+            List<(int, int, int, int)> cellPairsList = new List<(int, int, int, int)>(); // x1, y1, x2, y2. (cell 1 is the base cell)
+            Dictionary<(int, int), bool> visited = new Dictionary<(int, int), bool>();
+            for (var col = 0; col < Height; col++)
+            {
+                for (var row = 0; row < Width; row++)
+                {
+                    visited[(row, col)] = false;
+                }
+            }
+            visited[current_cell] = true;
+
+            List<(int, int)> neighbores = AdjacentNotVisited(visited, current_cell);
+            foreach (var cell in neighbores)
+            {
+                cellPairsList.Add((current_cell.Item1, current_cell.Item2, cell.Item1, cell.Item2));
+            }
+            while (cellPairsList.Count > 0)
+            {
+                int index = rnd.Next(cellPairsList.Count);
+                var current_pair = cellPairsList[index];
+                if (!visited[(current_pair.Item3, current_pair.Item4)])
+                {
+                    LinkCells((current_pair.Item1, current_pair.Item2), (current_pair.Item3, current_pair.Item4));
+                    visited[(current_pair.Item3, current_pair.Item4)] = true;
+                    foreach (var cell in AdjacentNotVisited(visited, (current_pair.Item3, current_pair.Item4)))
+                    {
+
+                            cellPairsList.Add((current_pair.Item3, current_pair.Item4, cell.Item1, cell.Item2));
+                        
+                    }
+                }
+                cellPairsList.Remove(current_pair);
+            }
+
+            OptimizeMaze();
+        }
+
+        public void GenerateGrowingTree_50_50(int width, int height)
+        {
+            GenerateGrowingTree(width, height, 50, 50);
+        }
+        public void GenerateGrowingTree_75_25(int width, int height)
+        {
+            GenerateGrowingTree(width, height, 75, 25);
+        }
+        public void GenerateGrowingTree_25_75(int width, int height)
+        {
+            GenerateGrowingTree(width, height, 25, 75);
+        }
+        public void GenerateGrowingTree_50_0(int width, int height)
+        {
+            GenerateGrowingTree(width, height, 50, 0);
+        }
+
+        public void GenerateGrowingTree(int width, int height, int recursive_percent, int prims_percent)
+        {
+            Cells = InitializeMaze(width, height, 0);
+            Width = width;
+            Height = height;
+
+            (int, int) current_cell = RandomStart();
+
+            List<(int, int)> cellList = new List<(int, int)>(); 
+            cellList.Add(current_cell);
+
+            Dictionary<(int, int), bool> visited = new Dictionary<(int, int), bool>();
+            for (var col = 0; col < Height; col++)
+            {
+                for (var row = 0; row < Width; row++)
+                {
+                    visited[(row, col)] = false;
+                }
+            }
+            visited[current_cell] = true;
+
+
+            List<(int, int)> neighbores = new List<(int, int)>();
+            (int, int) next_cell = (0, 0);
+
+            while (cellList.Count > 0)
+            {
+                int chance = rnd.Next(0, 100);
+
+                if (chance <= recursive_percent) // Do Choose Random (Prims)
+                {
+                    current_cell = cellList[rnd.Next(cellList.Count)];
+                }
+                else if (chance <= recursive_percent + prims_percent) // Do Choose Last Entered (Recursive Backtracking)
+                {
+                    current_cell = cellList[cellList.Count - 1];
+                }
+                else // Do Choose Oldest (Mkaes the maze easier but looks cool)
+                {
+                    current_cell = cellList[0];
+                }
+
+
+                neighbores = AdjacentNotVisited(visited, current_cell);
+                if (neighbores.Count == 0)
+                {
+                    cellList.Remove(current_cell);
+                }
+                else
+                {
+                    next_cell = neighbores[rnd.Next(neighbores.Count)];
+                    LinkCells(current_cell, next_cell);
+                    cellList.Add(next_cell);
+                    visited[next_cell] = true;
+                }
+            }
+
+            OptimizeMaze();
+        }
+
+        public void GenerateKruskals(int width, int height)
+        {
+            Dictionary<(int, int), List<(int, int)>> sets = new Dictionary<(int, int), List<(int, int)>>();
+            List<(int, int)> cellList = new List<(int, int)>();
+
+            for (int row = 0; row < height; row++)
+            {
+                List<MazeCell> cellRow = new List<MazeCell>();
+                for (int col = 0; col < width; col++)
+                {
+                    cellRow.Add(new MazeCell(col, row, 0));
+                    sets[(col, row)] = new List<(int, int)>() { };
+                    cellList.Add((col, row));
+                }
+                Cells.Add(cellRow);
+            }
+
+
+            Width = width;
+            Height = height;
+
+            (int, int) current_cell = RandomStart();
+            int num_walls_down = 0;
+
+            while (num_walls_down < Width*Height - 1)
+            {
+                current_cell = cellList[rnd.Next(cellList.Count)];
+                var choices = WalledOffNeighbors(current_cell);
+                while (choices.Count > 0) 
+                {
+                    var other_cell = choices[rnd.Next(choices.Count)];
+                    if (!sets[other_cell].Contains(current_cell))
+                    {
+                        LinkCells(other_cell, current_cell);
+                        num_walls_down++;
+                        // Add to each others sets and all they connect to
+                        foreach (var cell in sets[other_cell])
+                        {
+                            sets[cell].Add(current_cell);
+                            sets[cell].AddRange(sets[current_cell]);
+                        }
+                        foreach (var cell in sets[current_cell])
+                        {
+                            sets[cell].Add(other_cell);
+                            sets[cell].AddRange(sets[other_cell]);
+                        }
+                        sets[current_cell].AddRange(sets[other_cell]);
+                        sets[other_cell].AddRange(sets[current_cell]);
+
+                        sets[current_cell].Add(other_cell);
+                        sets[other_cell].Add(current_cell);
+
+
+                        choices.Remove(other_cell);
+                        break;
+                    }
+
+                    choices.Remove(other_cell);
+                }
+
+                if (choices.Count == 0)
+                {
+                    cellList.Remove(current_cell);
+                }
+            }
+
+            OptimizeMaze();
+        }
+
+        
+
     }
 
 

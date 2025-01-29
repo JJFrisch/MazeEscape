@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:drawables="clr-namespace:MazeEscape.Drawables"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="MazeEscape.CampaignLevelPage"
              BackgroundColor="AliceBlue">
 
@@ -11,24 +12,110 @@
 
   
 
-    <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="Green">
+    <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="Red" x:Name="PageAbsoluteLayout"
+                    toolkit:StateContainer.CurrentState="{Binding CurrentState}">
+        
+        <Label Text="Hello"/>
 
-        <ActivityIndicator IsRunning="true"
-                   Color="Orange" x:Name="activityIndicator" />
+        <toolkit:StateContainer.StateViews>
 
-        <ImageButton Source="back_button_image.png"
-             AbsoluteLayout.LayoutBounds="10,15,50,50"
+            <AbsoluteLayout BackgroundColor="LightBlue"
+                            toolkit:StateView.StateKey="Loading"
+                            AbsoluteLayout.LayoutBounds="10,1,1,1"
+                            AbsoluteLayout.LayoutFlags="All">
+
+                <Image Source="maze_home_screen_1.png"
+                       AbsoluteLayout.LayoutBounds="0.5,0.5,400,1"
+                        AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+                        Aspect="Fill"/>
+
+                <ActivityIndicator
+                    AbsoluteLayout.LayoutBounds="0.5,0.45,300,300"
+                    AbsoluteLayout.LayoutFlags="PositionProportional"
+                    HeightRequest="40"
+                            HorizontalOptions="CenterAndExpand"
+                            IsRunning="True"
+                            VerticalOptions="CenterAndExpand"
+                            WidthRequest="40"
+                            Color="WhiteSmoke"
+                            Scale="2.5"/>
+
+                <BoxView BackgroundColor="Black"
+                         Opacity="0.5"
+                         AbsoluteLayout.LayoutBounds="0.5,1,1,0.17"
+                         AbsoluteLayout.LayoutFlags="All" />
+
+                <Label
+                    AbsoluteLayout.LayoutBounds="0.5,0.9,300,260"
+                    AbsoluteLayout.LayoutFlags="PositionProportional"
+                            HorizontalOptions="CenterAndExpand"
+                            HorizontalTextAlignment="Center"
+                    TextColor="WhiteSmoke"
+                    FontAttributes="Bold"
+                            VerticalOptions="End"
+                    FontSize="25"
+                            Text="Loading ..." />
+
+            </AbsoluteLayout>
+
+            <AbsoluteLayout toolkit:StateView.StateKey="Success"
+                            AbsoluteLayout.LayoutBounds="10,1,1,1"
+                            AbsoluteLayout.LayoutFlags="All">
+
+                <Image Source="background_blue_2.png"
+       AbsoluteLayout.LayoutBounds="0.5,0.5,390,1"
+       AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+       Aspect="Fill"/>
+
+                <ImageButton Source="back_button_normal.png"
+             AbsoluteLayout.LayoutBounds="10,20,50,50"
              AbsoluteLayout.LayoutFlags="None"
              Clicked="BackButton_Clicked"
-             CornerRadius="50"/>
+             CornerRadius="20">
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroupList>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter Property="Scale"
+                        Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Property="Source"
+                            Value="back_button_clicked.png" />
+                                        <Setter Property="Opacity"
+                            Value="0.6" />
+                                        <Setter Property="Scale"
+                            Value="0.9" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Property="Opacity"
+                            Value="0.7" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateGroupList>
+                    </VisualStateManager.VisualStateGroups>
+                </ImageButton>
 
-        <AbsoluteLayout x:Name="main_absolute_layout">
+
+                <AbsoluteLayout x:Name="main_absolute_layout"> <!-- Position and width and height are set in c#-->
 
             <BoxView AbsoluteLayout.LayoutBounds="0.5,1,1,1"
-                 AbsoluteLayout.LayoutFlags="All"
-                 BackgroundColor="White"/> 
+                     AbsoluteLayout.LayoutFlags="All"
+                     BackgroundColor="White"/> 
 
-            <Grid x:Name="mazeGrid"
+            <Image AbsoluteLayout.LayoutBounds="0.5,1,1,1"
+                   AbsoluteLayout.LayoutFlags="All"
+                   Source="background_paper.png"
+                   Aspect="Fill"
+                   Opacity="0.6"/>
+
+                    <Grid x:Name="mazeGrid"
               AbsoluteLayout.LayoutBounds="0,0,1,1"
               AbsoluteLayout.LayoutFlags="All">
 
@@ -50,7 +137,8 @@
         </AbsoluteLayout>
 
 
-        <BoxView BackgroundColor="BurlyWood"
+        <BoxView BackgroundColor="White"
+                 Opacity="0.4"
                  AbsoluteLayout.LayoutBounds="0.5,0,0.6,80"
                  AbsoluteLayout.LayoutFlags="XProportional,WidthProportional"
                  CornerRadius="0,0,50,50"/>
@@ -90,8 +178,7 @@
                Text="00"
                TextColor="AntiqueWhite"
                FontAttributes="Bold"
-               VerticalTextAlignment="Center"
-/>
+               VerticalTextAlignment="Center"/>
 
         <ImageButton x:Name="hintPowerUpImage"
 
@@ -148,6 +235,10 @@
             <Button Text="Right" Clicked="OnRightClicked"/>
         </VerticalStackLayout>  -->
 
+            </AbsoluteLayout>
+
+        </toolkit:StateContainer.StateViews>
+        
     </AbsoluteLayout> 
 
 

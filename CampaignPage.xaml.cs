@@ -18,8 +18,7 @@ public partial class CampaignPage : ContentPage
 
         _ = checkAreasUnlocked();
 
-        campaignScrollView.ScrollToAsync(gateImage2, ScrollToPosition.End, true);
-        _ = campaignScrollView.ScrollToAsync(PlayerData.distanceScrolled, 0, true);
+        Task.Delay(100).ContinueWith(t => ScrollTo(campaignScrollView, PlayerData.distanceScrolled, true));
     }
 
     protected override async void OnAppearing()
@@ -35,8 +34,6 @@ public partial class CampaignPage : ContentPage
 
         CoinCountLabel.Text = PlayerData.CoinCount.ToString();
         starCountLabel.Text = PlayerData.StarCount.ToString();
-
-        await ScrollTo(campaignScrollView, PlayerData.distanceScrolled, true);
     }
 
     public async Task LoadLevelsFromDatabase()
@@ -435,8 +432,8 @@ public partial class CampaignPage : ContentPage
     public async Task ScrollTo(ScrollView scrollView, double pos, bool animate = false)
     {
 		var timer = new Timer((object obj) => {
-				MainThread.BeginInvokeOnMainThread(() => scrollView.ScrollToAsync(pos, 0, true));
-		}, null, 1, Timeout.Infinite);
+				MainThread.BeginInvokeOnMainThread(() => scrollView.ScrollToAsync(pos, 0, animate));
+		}, null, 100, Timeout.Infinite);
     }
 
 }

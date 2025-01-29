@@ -28,11 +28,15 @@ namespace MazeEscape
                     PlayerData.Save();
 
                 }   
-                else if (toRestart != "YES")
+                else if (toRestart != "YES") 
                 {
                     PlayerData.Load();
                     usernameLabel.Text = "__" + PlayerData.PlayerName + "__";
                 }
+            }
+            else
+            {
+                usernameLabel.Text = "__" + PlayerData.PlayerName + "__";
             }
         }
 
@@ -56,8 +60,8 @@ namespace MazeEscape
 
         public async void OnDailyMazeClicked(object sender, EventArgs e)
         {
-            await DisplayAlert("Wait", "This game mode has not been implemented. Try the campaign mode!", "OK");
-            //await Navigation.PushAsync(new BasicGridPage(20, 5, "Your First Maze"));
+            //await DisplayAlert("Wait", "This game mode has not been implemented. Try the campaign mode!", "OK");
+            await Navigation.PushAsync(new DailyMazePage());
         }
 
         public async void OnSettingsButtonClicked(object sender, EventArgs e)

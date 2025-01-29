@@ -6,8 +6,12 @@ using Microsoft.Maui.Layouts;
 using SharpHook;
 using SharpHook.Native;
 using SharpHook.Reactive;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 using System.Timers;
+using System.Windows.Input;
 
 
 
@@ -66,13 +70,18 @@ public partial class CampaignLevelPage : ContentPage
             }
         }));
     }
+
+    StateContainerViewModel stateContainerModel = new StateContainerViewModel();
     public CampaignLevelPage(CampaignLevel level)
     {
         InitializeComponent();
 
+        PageAbsoluteLayout.BindingContext = stateContainerModel;
+        stateContainerModel.CurrentState = "Loading";
+
         Level = level;
 
-        AbsoluteLayout.SetLayoutBounds(main_absolute_layout, new Rect(0.5, 0.6, MazeWindowWidth, MazeWindowHeight));
+        AbsoluteLayout.SetLayoutBounds(main_absolute_layout, new Rect(0.45, 0.6, MazeWindowWidth, MazeWindowHeight));
         AbsoluteLayout.SetLayoutFlags(main_absolute_layout, AbsoluteLayoutFlags.PositionProportional);
 
         InitializeReactiveKeyboard();
@@ -89,64 +98,26 @@ public partial class CampaignLevelPage : ContentPage
 
         AddSwipeGestures();
 
-        StartTimer();
+        Task.Delay(1000).ContinueWith(t => StartPlay());
+    }
 
-        //activityIndicator.isRunning = false;
+    public void StartPlay()
+    {
+        //var list = PlayerData.levelDatabase.GetItemsAsync().Result;
+        stateContainerModel.CurrentState = "Success";
+        int time_to_wait = Level.Width * Level.Height * 5;
+        Task.Delay(time_to_wait).ContinueWith(t => StartTimer());
     }
 
     protected override void OnAppearing()
     {
         base.OnAppearing();
-
+        
         extraTimePowerUpLabel.Text = PlayerData.ExtraTimesOwned.ToString();
         extraMovesPowerUpLabel.Text = PlayerData.ExtraMovesOwned.ToString();
         hintPowerUpLabel.Text = PlayerData.HintsOwned.ToString();
         //CoinCountLabel.Text = PlayerData.CoinCount.ToString();
 
-    }
-
-    //private void StartTimer()
-    //{
-    //    timeStarted = DateTime.Now;
-    //    running = true;
-    //    Thread thread = new Thread(timer);
-    //    thread.Start();
-    //}
-
-    private void EndTimer()
-    {
-        running = false;
-    }
-
-    private void timer() // credit for timer function: InstructionsCentral, YouTube https://www.youtube.com/watch?v=pT2qtpy9Nss
-    {
-        if (running == false)
-        {
-            DateTime time = DateTime.Now;
-            TotalTime = time - timeStarted;
-            return;
-        }
-        else
-        {
-            DateTime time = DateTime.Now;
-            TimeSpan timePassed = time - timeStarted;
-            Dispatcher.Dispatch(new Action(() =>
-            {
-                labelTimer.Text = Level.ThreeStarTime.ToString() + ":  " +  Math.Round(timePassed.TotalSeconds, 1).ToString();
-                moveNumberText.Text = Level.TwoStarMoves.ToString() + ":  " + numberOfMoves.ToString();
-
-                if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
-                {
-                    DateTime time = DateTime.Now;
-                    TotalTime = time - timeStarted;
-                    CompletedMaze();
-                }
-
-
-            }));
-            Thread.Sleep(10);
-            timer();
-        }
     }
 
     void OnSwiped(object sender, SwipedEventArgs e)
@@ -558,8 +529,8 @@ public partial class CampaignLevelPage : ContentPage
             extraTimePowerUpLabel.Text = PlayerData.ExtraTimesOwned.ToString();
             Level.ThreeStarTime += 10;
             labelTimer.TextColor = Colors.Green;
-            await labelTimer.ScaleTo(1.2, 200);
-            await labelTimer.ScaleTo(1, 200);
+            await labelTimer.ScaleTo(1.2, 800);
+            await labelTimer.ScaleTo(1, 800);
             labelTimer.TextColor = Colors.White;
 
         }
@@ -576,9 +547,9 @@ public partial class CampaignLevelPage : ContentPage
             PlayerData.ExtraMovesOwned--;
             extraMovesPowerUpLabel.Text = PlayerData.ExtraMovesOwned.ToString();
             Level.TwoStarMoves += 10;
-            moveNumberText.TextColor = Colors.Green;
-            await moveNumberText.ScaleTo(1.2, 200);
-            await moveNumberText.ScaleTo(1, 200);
+            moveNumberText.TextColor = Colors.Gold;
+            await moveNumberText.ScaleTo(1.2, 800);
+            await moveNumberText.ScaleTo(1, 800);
             moveNumberText.TextColor = Colors.White;
         }
         else
@@ -604,4 +575,31 @@ public partial class CampaignLevelPage : ContentPage
         hook?.Dispose();
     }
 
+
+}
+
+public class StateContainerViewModel : INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler PropertyChanged;
+    
+    private string _state = "Loading";
+    public string CurrentState
+    {
+        get => _state;
+        set
+        {
+            _state = value;
+            OnPropertyChanged();
+        }
+    }
+    
+    public StateContainerViewModel()
+    {
+        CurrentState = "Loading";
+    }
+
+    private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
 }

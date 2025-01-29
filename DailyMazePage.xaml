@@ -1,0 +1,648 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:drawables="clr-namespace:MazeEscape.Drawables"
+             x:Class="MazeEscape.DailyMazePage"
+             Title="">
+
+
+    <ContentPage.Resources>
+        <drawables:PlayerDrawable x:Key="playerDrawable"/>
+    </ContentPage.Resources>
+
+    <AbsoluteLayout Margin="0,-80,0,0" x:Name="PageAbsoluteLayout"
+                    toolkit:StateContainer.CurrentState="{Binding CurrentState}">
+
+
+        <toolkit:StateContainer.StateViews>
+
+            <AbsoluteLayout BackgroundColor="LightBlue"
+                    toolkit:StateView.StateKey="Calendar"
+                    AbsoluteLayout.LayoutBounds="10,1,1,1"
+                    AbsoluteLayout.LayoutFlags="All">
+
+                    <Image Source="background3.png"
+                    AbsoluteLayout.LayoutBounds="0.5,0.5,400,1"
+                    AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+                    Aspect="Fill"
+                    Opacity="0.9"/>
+
+            <Label x:Name="title" Text="Your Daily Maze Escape"
+                    FontSize="26"
+                    TextColor="WhiteSmoke"
+                    FontAutoScalingEnabled="True"
+                    AbsoluteLayout.LayoutBounds="0.5, 0.07, 300, 75"
+                    HorizontalOptions="Center"
+                    FontAttributes="Bold"
+                    AbsoluteLayout.LayoutFlags="PositionProportional"/>
+
+
+            <Label x:Name="streakNumberLabel" FontSize="18"
+                    FontAttributes="Italic"
+                    AbsoluteLayout.LayoutBounds="0.5, 0.9, 300, 75"
+                    AbsoluteLayout.LayoutFlags="PositionProportional"
+                    Text="5"/>
+
+            <Image x:Name="streakNumberImage" AbsoluteLayout.LayoutBounds="0.5,0.9,100,75"
+                    AbsoluteLayout.LayoutFlags="PositionProportional" />
+
+            <Grid x:Name="monthGrid"
+                    ColumnDefinitions="*,*,*,*,*,*,*"
+                    RowDefinitions="0.8*,*,*,*,*,*"
+                    AbsoluteLayout.LayoutBounds="0.5,0.4,0.9,0.55"
+                    AbsoluteLayout.LayoutFlags="All">
+            
+                <!-- Contents set in c#-->
+
+                <BoxView BackgroundColor="WhiteSmoke"
+                            Opacity="0.8"
+                            Grid.ColumnSpan="99"
+                            Grid.RowSpan="99" CornerRadius="10, 10, 20, 20" />
+
+                <BoxView BackgroundColor="Black"
+                            Opacity="0.7"
+                            Grid.ColumnSpan="99"
+                            Grid.Row="0" 
+                            CornerRadius="10,10,0,0"/>
+
+                <Label Text="Sun" Grid.Column="0" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
+                <Label Text="Mon" Grid.Column="1" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
+                <Label Text="Tue" Grid.Column="2" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
+                <Label Text="Wed" Grid.Column="3" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
+                <Label Text="Thu" Grid.Column="4" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
+                <Label Text="Fri" Grid.Column="5" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
+                <Label Text="Sat" Grid.Column="6" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
+
+                <BoxView BackgroundColor="LightGrey"
+                            Opacity="0.4"
+                            Grid.ColumnSpan="99"
+                            Grid.Row="1" />
+
+                <BoxView BackgroundColor="WhiteSmoke"
+                            Opacity="0.4"
+                            Grid.ColumnSpan="99"
+                            Grid.Row="2" />
+
+                <BoxView BackgroundColor="LightGrey"
+                            Opacity="0.4"
+                            Grid.ColumnSpan="99"
+                            Grid.Row="3" />
+
+                <BoxView BackgroundColor="WhiteSmoke"
+                            Opacity="0.4"
+                            Grid.ColumnSpan="99"
+                            Grid.Row="4" />
+
+                <BoxView BackgroundColor="LightGrey"
+                            Opacity="0.4"
+                            Grid.ColumnSpan="99"
+                            Grid.Row="5" 
+                            CornerRadius="0,0,20,20"/>
+
+
+            </Grid>
+
+ 
+
+            <ImageButton x:Name="previousMonthButton" Clicked="previousMonthButton_Clicked"
+                            AbsoluteLayout.LayoutBounds="20,0.5,30,50"
+                            AbsoluteLayout.LayoutFlags="YProportional" />
+
+            <ImageButton x:Name="nextMonthButton" Clicked="nextMonthButton_Clicked"
+                    AbsoluteLayout.LayoutBounds="1,0.5,30,50"
+                    AbsoluteLayout.LayoutFlags="PositionProportional" />
+
+
+                <Grid AbsoluteLayout.LayoutBounds="0.5,0.975,250,60"
+                      AbsoluteLayout.LayoutFlags="PositionProportional"
+                      ColumnDefinitions="*, *, *"
+                      RowDefinitions="*">
+
+                    <BoxView BackgroundColor="WhiteSmoke" Opacity="0.9" CornerRadius="25"
+                             Grid.ColumnSpan="99"/>
+
+
+                    <ImageButton x:Name="homeButton" Clicked="OnHomeButtonClicked"
+                         Grid.Column="0" HeightRequest="30" WidthRequest="30"
+                         Source="home_button_icon.png">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="Scale"
+                                    Value="1" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+                                        Value="0.9" />
+                                            <Setter Property="Scale"
+                                        Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+                                        Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+                    </ImageButton>
+
+                    <ImageButton x:Name="PlayButtonCalendar" Clicked="OnPlayButtonClicked"
+                    Grid.Column="1"
+                    Source="play_button_background.png"
+                     Aspect="AspectFit" >
+                        <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroupList>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter Property="Scale"
+            Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Property="Opacity"
+                Value="0.9" />
+                                        <Setter Property="Scale"
+                Value="0.9" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Property="Opacity"
+                Value="0.9" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+
+                    </ImageButton>
+
+                    <Label Text="Play 28" Grid.Column="1" HorizontalTextAlignment="Center" VerticalOptions="Center"
+                           TextColor="Black" x:Name="playLabelCalendar">
+
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer
+                                    Tapped="OnPlayButtonClicked"
+                                    NumberOfTapsRequired="1" />
+                        </Label.GestureRecognizers>
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="Scale"
+Value="1" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+    Value="0.9" />
+                                            <Setter Property="Scale"
+    Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+    Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+                    </Label>
+
+                    <ImageButton Grid.Column="2"
+                Clicked="OnInfoButtonClicked"
+                Source="info_icon_green.png"
+                WidthRequest="50"
+                Aspect="AspectFit"
+                Opacity="0.97">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="Scale"
+                                    Value="1" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+                                        Value="0.9" />
+                                            <Setter Property="Scale"
+                                        Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+                                        Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+                    </ImageButton>
+
+                </Grid>
+
+            </AbsoluteLayout>
+                
+
+
+            <AbsoluteLayout toolkit:StateView.StateKey="Info"
+                            AbsoluteLayout.LayoutBounds="10,1,1,1"
+                            AbsoluteLayout.LayoutFlags="All">
+
+                <Image Source="background_blue_2.png"
+                       AbsoluteLayout.LayoutBounds="0.5,0.5,390,1"
+                       AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+                       Aspect="Fill"/>
+
+
+
+                <Grid AbsoluteLayout.LayoutBounds="0.5,0.975,250,60"
+          AbsoluteLayout.LayoutFlags="PositionProportional"
+          ColumnDefinitions="*, *, *"
+          RowDefinitions="*">
+
+                    <BoxView BackgroundColor="WhiteSmoke" Opacity="0.9" CornerRadius="25"
+                 Grid.ColumnSpan="99"/>
+
+
+                    <ImageButton  Clicked="OnHomeButtonClicked"
+             Grid.Column="0" HeightRequest="30" WidthRequest="30"
+             Source="home_button_icon.png">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="Scale"
+                        Value="1" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+                            Value="0.9" />
+                                            <Setter Property="Scale"
+                            Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+                            Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+                    </ImageButton>
+
+                    <ImageButton  Clicked="OnPlayButtonClicked"
+        Grid.Column="1"
+        Source="play_button_background.png"
+         Aspect="AspectFit" >
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="Scale"
+Value="1" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+    Value="0.9" />
+                                            <Setter Property="Scale"
+    Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+    Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+
+                    </ImageButton>
+
+                    <Label Text="Play 28" Grid.Column="1" HorizontalTextAlignment="Center" VerticalOptions="Center"
+               TextColor="Black" x:Name="playLabelInfo">
+
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer
+                                    Tapped="OnPlayButtonClicked"
+                                    NumberOfTapsRequired="1" />
+                        </Label.GestureRecognizers>
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="Scale"
+Value="1" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+    Value="0.9" />
+                                            <Setter Property="Scale"
+    Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+    Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+                    </Label>
+
+                    <ImageButton Grid.Column="2"
+                                Clicked="OnCalendarButtonClicked"
+                                Source="calendar_icon.png"
+                                WidthRequest="50"
+                                Aspect="AspectFit"
+                                Opacity="0.97">     
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="Scale"
+                        Value="1" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+                            Value="0.9" />
+                                            <Setter Property="Scale"
+                            Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+                            Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+                    </ImageButton>
+
+                </Grid>
+
+            </AbsoluteLayout>
+
+
+            <AbsoluteLayout toolkit:StateView.StateKey="Play"
+                            AbsoluteLayout.LayoutBounds="10,1,1,1"
+                            AbsoluteLayout.LayoutFlags="All" x:Name="playAbsoluteLayout">
+
+                <Image Source="background_blue_2.png"
+                       AbsoluteLayout.LayoutBounds="0.5,0.5,390,1"
+                       AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+                       Aspect="Fill"/>
+
+                <ImageButton Source="full_star.png" Opacity="0" IsVisible="True" x:Name="winningStar"
+                             AbsoluteLayout.LayoutBounds="0.5, 0.5, 20, 20"
+                             AbsoluteLayout.LayoutFlags="PositionProportional" 
+                             Aspect="AspectFit"/>
+
+
+                <AbsoluteLayout x:Name="main_absolute_layout">
+                    <!-- Position and width and height are set in c#-->
+
+        <!--            <BoxView AbsoluteLayout.LayoutBounds="0.5,1,1,1"
+             AbsoluteLayout.LayoutFlags="All"
+             BackgroundColor="White"/>
+
+                    <Image AbsoluteLayout.LayoutBounds="0.5,1,1,1"
+           AbsoluteLayout.LayoutFlags="All"
+           Source="background_paper.png"
+           Aspect="Fill"
+           Opacity="0.6"/>
+
+
+                    <drawables:MazeGraphicsView AbsoluteLayout.LayoutBounds="0,0,1,1"
+                                AbsoluteLayout.LayoutFlags="All"
+                                 x:Name="mazeGraphicsView" /> -->
+
+                </AbsoluteLayout>
+
+
+                <BoxView BackgroundColor="White"
+         Opacity="0.4"
+         AbsoluteLayout.LayoutBounds="0.5,0,0.6,80"
+         AbsoluteLayout.LayoutFlags="XProportional,WidthProportional"
+         CornerRadius="0,0,50,50"/>
+
+                <Label Text="Time" 
+       HorizontalOptions="Center"
+       AbsoluteLayout.LayoutBounds="0.35,15,0.2,0.1"
+       AbsoluteLayout.LayoutFlags="XProportional,SizeProportional"/>
+
+                <Label x:Name="labelTimer" Text="00:00" 
+       HorizontalOptions="Center"
+       AbsoluteLayout.LayoutBounds="0.35,40,0.2,0.1"
+       AbsoluteLayout.LayoutFlags="XProportional,SizeProportional" />
+
+         <!--       <Label Text="Moves" 
+       HorizontalOptions="Center"
+       AbsoluteLayout.LayoutBounds="0.65,15,0.2,0.1"
+       AbsoluteLayout.LayoutFlags="XProportional,SizeProportional"/>
+
+                <Label x:Name="moveNumberText" Text="" 
+       HorizontalOptions="Center"
+       AbsoluteLayout.LayoutBounds="0.65,40,0.2,0.1"
+       AbsoluteLayout.LayoutFlags="XProportional,SizeProportional" /> -->
+
+
+
+
+            <Grid AbsoluteLayout.LayoutBounds="0.5,0.975,250,60"
+          AbsoluteLayout.LayoutFlags="PositionProportional"
+          ColumnDefinitions="*, *, *"
+          RowDefinitions="*">
+
+                    <BoxView BackgroundColor="WhiteSmoke" Opacity="0.9" CornerRadius="25"
+                 Grid.ColumnSpan="99"/>
+
+
+                    <ImageButton Clicked="OnHomeButtonClicked"
+             Grid.Column="0" HeightRequest="30" WidthRequest="30"
+             Source="home_button_icon.png">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="Scale"
+                        Value="1" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+                            Value="0.9" />
+                                            <Setter Property="Scale"
+                            Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+                            Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+                    </ImageButton>
+
+                    <ImageButton Clicked="OnCalendarButtonClicked"
+        Grid.Column="1"
+        Source="calendar_icon.png"
+         Aspect="AspectFit" >
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="Scale"
+Value="1" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+    Value="0.9" />
+                                            <Setter Property="Scale"
+    Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+    Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+
+                    </ImageButton>
+
+                    <ImageButton Grid.Column="2"
+                                Clicked="OnInfoButtonClicked"
+                                Source="info_icon_black.png"
+                                WidthRequest="50"
+                                Aspect="AspectFit"
+                                Opacity="0.97"> 
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="Scale"
+                        Value="1" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+                            Value="0.9" />
+                                            <Setter Property="Scale"
+                            Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+                            Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+                    </ImageButton>
+
+                </Grid>
+
+            </AbsoluteLayout>
+
+
+            <AbsoluteLayout BackgroundColor="LightBlue"
+                toolkit:StateView.StateKey="Loading"
+                AbsoluteLayout.LayoutBounds="10,1,1,1"
+                AbsoluteLayout.LayoutFlags="All">
+
+                <Image Source="maze_home_screen_1.png"
+           AbsoluteLayout.LayoutBounds="0.5,0.5,400,1"
+            AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+            Aspect="Fill"/>
+
+                <ActivityIndicator
+        AbsoluteLayout.LayoutBounds="0.5,0.45,300,300"
+        AbsoluteLayout.LayoutFlags="PositionProportional"
+        HeightRequest="40"
+                HorizontalOptions="CenterAndExpand"
+                IsRunning="True"
+                VerticalOptions="CenterAndExpand"
+                WidthRequest="40"
+                Color="WhiteSmoke"
+                Scale="2.5"/>
+
+                <BoxView BackgroundColor="Black"
+             Opacity="0.5"
+             AbsoluteLayout.LayoutBounds="0.5,1,1,0.17"
+             AbsoluteLayout.LayoutFlags="All" />
+
+                <Label
+        AbsoluteLayout.LayoutBounds="0.5,0.9,300,260"
+        AbsoluteLayout.LayoutFlags="PositionProportional"
+                HorizontalOptions="CenterAndExpand"
+                HorizontalTextAlignment="Center"
+        TextColor="WhiteSmoke"
+        FontAttributes="Bold"
+                VerticalOptions="End"
+        FontSize="25"
+                Text="Loading ..." />
+
+            </AbsoluteLayout>
+
+        </toolkit:StateContainer.StateViews>
+
+    </AbsoluteLayout>
+
+
+</ContentPage>

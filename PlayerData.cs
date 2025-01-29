@@ -12,6 +12,7 @@ namespace MazeEscape
         private static string FilePathName = "PlayerData";
 
         public static LevelDatabase levelDatabase = new LevelDatabase();
+        public static DailyMazeDatabase dailyMazeDatabase = new DailyMazeDatabase();
 
         public static string PlayerName = "";
 
@@ -32,7 +33,7 @@ namespace MazeEscape
         public const int WindowWidth = 400;
         public const int WindowHeight = 670;
 
-        public static List<string> UnlockedMazesNumbers = new List<string> { "1" };
+        public static List<string> UnlockedMazesNumbers = new List<string> { "1" , "8", "9", "10", "11", "12", "13", "14"};
 
         public static List<ChestModel> ChestModels = new List<ChestModel>();
 
@@ -55,20 +56,20 @@ namespace MazeEscape
             // LevelNumber, TwoStarMoves, ThreeStarTime, LevelType
 
             // area 1 Level Buttons
-            CampaignLevels.Add(new CampaignLevel("1", 4, 4, "GenerateHuntAndKill", new List<string>{ "2" }));
-            CampaignLevels.Add(new CampaignLevel("2", 6, 6, "GenerateHuntAndKill", new List<string> { "3" }));
-            CampaignLevels.Add(new CampaignLevel("3", 7, 7, "GeneratePrims", new List<string> { "4" }));
-            CampaignLevels.Add(new CampaignLevel("4", 5, 10, "GenerateKruskals", new List<string> { "5" }));
-            CampaignLevels.Add(new CampaignLevel("5", 12, 8, "GenerateGrowingTree_50_50", new List<string> { "6" }));
-            CampaignLevels.Add(new CampaignLevel("6", 12, 12, "GenerateGrowingTree_75_25", new List<string> { "7" }));
-            CampaignLevels.Add(new CampaignLevel("7", 15, 12, "GenerateGrowingTree_25_75", new List<string> { "8", "1b" }));
-            CampaignLevels.Add(new CampaignLevel("8", 15, 15, "GenerateGrowingTree_50_0", new List<string> { "9" }));
+            CampaignLevels.Add(new CampaignLevel("1", 15, 15, "GenerateHuntAndKill", new List<string>{ "2" }));
+            CampaignLevels.Add(new CampaignLevel("2", 15, 15, "GenerateKruskals", new List<string> { "3" }));
+            CampaignLevels.Add(new CampaignLevel("3", 15, 15, "GeneratePrims", new List<string> { "4" }));
+            CampaignLevels.Add(new CampaignLevel("4", 15, 15, "GenerateGrowingTree_50_0", new List<string> { "5" }));
+            CampaignLevels.Add(new CampaignLevel("5", 15, 15, "GenerateGrowingTree_50_50", new List<string> { "6" }));
+            CampaignLevels.Add(new CampaignLevel("6", 15, 15, "GenerateGrowingTree_75_25", new List<string> { "7" }));
+            CampaignLevels.Add(new CampaignLevel("7", 15, 15, "GenerateGrowingTree_25_75", new List<string> { "8", "1b" }));
+            CampaignLevels.Add(new CampaignLevel("8", 30, 30, "GeneratePrims", new List<string> { "9" }));
             CampaignLevels.Add(new CampaignLevel("9", 30, 30, "GenerateKruskals", new List<string> { "10" }));
-            CampaignLevels.Add(new CampaignLevel("10", 20, 20, "GenerateHuntAndKill", new List<string> { "11" }));
-            CampaignLevels.Add(new CampaignLevel("11", 30, 30, "GenerateHuntAndKill", new List<string> { "12" }));
-            CampaignLevels.Add(new CampaignLevel("12", 20, 12, "GenerateHuntAndKill", new List<string> { "13" }));
-            CampaignLevels.Add(new CampaignLevel("13", 17, 15, "GenerateHuntAndKill", new List<string> { "14", "4b" }));
-            CampaignLevels.Add(new CampaignLevel("14", 20, 12, "GenerateHuntAndKill", new List<string> { "15" }));
+            CampaignLevels.Add(new CampaignLevel("10", 30, 30, "GenerateHuntAndKill", new List<string> { "11" }));
+            CampaignLevels.Add(new CampaignLevel("11", 30, 30, "GenerateGrowingTree_50_50", new List<string> { "12" }));
+            CampaignLevels.Add(new CampaignLevel("12", 30, 30, "GenerateGrowingTree_75_25", new List<string> { "13" }));
+            CampaignLevels.Add(new CampaignLevel("13", 30, 30, "GenerateGrowingTree_25_75", new List<string> { "14", "4b" }));
+            CampaignLevels.Add(new CampaignLevel("14", 30, 30, "GenerateGrowingTree_50_0", new List<string> { "15" }));
 
             // area 1 Bonus Level Buttons
             CampaignLevels.Add(new CampaignLevel("1b", 20, 12, "GeneratePrims", new List<string> { "2b" }, gateCoinRequired[0]));

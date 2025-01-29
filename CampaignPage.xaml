@@ -92,6 +92,13 @@
                     ColumnDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*"
                     RowDefinitions="*,*,*,*,*">
 
+                    <Image Source="background_paper.png"
+                           Grid.ColumnSpan="20"
+                           Grid.RowSpan="5" 
+                           HeightRequest="200"
+                           WidthRequest="200"
+                           Aspect="Fill"/>
+
                 </Grid>
 
                 
@@ -354,7 +361,7 @@
 
 
         <ImageButton Source="toolkit.png"
-             AbsoluteLayout.LayoutBounds="0.2,0.982,50,70"
+             AbsoluteLayout.LayoutBounds="0.205,0.982,40,75"
              AbsoluteLayout.LayoutFlags="PositionProportional"
              Clicked="OnEquipButtonClicked">
             <VisualStateManager.VisualStateGroups>

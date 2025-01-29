@@ -2,76 +2,97 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MazeEscape.SettingsPage"
-             Title=""
-             BackgroundImageSource="background_Maze_1.png">
-    <VerticalStackLayout Padding="50" Spacing="30">
-        <Label 
-            Text="Shop"
+             Title="">
+    <ScrollView  Margin="0, -80, 0, 0">
+        
+        
+        
+        <AbsoluteLayout
+                        BackgroundColor="Black">
+            <Image Source="background1.png" AbsoluteLayout.LayoutBounds="1,1,1,1" AbsoluteLayout.LayoutFlags="All"
+                   Aspect="Fill" Opacity="0.5"/>
+
+
+            <ImageButton Source="back_button_normal.png" x:Name="backButton"
+                        AbsoluteLayout.LayoutBounds="25,25,50,50"
+                        AbsoluteLayout.LayoutFlags="None"
+                        Clicked="backButton_Clicked"
+                        CornerRadius="20">      
+                <VisualStateManager.VisualStateGroups>
+                    <VisualStateGroupList>
+                        <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="Normal">
+                                <VisualState.Setters>
+                                    <Setter Property="Scale"
+           Value="1" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="Pressed">
+                                <VisualState.Setters>
+                                    <Setter Property="Source"
+               Value="back_button_clicked.png" />
+                                    <Setter Property="Opacity"
+               Value="0.6" />
+                                    <Setter Property="Scale"
+               Value="0.9" />
+                                </VisualState.Setters>
+                            </VisualState>
+                            <VisualState x:Name="PointerOver">
+                                <VisualState.Setters>
+                                    <Setter Property="Opacity"
+               Value="0.7" />
+                                </VisualState.Setters>
+                            </VisualState>
+                        </VisualStateGroup>
+                    </VisualStateGroupList>
+                </VisualStateManager.VisualStateGroups>
+            </ImageButton>
+
+            <Label AbsoluteLayout.LayoutBounds="0.5,0,400,100"
+                   HorizontalTextAlignment="Center"
+                   AbsoluteLayout.LayoutFlags="PositionProportional"
+                   
+            Text="Settings"
             VerticalOptions="Center" 
             HorizontalOptions="Center"
             FontSize="Large"
             FontAttributes="Bold"/>
+            
+            
+            
 
-        <TableView Intent="Menu">
-            <TableRoot>
-                <TableSection Title="Hint">
-                    <ViewCell>
-                        <Grid RowDefinitions="Auto,Auto"
-                      ColumnDefinitions="0.5*,0.5*">
-                            <Label Text="Vibrate"
-                           Margin="10,10,0,0"/>
-                            <Switch Grid.Column="1"
-                            HorizontalOptions="End" />
-                            <Slider Grid.Row="1"
-                            Grid.ColumnSpan="2"
-                            Margin="10"
-                            Minimum="0"
-                            Maximum="10"
-                            Value="3" />
-                        </Grid>
-                    </ViewCell>
-                </TableSection>
+            <TableView Intent="Settings"
+                       AbsoluteLayout.LayoutBounds="0.5,0.9,350,0.85"
+                       AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+                       >
+                <TableRoot>
+                    <TableSection Title="">
 
-                <TableSection Title="Hot or Cold">
-                    <ViewCell>
-                        <Grid RowDefinitions="Auto,Auto"
-                              ColumnDefinitions="0.5*,0.5*">
-                            <Label Text="Vibrate"
-                                   Margin="10,10,0,0"/>
-                            <Switch Grid.Column="1"
-                                    HorizontalOptions="End" />
-                            <Slider Grid.Row="1"
-                                    Grid.ColumnSpan="2"
-                                    Margin="10"
-                                    Minimum="0"
-                                    Maximum="10"
-                                    Value="3" />
-                        </Grid>
-                    </ViewCell>
-                </TableSection>
+                        <SwitchCell Text="Music" On="False" />
+                        <SwitchCell Text="Noises" On="False" />
+                        <ViewCell>
+                            <HorizontalStackLayout Spacing="100">
+                                <Label Text="Volume"/>
+                                <Slider ThumbColor="Azure" Minimum="0" Maximum="10" 
+                                        WidthRequest="100"/>
+                            </HorizontalStackLayout>
+                        </ViewCell>
+                        <EntryCell x:Name="ChangeUsernameEntryCell" Label="Change Your Username" LabelColor="WhiteSmoke" PropertyChanged="ChangeUsernameEntryCell_PropertyChanged"
+                                   Height="150"/>
 
-                <TableSection Title="Solution">
-                    <ViewCell>
-                        <Grid RowDefinitions="Auto,Auto"
-                            ColumnDefinitions="0.5*,0.5*">
-                            <Label Text="Vibrate"
-                                    Margin="10,10,0,0"/>
-                            <Switch Grid.Column="1"
-                                    HorizontalOptions="End" />
-                            <Slider Grid.Row="1"
-                                    Grid.ColumnSpan="2"
-                                    Margin="10"
-                                    Minimum="0"
-                                    Maximum="10"
-                                    Value="3" />
-                        </Grid>
-                    </ViewCell>
-                </TableSection>
+                    <!--    <ImageCell ImageSource="maze_escape_name.png" Height="100"/> -->
+
+                        <TextCell Text="Creator and Details" Tapped="CreatorDetailsTextTapped" Detail="Jake Frischmann" DetailColor="LightGreen"
+                                  TextColor="WhiteSmoke" Height="100"/>
+
+                    </TableSection>
 
 
-            </TableRoot>
-        </TableView>
+                </TableRoot>
+            </TableView>
 
 
-    </VerticalStackLayout>
+        </AbsoluteLayout>
+
+    </ScrollView>
 </ContentPage>

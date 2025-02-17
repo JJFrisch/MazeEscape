@@ -4,6 +4,7 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:drawables="clr-namespace:MazeEscape.Drawables"
              x:Class="MazeEscape.DailyMazePage"
+             NavigationPage.HasBackButton="False"
              Title="">
 
 
@@ -22,110 +23,188 @@
                     AbsoluteLayout.LayoutBounds="10,1,1,1"
                     AbsoluteLayout.LayoutFlags="All">
 
-                    <Image Source="background3.png"
-                    AbsoluteLayout.LayoutBounds="0.5,0.5,400,1"
-                    AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+                    <Image Source="background11.jpeg"
+                    AbsoluteLayout.LayoutBounds="0.5,0.5,1.09,1.1"
+                    AbsoluteLayout.LayoutFlags="All"
                     Aspect="Fill"
                     Opacity="0.9"/>
 
-            <Label x:Name="title" Text="Your Daily Maze Escape"
+                <BoxView BackgroundColor="Black"
+                         Opacity="0.3"
+                         AbsoluteLayout.LayoutBounds="0.5,0.06,300,50"
+                         AbsoluteLayout.LayoutFlags="PositionProportional" 
+                         CornerRadius="5"/>
+
+                <Label x:Name="title" Text="Daily Challenge"
                     FontSize="26"
                     TextColor="WhiteSmoke"
                     FontAutoScalingEnabled="True"
                     AbsoluteLayout.LayoutBounds="0.5, 0.07, 300, 75"
                     HorizontalOptions="Center"
                     FontAttributes="Bold"
+                     
                     AbsoluteLayout.LayoutFlags="PositionProportional"/>
 
+                <BoxView BackgroundColor="Black" Opacity="0.4" CornerRadius="0"
+                        AbsoluteLayout.LayoutBounds="0.5,1,1,0.55"
+                        AbsoluteLayout.LayoutFlags="All"/>
 
-            <Label x:Name="streakNumberLabel" FontSize="18"
-                    FontAttributes="Italic"
-                    AbsoluteLayout.LayoutBounds="0.5, 0.9, 300, 75"
-                    AbsoluteLayout.LayoutFlags="PositionProportional"
-                    Text="5"/>
+                <BoxView BackgroundColor="Black" Opacity="0.7" CornerRadius="0"
+                        AbsoluteLayout.LayoutBounds="0.5,0.87,1,0.2"
+                        AbsoluteLayout.LayoutFlags="All"/>
 
-            <Image x:Name="streakNumberImage" AbsoluteLayout.LayoutBounds="0.5,0.9,100,75"
-                    AbsoluteLayout.LayoutFlags="PositionProportional" />
 
-            <Grid x:Name="monthGrid"
+                <Grid x:Name="monthGrid"
                     ColumnDefinitions="*,*,*,*,*,*,*"
                     RowDefinitions="0.8*,*,*,*,*,*"
-                    AbsoluteLayout.LayoutBounds="0.5,0.4,0.9,0.55"
-                    AbsoluteLayout.LayoutFlags="All">
-            
-                <!-- Contents set in c#-->
+                    AbsoluteLayout.LayoutBounds="0.5,0.38,350,320"
+                    AbsoluteLayout.LayoutFlags="PositionProportional">
 
-                <BoxView BackgroundColor="WhiteSmoke"
-                            Opacity="0.8"
-                            Grid.ColumnSpan="99"
+                    <!-- Contents set in c#-->
+
+                    <BoxView BackgroundColor="Black"
+                            Opacity="0.6"
+                            Grid.ColumnSpan="0"
                             Grid.RowSpan="99" CornerRadius="10, 10, 20, 20" />
 
-                <BoxView BackgroundColor="Black"
-                            Opacity="0.7"
+                    <ImageButton Source="backgroundd10.jpeg" Aspect="Fill"
+                            Opacity="0.5"
+                            Grid.ColumnSpan="99"
+                            Grid.RowSpan="99"
+                            Background="Transparent"/>
+
+                    <BoxView BackgroundColor="Black"
+                            Opacity="0.9"
                             Grid.ColumnSpan="99"
                             Grid.Row="0" 
                             CornerRadius="10,10,0,0"/>
 
-                <Label Text="Sun" Grid.Column="0" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
-                <Label Text="Mon" Grid.Column="1" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
-                <Label Text="Tue" Grid.Column="2" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
-                <Label Text="Wed" Grid.Column="3" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
-                <Label Text="Thu" Grid.Column="4" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
-                <Label Text="Fri" Grid.Column="5" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
-                <Label Text="Sat" Grid.Column="6" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center"/>
+                    <Label Text="Sun" Grid.Column="0" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White"/>
+                    <Label Text="Mon" Grid.Column="1" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White"/>
+                    <Label Text="Tue" Grid.Column="2" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White"/>
+                    <Label Text="Wed" Grid.Column="3" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White"/>
+                    <Label Text="Thu" Grid.Column="4" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White"/>
+                    <Label Text="Fri" Grid.Column="5" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White"/>
+                    <Label Text="Sat" Grid.Column="6" Grid.Row="0" HorizontalOptions="Center" VerticalOptions="Center" TextColor="White"/>
 
-                <BoxView BackgroundColor="LightGrey"
-                            Opacity="0.4"
+                    <BoxView BackgroundColor="WhiteSmoke"
+                            Opacity="0.9"
                             Grid.ColumnSpan="99"
                             Grid.Row="1" />
 
-                <BoxView BackgroundColor="WhiteSmoke"
-                            Opacity="0.4"
+                    <BoxView BackgroundColor="WhiteSmoke"
+                            Opacity="0.9"
                             Grid.ColumnSpan="99"
                             Grid.Row="2" />
 
-                <BoxView BackgroundColor="LightGrey"
-                            Opacity="0.4"
+                    <BoxView BackgroundColor="WhiteSmoke"
+                            Opacity="0.9"
                             Grid.ColumnSpan="99"
                             Grid.Row="3" />
 
-                <BoxView BackgroundColor="WhiteSmoke"
-                            Opacity="0.4"
+                    <BoxView BackgroundColor="WhiteSmoke"
+                            Opacity="0.9"
                             Grid.ColumnSpan="99"
                             Grid.Row="4" />
 
-                <BoxView BackgroundColor="LightGrey"
-                            Opacity="0.4"
+                    <BoxView BackgroundColor="WhiteSmoke"
+                            Opacity="0.9"
                             Grid.ColumnSpan="99"
                             Grid.Row="5" 
                             CornerRadius="0,0,20,20"/>
 
+                    <!--     <ImageButton Aspect="AspectFit" Source="full_star.png" 
+                             VerticalOptions="Start" HorizontalOptions="Center" MinimumHeightRequest="57"
+                                 Grid.Column="4" Grid.Row="2" Opacity="0.75" Background="Transparent"
+                                 /> -->
 
-            </Grid>
 
- 
+                </Grid>
 
-            <ImageButton x:Name="previousMonthButton" Clicked="previousMonthButton_Clicked"
+                <Image x:Name="streakNumberImage" AbsoluteLayout.LayoutBounds="0.25,0.8,30,35"
+                        AbsoluteLayout.LayoutFlags="PositionProportional" Source="full_star.png" />
+
+                <Label  FontSize="18"
+                        FontAttributes="Bold"
+                        AbsoluteLayout.LayoutBounds="0.74, 0.81, 70, 35"
+                        AbsoluteLayout.LayoutFlags="PositionProportional"
+                        Text="15" x:Name="prizeLabel1"
+                        TextColor="White"/>
+
+
+                <Image  AbsoluteLayout.LayoutBounds="0.69,0.86,30,25"
+                        AbsoluteLayout.LayoutFlags="PositionProportional" Source="coin.png" />
+
+                <Image  AbsoluteLayout.LayoutBounds="0.60,0.86,30,25"
+                        AbsoluteLayout.LayoutFlags="PositionProportional" Source="coin.png" />
+
+                <Image  AbsoluteLayout.LayoutBounds="0.65,0.85,30,25"
+                        AbsoluteLayout.LayoutFlags="PositionProportional" Source="coin.png" />
+
+                <Label  FontSize="18"
+                        FontAttributes="Bold"
+                        AbsoluteLayout.LayoutBounds="0.94, 0.81, 30, 35"
+                        AbsoluteLayout.LayoutFlags="PositionProportional"
+                        Text="31" x:Name="prizeLabel2"
+                        TextColor="White"/>
+
+
+                <Image  AbsoluteLayout.LayoutBounds="0.97,0.86,30,25"
+                        AbsoluteLayout.LayoutFlags="PositionProportional" Source="coin.png" />
+
+                <Image  AbsoluteLayout.LayoutBounds="0.88,0.86,30,25"
+                        AbsoluteLayout.LayoutFlags="PositionProportional" Source="coin.png" />
+
+                <Image  AbsoluteLayout.LayoutBounds="0.93,0.85,30,25"
+                        AbsoluteLayout.LayoutFlags="PositionProportional" Source="coin.png" />
+
+                <Image  AbsoluteLayout.LayoutBounds="0.93,0.87,30,25"
+                        AbsoluteLayout.LayoutFlags="PositionProportional" Source="coin.png" />
+
+
+
+                <Frame BackgroundColor="Gold" BorderColor="Black" AbsoluteLayout.LayoutBounds="0.85,0.8,220,30"
+                        AbsoluteLayout.LayoutFlags="PositionProportional" HasShadow="True" Opacity="0.9"
+                       WidthRequest="220" HorizontalOptions="Start" x:Name="progressStarSlider"/>
+
+                <Frame BackgroundColor="Gold" BorderColor="Black" AbsoluteLayout.LayoutBounds="0.85,0.8,220,30"
+                        AbsoluteLayout.LayoutFlags="PositionProportional" HasShadow="True"
+                       WidthRequest="220" HorizontalOptions="Start" Opacity="0.2"/>
+
+                <Label x:Name="streakNumberLabel" FontSize="18"
+                        FontAttributes="Bold" TextColor="White"
+                        AbsoluteLayout.LayoutBounds="0.32, 0.809, 60, 35"
+                        AbsoluteLayout.LayoutFlags="PositionProportional" HorizontalOptions="End"
+                        Text="5"/>
+
+
+
+                <!--            <ImageButton x:Name="previousMonthButton" Clicked="previousMonthButton_Clicked"
                             AbsoluteLayout.LayoutBounds="20,0.5,30,50"
                             AbsoluteLayout.LayoutFlags="YProportional" />
 
             <ImageButton x:Name="nextMonthButton" Clicked="nextMonthButton_Clicked"
                     AbsoluteLayout.LayoutBounds="1,0.5,30,50"
-                    AbsoluteLayout.LayoutFlags="PositionProportional" />
+                    AbsoluteLayout.LayoutFlags="PositionProportional" /> -->
+
+        <!--        <BoxView BackgroundColor="Black" Opacity="0.4" CornerRadius="0"
+         AbsoluteLayout.LayoutBounds="0.5,1,1,0.253"
+                         AbsoluteLayout.LayoutFlags="All"/> -->
 
 
-                <Grid AbsoluteLayout.LayoutBounds="0.5,0.975,250,60"
+                <Grid AbsoluteLayout.LayoutBounds="0.5,0.975,400,60"
                       AbsoluteLayout.LayoutFlags="PositionProportional"
                       ColumnDefinitions="*, *, *"
                       RowDefinitions="*">
 
-                    <BoxView BackgroundColor="WhiteSmoke" Opacity="0.9" CornerRadius="25"
+                    <BoxView BackgroundColor="Black" Opacity="0.4" CornerRadius="0"
                              Grid.ColumnSpan="99"/>
 
 
                     <ImageButton x:Name="homeButton" Clicked="OnHomeButtonClicked"
                          Grid.Column="0" HeightRequest="30" WidthRequest="30"
-                         Source="home_button_icon.png">
+                         Source="home_button_icon.png"
+                         Background="Transparent">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroupList>
                                 <VisualStateGroup x:Name="CommonStates">
@@ -157,7 +236,8 @@
                     <ImageButton x:Name="PlayButtonCalendar" Clicked="OnPlayButtonClicked"
                     Grid.Column="1"
                     Source="play_button_background.png"
-                     Aspect="AspectFit" >
+                     Aspect="AspectFit"
+                     Background="Transparent">
                         <VisualStateManager.VisualStateGroups>
                         <VisualStateGroupList>
                             <VisualStateGroup x:Name="CommonStates">
@@ -188,7 +268,7 @@
                     </ImageButton>
 
                     <Label Text="Play 28" Grid.Column="1" HorizontalTextAlignment="Center" VerticalOptions="Center"
-                           TextColor="Black" x:Name="playLabelCalendar">
+                           TextColor="Black" x:Name="playLabelCalendar" >
 
                         <Label.GestureRecognizers>
                             <TapGestureRecognizer
@@ -226,10 +306,11 @@ Value="1" />
 
                     <ImageButton Grid.Column="2"
                 Clicked="OnInfoButtonClicked"
-                Source="info_icon_green.png"
+                Source="info_icon4.png"
                 WidthRequest="50"
                 Aspect="AspectFit"
-                Opacity="0.97">
+                Opacity="0.97"
+                Background="Transparent">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroupList>
                                 <VisualStateGroup x:Name="CommonStates">
@@ -268,10 +349,103 @@ Value="1" />
                             AbsoluteLayout.LayoutBounds="10,1,1,1"
                             AbsoluteLayout.LayoutFlags="All">
 
-                <Image Source="background_blue_2.png"
-                       AbsoluteLayout.LayoutBounds="0.5,0.5,390,1"
-                       AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+                <Image Source="background5.png"
+                       AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
+                       AbsoluteLayout.LayoutFlags="All"
                        Aspect="Fill"/>
+
+             <!--   <BoxView BackgroundColor="Black" Opacity="0.5" CornerRadius="20"
+                         AbsoluteLayout.LayoutBounds="0.5, 0.5, 0.9, 0.9"
+                         AbsoluteLayout.LayoutFlags="All" />
+
+                <BoxView BackgroundColor="White" Opacity="0.5" CornerRadius="0"
+                         AbsoluteLayout.LayoutBounds="0.5, 0.2, 0.9, 2.5"
+                         AbsoluteLayout.LayoutFlags="PositionProportional,WidthProportional" />   
+
+                <BoxView BackgroundColor="White" Opacity="0.5" CornerRadius="0"
+                         AbsoluteLayout.LayoutBounds="0.5, 0.3, 0.9, 2.5"
+                         AbsoluteLayout.LayoutFlags="PositionProportional,WidthProportional" />   
+
+                <BoxView BackgroundColor="White" Opacity="0.5" CornerRadius="0"
+                         AbsoluteLayout.LayoutBounds="0.5, 0.56, 0.9, 2.5"
+                         AbsoluteLayout.LayoutFlags="PositionProportional,WidthProportional" />        
+
+                <Label Text="Wednesday, January 29th" AbsoluteLayout.LayoutBounds="0.5,0.1,300,50"
+                       AbsoluteLayout.LayoutFlags="PositionProportional" FontAutoScalingEnabled="true"
+                       FontSize="20"/>
+
+                <Label Text="Prim Generation Algorithm" AbsoluteLayout.LayoutBounds="0.5,0.25,300,50"
+                       AbsoluteLayout.LayoutFlags="PositionProportional" FontAutoScalingEnabled="true"
+                       FontSize="16"/>
+
+                <Label Text="30 by 12" AbsoluteLayout.LayoutBounds="0.99,0.25,100,50"
+                       AbsoluteLayout.LayoutFlags="PositionProportional" FontAutoScalingEnabled="true"
+                       FontSize="16"/>
+
+                <Label Text="One of my personal favorites, Prim's algorithm is a type of growing tree where the next node is choosen randomly. One of my personal favorites, Prim's algorithm is a type of growing tree where the next node is choosen randomly. " 
+                       AbsoluteLayout.LayoutBounds="0.5,0.5,300,200"
+                       AbsoluteLayout.LayoutFlags="PositionProportional" FontAutoScalingEnabled="true"
+                       FontSize="14"/>
+
+                <Label Text="Not Yet Attempted" AbsoluteLayout.LayoutBounds="0.5,0.7,300,90"
+                       AbsoluteLayout.LayoutFlags="PositionProportional" FontAutoScalingEnabled="true"
+                       FontSize="16"/>
+
+                <Label Text="15s / 50s" AbsoluteLayout.LayoutBounds="0.9,0.7,100,90"
+                       AbsoluteLayout.LayoutFlags="PositionProportional" FontAutoScalingEnabled="true"
+                       FontSize="16"/> -->
+
+
+                <Grid AbsoluteLayout.LayoutBounds="0.5, 0.25, 0.9, 0.8"
+                      AbsoluteLayout.LayoutFlags="All" 
+                      RowDefinitions="*,3,0.3*,0.5*,3,0.3*,3.8*,3,0.7*"
+                      RowSpacing="10">
+
+                    <BoxView BackgroundColor="Black" Opacity="0.6" CornerRadius="20"
+                            Grid.ColumnSpan="99" Grid.RowSpan="99"/>
+
+                    <BoxView BackgroundColor="White" Opacity="0.5" CornerRadius="0"
+                            Grid.Row="1"/>
+
+                    <BoxView BackgroundColor="White" Opacity="0.5" CornerRadius="0"
+                            Grid.Row="4"/>
+
+                    <BoxView BackgroundColor="White" Opacity="0.5" CornerRadius="0"
+                            Grid.Row="7"/>
+
+                    <Label Text="Wednesday, January 29th" Grid.Row="0" FontAutoScalingEnabled="true" x:Name="dateInfoLabel"
+                            FontSize="20" Padding="20" VerticalOptions="Center" HorizontalOptions="Center" TextColor="White"/>
+
+                    <Label Text="Size" Grid.Row="2" FontAutoScalingEnabled="true" 
+                            FontSize="14"  Padding="35, 0" HorizontalTextAlignment="End" TextColor="Orange"/>
+
+                    <Label Text="Maze Generation Algorithm" Grid.Row="2" FontAutoScalingEnabled="true" 
+                            FontSize="14"  Padding="10, 0" HorizontalTextAlignment="Start" TextColor="Orange"/>
+
+                    <Label Text="Prim Generation Algorithm" Grid.Row="3" FontAutoScalingEnabled="true" x:Name="generationTypeInfoLabel"
+                            FontSize="16"  Padding="10,0" TextColor="White"/>
+
+                    <Label Text="30 by 12" Grid.Row="3" FontAutoScalingEnabled="true" x:Name="sizeInfoLabel"
+                            FontSize="16" HorizontalOptions="End"  Padding="15, 0" TextColor="White"/>
+
+                    <Label Text="Description" Grid.Row="5" FontSize="14"
+                           Padding="10, 0" TextColor="Orange"/>
+
+                    <ScrollView Orientation="Vertical" Grid.Row="6">
+                        <Label Text="One of my personal favorites, Prim's algorithm is a type of growing tree where the next node is choosen randomly. One of my personal favorites, Prim's algorithm is a type of growing tree where the next node is choosen randomly. " 
+                             FontAutoScalingEnabled="true" FontSize="14"  Padding="20, 0" x:Name="descriptionInfoLabel"
+                               TextColor="White"/>
+                    </ScrollView>
+
+                    <Label Text="Not Yet Attempted" Grid.Row="8" FontAutoScalingEnabled="true" x:Name="statusInfoLabel"
+                            FontSize="16"  Padding="10, 5" TextColor="White"/>
+
+                    <Label Text="15s / 50s" Grid.Row="8" FontAutoScalingEnabled="true" x:Name="timeInfoLabel"
+                            FontSize="16" HorizontalOptions="End"  Padding="10" TextColor="White"/>
+
+
+
+                </Grid>
 
 
 
@@ -280,13 +454,14 @@ Value="1" />
           ColumnDefinitions="*, *, *"
           RowDefinitions="*">
 
-                    <BoxView BackgroundColor="WhiteSmoke" Opacity="0.9" CornerRadius="25"
+                    <BoxView BackgroundColor="Black" Opacity="0.3" CornerRadius="25"
                  Grid.ColumnSpan="99"/>
 
 
                     <ImageButton  Clicked="OnHomeButtonClicked"
              Grid.Column="0" HeightRequest="30" WidthRequest="30"
-             Source="home_button_icon.png">
+             Source="home_button_icon.png"
+                                  Background="Transparent">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroupList>
                                 <VisualStateGroup x:Name="CommonStates">
@@ -318,7 +493,8 @@ Value="1" />
                     <ImageButton  Clicked="OnPlayButtonClicked"
         Grid.Column="1"
         Source="play_button_background.png"
-         Aspect="AspectFit" >
+         Aspect="AspectFit"
+                                  Background="Transparent">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroupList>
                                 <VisualStateGroup x:Name="CommonStates">
@@ -387,10 +563,11 @@ Value="1" />
 
                     <ImageButton Grid.Column="2"
                                 Clicked="OnCalendarButtonClicked"
-                                Source="calendar_icon.png"
+                                Source="calendar_icon3.png"
                                 WidthRequest="50"
                                 Aspect="AspectFit"
-                                Opacity="0.97">     
+                                Opacity="0.97"
+                                 Background="Transparent">     
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroupList>
                                 <VisualStateGroup x:Name="CommonStates">
@@ -429,14 +606,15 @@ Value="1" />
                             AbsoluteLayout.LayoutFlags="All" x:Name="playAbsoluteLayout">
 
                 <Image Source="background_blue_2.png"
-                       AbsoluteLayout.LayoutBounds="0.5,0.5,390,1"
-                       AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+                       AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
+                       AbsoluteLayout.LayoutFlags="All"
                        Aspect="Fill"/>
 
                 <ImageButton Source="full_star.png" Opacity="0" IsVisible="True" x:Name="winningStar"
                              AbsoluteLayout.LayoutBounds="0.5, 0.5, 20, 20"
                              AbsoluteLayout.LayoutFlags="PositionProportional" 
-                             Aspect="AspectFit"/>
+                             Aspect="AspectFit"
+                             Background="Transparent"/>
 
 
                 <AbsoluteLayout x:Name="main_absolute_layout">
@@ -460,21 +638,21 @@ Value="1" />
                 </AbsoluteLayout>
 
 
-                <BoxView BackgroundColor="White"
-         Opacity="0.4"
-         AbsoluteLayout.LayoutBounds="0.5,0,0.6,80"
-         AbsoluteLayout.LayoutFlags="XProportional,WidthProportional"
-         CornerRadius="0,0,50,50"/>
+                <BoxView BackgroundColor="Black"
+         Opacity="0.8"
+         AbsoluteLayout.LayoutBounds="0.5,0.02,0.6,50"
+         AbsoluteLayout.LayoutFlags="PositionProportional,WidthProportional"
+         CornerRadius="10"/>
 
-                <Label Text="Time" 
-       HorizontalOptions="Center"
-       AbsoluteLayout.LayoutBounds="0.35,15,0.2,0.1"
-       AbsoluteLayout.LayoutFlags="XProportional,SizeProportional"/>
+                <Label Text="Time:" 
+       HorizontalOptions="Center" FontSize="22" TextColor="White"
+       AbsoluteLayout.LayoutBounds="0.3,0.045,0.2,0.1"
+       AbsoluteLayout.LayoutFlags="PositionProportional,SizeProportional"/>
 
-                <Label x:Name="labelTimer" Text="00:00" 
-       HorizontalOptions="Center"
-       AbsoluteLayout.LayoutBounds="0.35,40,0.2,0.1"
-       AbsoluteLayout.LayoutFlags="XProportional,SizeProportional" />
+                <Label x:Name="labelTimer" Text="00:00"  TextColor="White"
+       HorizontalOptions="Start" FontSize="18"
+       AbsoluteLayout.LayoutBounds="0.7,0.054,0.3,0.1"
+       AbsoluteLayout.LayoutFlags="PositionProportional,SizeProportional" />
 
          <!--       <Label Text="Moves" 
        HorizontalOptions="Center"
@@ -500,7 +678,8 @@ Value="1" />
 
                     <ImageButton Clicked="OnHomeButtonClicked"
              Grid.Column="0" HeightRequest="30" WidthRequest="30"
-             Source="home_button_icon.png">
+             Source="home_button_icon.png"
+                                 Background="Transparent">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroupList>
                                 <VisualStateGroup x:Name="CommonStates">
@@ -531,8 +710,10 @@ Value="1" />
 
                     <ImageButton Clicked="OnCalendarButtonClicked"
         Grid.Column="1"
-        Source="calendar_icon.png"
-         Aspect="AspectFit" >
+        Source="calendar_icon3.png"
+         Aspect="AspectFit" 
+                                 WidthRequest="47"
+                                 Background="Transparent">
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroupList>
                                 <VisualStateGroup x:Name="CommonStates">
@@ -564,10 +745,11 @@ Value="1" />
 
                     <ImageButton Grid.Column="2"
                                 Clicked="OnInfoButtonClicked"
-                                Source="info_icon_black.png"
+                                Source="info_icon4.png"
                                 WidthRequest="50"
                                 Aspect="AspectFit"
-                                Opacity="0.97"> 
+                                Opacity="0.97"
+                                 Background="Transparent"> 
                         <VisualStateManager.VisualStateGroups>
                             <VisualStateGroupList>
                                 <VisualStateGroup x:Name="CommonStates">
@@ -607,17 +789,15 @@ Value="1" />
                 AbsoluteLayout.LayoutFlags="All">
 
                 <Image Source="maze_home_screen_1.png"
-           AbsoluteLayout.LayoutBounds="0.5,0.5,400,1"
-            AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+           AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
+            AbsoluteLayout.LayoutFlags="All"
             Aspect="Fill"/>
 
                 <ActivityIndicator
         AbsoluteLayout.LayoutBounds="0.5,0.45,300,300"
         AbsoluteLayout.LayoutFlags="PositionProportional"
         HeightRequest="40"
-                HorizontalOptions="CenterAndExpand"
                 IsRunning="True"
-                VerticalOptions="CenterAndExpand"
                 WidthRequest="40"
                 Color="WhiteSmoke"
                 Scale="2.5"/>
@@ -630,7 +810,6 @@ Value="1" />
                 <Label
         AbsoluteLayout.LayoutBounds="0.5,0.9,300,260"
         AbsoluteLayout.LayoutFlags="PositionProportional"
-                HorizontalOptions="CenterAndExpand"
                 HorizontalTextAlignment="Center"
         TextColor="WhiteSmoke"
         FontAttributes="Bold"

@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MazeEscape.ShopPage"
              Title=""
-             Shell.NavBarIsVisible="False">
+             Shell.NavBarIsVisible="False"
+             NavigationPage.HasBackButton="False">
 
     <ScrollView Margin="0,-80,0,0">
         <AbsoluteLayout>
@@ -14,10 +15,12 @@
                Aspect="AspectFill"/>
 
             <ImageButton Source="back_button_normal.png"
+                         Background="Transparent"
                          AbsoluteLayout.LayoutBounds="20,20,60,60"
                          AbsoluteLayout.LayoutFlags="None"
                          Clicked="BackButton_Clicked"
                          CornerRadius="50">
+                
                 <VisualStateManager.VisualStateGroups>
                     <VisualStateGroupList>
                         <VisualStateGroup x:Name="CommonStates">
@@ -59,89 +62,187 @@
         <BoxView BackgroundColor="Gray" Opacity="0.6" CornerRadius="20,0,20,0"
                  AbsoluteLayout.LayoutBounds="1,30,100,50"
                  AbsoluteLayout.LayoutFlags="XProportional"/>
+            
             <Image Source="coin.png"
-               AbsoluteLayout.LayoutBounds="0.8, 0.06, 35, 35"
-               AbsoluteLayout.LayoutFlags="PositionProportional" />
+               AbsoluteLayout.LayoutBounds="1, 40, 195, 35"
+               AbsoluteLayout.LayoutFlags="XProportional" />
 
             <Label x:Name="CoinCountLabel" HorizontalOptions="Center" VerticalOptions="Start" FontSize="22"
                AbsoluteLayout.LayoutBounds="1,40,80,100"
-               AbsoluteLayout.LayoutFlags="XProportional"/>
+               AbsoluteLayout.LayoutFlags="XProportional"
+                   TextColor="White"/>
 
             <Grid
-                  AbsoluteLayout.LayoutBounds="0.5,0.2,0.95,0.1"
-                  AbsoluteLayout.LayoutFlags="All"
-                  ColumnDefinitions="30,*,2*,*,2*,*,2*,30"
+                  AbsoluteLayout.LayoutBounds="0.5,0.2,350,80"
+                  AbsoluteLayout.LayoutFlags="PositionProportional"
+                  ColumnDefinitions="30,*,*,*,*,*,*,10"
                   RowDefinitions="*">
 
 
                 <BoxView BackgroundColor="Black" CornerRadius="10" Grid.ColumnSpan="8" Opacity="0.65"/>
 
-                <Image Source="time.png" Grid.Column="1" HorizontalOptions="Center"/>
+                <Image Source="time.png" Grid.Column="1" HorizontalOptions="Center" WidthRequest="50" HeightRequest="50"/>
                 <Label x:Name="extraTimeNumberLabel" Grid.Column="2" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" TextColor="White"/>
 
-                <Image Source="hint.png" Grid.Column="3"/>
-                <Label x:Name="hintNumberLabel" Grid.Column="4" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Center"/>
+                <Image Source="hint.png" Grid.Column="3" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>
+                <Label x:Name="hintNumberLabel" Grid.Column="4" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" TextColor="White"/>
 
-                <Image Source="maze_box.png" Grid.Column="5"/>
-                <Label x:Name="extraMovesNumberLabel" Grid.Column="6" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Center"/>
+                <Image Source="maze_box.png" Grid.Column="5" WidthRequest="50" HeightRequest="50" HorizontalOptions="Center"/>
+                <Label x:Name="extraMovesNumberLabel" Grid.Column="6" FontSize="20" VerticalTextAlignment="Center" HorizontalTextAlignment="Center" TextColor="White"/>
 
 
             </Grid>
             
 
             <BoxView BackgroundColor="Black"
-                     AbsoluteLayout.LayoutBounds="0.5,1,0.8,0.65"
-                     AbsoluteLayout.LayoutFlags="All"
+                     AbsoluteLayout.LayoutBounds="0.5,1,350,0.65"
+                     AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
                      Opacity="0.8"
                      CornerRadius="50,50,10,10"/>
 
-            <ScrollView Orientation="Vertical" AbsoluteLayout.LayoutBounds="0.5,1,0.8,0.65"
-                        AbsoluteLayout.LayoutFlags="All">
+            <ScrollView Orientation="Vertical" AbsoluteLayout.LayoutBounds="0.5,1,320,0.6"
+                        AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional">
 
+
+                <Grid 
+                    RowDefinitions="*,*,*"
+                    ColumnDefinitions="2*,3*"
+                    RowSpacing="30"
+                    ColumnSpacing="0"
+                    Padding="0,20"
+                    HeightRequest="400"
+                    VerticalOptions="Start">
+
+                    <ImageButton Source="store_item_background.png"
+                                 Grid.ColumnSpan="2"
+                                 Grid.Row="0"
+                                 Clicked="BuyTimeClicked"
+                                 x:Name="timeImageButton"
+                                 BackgroundColor="Transparent"/>
+
+                    <ImageButton Source="time.png"
+                                 x:Name="timeImageButton2"
+                                 Grid.Column="0"
+                                 Grid.Row="0"
+                                 Clicked="BuyTimeClicked"
+                                 Aspect="AspectFit"
+                                 BackgroundColor="Transparent"
+                                 WidthRequest="50"/>
+
+                    <Label x:Name="extraTimeCostLabel"
+                           Text="50"
+                           FontSize="28"
+                           TextColor="WhiteSmoke"
+                           Grid.Column="1"
+                           Grid.Row="0"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"/>
+
+                    <ImageButton Source="store_item_background.png"
+                                 Grid.ColumnSpan="2"
+                                 Grid.Row="1"
+                                 Clicked="BuyHintClicked"
+                                 x:Name="hintImageButton"
+                                 BackgroundColor="Transparent"/>
+
+                    <ImageButton Source="hint.png"
+                                 x:Name="hintImageButton2"
+                                 Grid.Column="0"
+                                 Grid.Row="1"
+                                 Clicked="BuyHintClicked"
+                                 Aspect="AspectFit"
+                                 BackgroundColor="Transparent"
+                                 WidthRequest="50"/>
+
+                    <Label x:Name="hintCostLabel"
+                           Text="50"
+                           FontSize="28"
+                           TextColor="WhiteSmoke"
+                           Grid.Column="1"
+                           Grid.Row="1"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"/>
+
+                    <ImageButton Source="store_item_background.png"
+                                 Grid.ColumnSpan="2"
+                                 Grid.Row="2"
+                                 Clicked="BuyMovesClicked"
+                                 x:Name="movesImageButton"
+                                 BackgroundColor="Transparent"/>
+
+                    <ImageButton Source="maze_box.png"
+                                 x:Name="movesImageButton2"
+                                 Grid.Column="0"
+                                 Grid.Row="2"
+                                 Clicked="BuyMovesClicked"
+                                 Aspect="AspectFit"
+                                 BackgroundColor="Transparent"
+                                 WidthRequest="50"/>
+
+                    <Label x:Name="extraMovesCostLabel"
+                           Text="50"
+                           FontSize="28"
+                           TextColor="WhiteSmoke"
+                           Grid.Column="1"
+                           Grid.Row="2"
+                           VerticalOptions="Center"
+                           HorizontalOptions="Center"/>
+
+
+                </Grid>
+                
+                
+                <!--
                 <AbsoluteLayout>
 
                     <ImageButton Source="store_item_background.png"
-                         AbsoluteLayout.LayoutBounds="0.5,0.05,0.8,0.2"
-                         AbsoluteLayout.LayoutFlags="All"
+                          AbsoluteLayout.LayoutBounds="0.5,0.2,300, 80"
+                         AbsoluteLayout.LayoutFlags="PositionProportional"
                          Aspect="AspectFit"
                          Clicked="BuyTimeClicked"
-                         x:Name="timeImageButton"/>
+                         x:Name="timeImageButton"
+                                 BackgroundColor="Transparent"/>
 
                 <ImageButton Source="time.png" x:Name="timeImageButton2"
                          AbsoluteLayout.LayoutBounds="0.25,0.05,0.2,0.2"
                          AbsoluteLayout.LayoutFlags="All"
                              WidthRequest="30"
                          Clicked="BuyTimeClicked"
-                         Aspect="AspectFit"/>
+                         Aspect="AspectFit"
+                             BackgroundColor="Transparent"/>
 
                     <Label x:Name="extraTimeCostLabel"
                    Text="50"
+                           TextColor="White"
                    FontSize="28"
                    HorizontalOptions="Start"
-                   AbsoluteLayout.LayoutBounds="0.86,0.115,0.3,0.2"
-                   AbsoluteLayout.LayoutFlags="All"/>
+                   AbsoluteLayout.LayoutBounds="0.86,0.115,200,50"
+                   AbsoluteLayout.LayoutFlags="PositionProportional"/>
 
 
                     <ImageButton Source="store_item_background.png"
-                         AbsoluteLayout.LayoutBounds="0.5,0.35,0.8,0.2"
-                        AbsoluteLayout.LayoutFlags="All"
+                         AbsoluteLayout.LayoutBounds="0.5,0.35,300, 80"
+                        AbsoluteLayout.LayoutFlags="PositionProportional"
                         Aspect="AspectFit"
                         Clicked="BuyHintClicked"
-                        x:Name="hintImageButton"/>
+                        x:Name="hintImageButton"
+                                 Background="Transparent"/>
 
                 <Label x:Name="hintCostLabel"
                    Text="200"
                    FontSize="28"
-                   AbsoluteLayout.LayoutBounds="0.86,0.42,0.3,0.2"
+                       TextColor="White"
+                   AbsoluteLayout.LayoutBounds="0.86,0.41,0.3,0.2"
                    AbsoluteLayout.LayoutFlags="All"
                    HorizontalOptions="Start"/>
 
                 <ImageButton Source="hint.png"
-             AbsoluteLayout.LayoutBounds="0.25,0.35,0.2,0.2"
+             AbsoluteLayout.LayoutBounds="0.18,0.355,0.2,0.2"
              AbsoluteLayout.LayoutFlags="All"
              WidthRequest="30"
                              Clicked="BuyHintClicked"
-                             x:Name="hintImageButton2"/>
+                             x:Name="hintImageButton2"
+                             Background="Transparent"/>
 
 
                     <ImageButton Source="store_item_background.png"
@@ -149,24 +250,29 @@
                          AbsoluteLayout.LayoutFlags="All"
                          Aspect="AspectFit"
                          Clicked="BuyMovesClicked"
-                         x:Name="movesImageButton"/>
+                         x:Name="movesImageButton"
+                                 Background="Transparent"/>
 
                     <ImageButton Source="maze_box.png" x:Name="movesImageButton2"
                          AbsoluteLayout.LayoutBounds="0.25,0.65,0.2,0.2"
                          AbsoluteLayout.LayoutFlags="All"
                              WidthRequest="30"
                          Clicked="BuyMovesClicked"
-                         Aspect="AspectFit"/>
+                         Aspect="AspectFit"
+                                 Background="Transparent"/>
 
                     <Label x:Name="extraMovesCostLabel"
                        Text="50"
                        FontSize="28"
+                           TextColor="White"
                        HorizontalOptions="Start"
                        AbsoluteLayout.LayoutBounds="0.86,0.715,0.3,0.2"
                        AbsoluteLayout.LayoutFlags="All"/>
 
 
                 </AbsoluteLayout>
+                -->
+                
             </ScrollView>
 
 

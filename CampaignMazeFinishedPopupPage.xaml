@@ -8,95 +8,165 @@
 
     <AbsoluteLayout>
 
-        <Image AbsoluteLayout.LayoutBounds="1,1,1,1"
-               AbsoluteLayout.LayoutFlags="All" 
-               Source="background_paper.png"
+        
+        
+        <Image AbsoluteLayout.LayoutBounds="0.5, 0.5, 370, 500"
+               AbsoluteLayout.LayoutFlags="PositionProportional" 
+               Source="scroll5.png"
                Aspect="Fill"
-               Opacity="0.6"/>
+               Opacity="1"
+               Background="Transparent"/>
 
-        <BoxView AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
-                 AbsoluteLayout.LayoutFlags="All" 
-                 Opacity="0.3"
-                 BackgroundColor="Gray"
-                 CornerRadius="40,0,0,40"/>
 
-        <Label Text="Maze Complete" AbsoluteLayout.LayoutBounds="0.5,0,0.7,0.2"
-               AbsoluteLayout.LayoutFlags="All"
+ 
+        <Label Text="Level 1" AbsoluteLayout.LayoutBounds="0.5,0,300,0.2" x:Name="levelLabel"
+               AbsoluteLayout.LayoutFlags="PositionProportional, HeightProportional"
                Style="{DynamicResource campaignLevelLabel}"
-               FontSize="28"
-               FontAttributes="Bold,Italic"
-               TextColor="CadetBlue"/>
+               FontSize="38"
+               FontAttributes="Bold"
+               TextColor="DarkCyan"/>
 
         <Label x:Name="coinsEarnedLabel"
-               Text="-10"
-               AbsoluteLayout.LayoutBounds="0.6,0.75,50,50"  
+               Text="-10" TextColor="Black"
+               AbsoluteLayout.LayoutBounds="0.7,0.8,50,50"  
                AbsoluteLayout.LayoutFlags="PositionProportional"
                Style="{DynamicResource dataLabel}"/>
 
 
-        <Image AbsoluteLayout.LayoutBounds="0.4,0.76,50,50"
+        <Image AbsoluteLayout.LayoutBounds="0.4,0.81,50,50"
                AbsoluteLayout.LayoutFlags="PositionProportional"
                x:Name="coinImage"
                Source="coin.png"/>
 
 
-        <Image AbsoluteLayout.LayoutBounds="0.15,0.35,0.25,0.25"
+        <Image AbsoluteLayout.LayoutBounds="0.15,0.25,0.2,0.2"
                AbsoluteLayout.LayoutFlags="All"
                x:Name="starOneImage"/>
 
-        <Image AbsoluteLayout.LayoutBounds="0.5,0.2,0.25,0.25"
+        <Image AbsoluteLayout.LayoutBounds="0.5,0.18,0.2,0.2"
                AbsoluteLayout.LayoutFlags="All"
                x:Name="starTwoImage"/>      
 
-        <Image AbsoluteLayout.LayoutBounds="0.83,0.35,0.25,0.25"
+        <Image AbsoluteLayout.LayoutBounds="0.84,0.25,0.2,0.2"
                AbsoluteLayout.LayoutFlags="All"
                x:Name="starThreeImage"/>
 
+        <BoxView BackgroundColor="WhiteSmoke" Opacity="0.3"
+                 AbsoluteLayout.LayoutBounds="0.5, 0.525, 270, 100"
+                 AbsoluteLayout.LayoutFlags="PositionProportional" />
 
-        <Label x:Name="timeLabel" Style="{DynamicResource dataLabel}"
-               AbsoluteLayout.LayoutBounds="0.2,0.7,0.3,0.3"
-               AbsoluteLayout.LayoutFlags="All"
+
+        <Label Style="{DynamicResource dataLabel}" Text="Time" TextColor="Black"
+               FontSize="23"
+               AbsoluteLayout.LayoutBounds="0.15,0.48,100,50"
+               AbsoluteLayout.LayoutFlags="PositionProportional"
                WidthRequest="100"
-               HeightRequest="100"/>
+               HeightRequest="50"/>
+
+        <BoxView BackgroundColor="DarkGray"
+                 AbsoluteLayout.LayoutBounds="0,0.52,100,3"
+                 AbsoluteLayout.LayoutFlags="PositionProportional"
+                 CornerRadius="30"/>
+
+        <Label x:Name="timeLabel" Style="{DynamicResource dataLabel}" Text="15s / 23s"
+               AbsoluteLayout.LayoutBounds="-0.09,0.62,120,50" TextColor="Black"
+               HorizontalTextAlignment="Center"
+               AbsoluteLayout.LayoutFlags="PositionProportional"  
+               WidthRequest="120"
+               HeightRequest="50"/>
+
+        <Label Style="{DynamicResource dataLabel}" Text="Moves" TextColor="Black"
+               FontSize="23"
+               AbsoluteLayout.LayoutBounds="1,0.48,100,50"
+               AbsoluteLayout.LayoutFlags="PositionProportional"
+               HorizontalTextAlignment="Center"
+               WidthRequest="100"
+               HeightRequest="50"/>
+
+        <BoxView BackgroundColor="DarkGray"
+                 AbsoluteLayout.LayoutBounds="1,0.52,100,3"
+                 AbsoluteLayout.LayoutFlags="PositionProportional"
+                 CornerRadius="30"/>
+
+
+        <Label x:Name="movesLabel" Style="{DynamicResource dataLabel}" TextColor="Black"
+               WidthRequest="120" Text="35 / 40"
+               HeightRequest="50"
+               HorizontalTextAlignment="Center" 
+               AbsoluteLayout.LayoutBounds="1.09,0.62,120,50" 
+               AbsoluteLayout.LayoutFlags="PositionProportional"/>
+
+
+        <Image 
+                 AbsoluteLayout.LayoutBounds="0.5,1.1,1.1,0.2"
+                 AbsoluteLayout.LayoutFlags="All"
+            Aspect="Fill"
+                 Opacity="0.9" 
+               Source="button_background_5.png"/>
+
+
+        <ImageButton AbsoluteLayout.LayoutBounds="-0.02,1.05,70,50"
+                    AbsoluteLayout.LayoutFlags="PositionProportional"
+                    Clicked="OnCloseButtonClicked" 
+                     WidthRequest="70"
+                     HeightRequest="50"
+                     Source="home_button_icon.png"
+                     Background="Transparent"/>
+
+
+        <ImageButton AbsoluteLayout.LayoutBounds="0.5,1.05,70,50"
+                    AbsoluteLayout.LayoutFlags="PositionProportional"
+                    Clicked="OnRetryButtonClicked" 
+                     WidthRequest="70"
+                     HeightRequest="50"
+                     Source="retry_icon.png"
+                     Background="Transparent"/>
+
+
+        <ImageButton x:Name="nextLevelButton" 
+                    AbsoluteLayout.LayoutBounds="1,1.05,70,50"
+                    AbsoluteLayout.LayoutFlags="PositionProportional"
+                    Clicked="OnCloseButtonClicked" 
+                     WidthRequest="70"
+                     HeightRequest="50"
+                     Source="next_level_icon.png"
+                     Background="Transparent"/>
+
+
+        <!--   If Text buttons instead of image buttons 
         
-        <Label x:Name="movesLabel" Style="{DynamicResource dataLabel}"
-               WidthRequest="150"
-               HeightRequest="100"
-               
-               AbsoluteLayout.LayoutBounds="0.88,0.7,0.4,0.3"
-               AbsoluteLayout.LayoutFlags="All"/>
-
-
-        <Button Text="World Map"
-                AbsoluteLayout.LayoutBounds="0.15,0.95,0.15,0.15"
-                AbsoluteLayout.LayoutFlags="All"
-                Clicked="OnCloseButtonClicked" 
+        <Button Text="Shop"
+                AbsoluteLayout.LayoutBounds="-0.02,1.05,70,50"
+                AbsoluteLayout.LayoutFlags="PositionProportional"
+                Clicked="OnShopButtonClicked" 
                 FontSize="14"
                 BackgroundColor="Azure"
-                WidthRequest="100"
-                HeightRequest="50"/>
+                WidthRequest="70"
+                HeightRequest="50"/> 
         
         <Button Text="Retry"
-                AbsoluteLayout.LayoutBounds="0.5,0.95,0.15,0.15"
-                AbsoluteLayout.LayoutFlags="All"
+                AbsoluteLayout.LayoutBounds="0.425,1.05,65,50"
+                AbsoluteLayout.LayoutFlags="PositionProportional"
                 Clicked="OnRetryButtonClicked" 
                 FontSize="14"
                 BackgroundColor="LightGoldenrodYellow"
-                WidthRequest="70"
+                WidthRequest="65"
                 HeightRequest="50"
                 />
 
         <Button Text="Next Level" x:Name="nextLevelButton"
-                AbsoluteLayout.LayoutBounds="0.85,0.95,0.15,0.15"
-                AbsoluteLayout.LayoutFlags="All"
-                Clicked="OnNextLevelButtonClicked" 
+                AbsoluteLayout.LayoutBounds="1.05,1.05,100, 50"
+                AbsoluteLayout.LayoutFlags="PositionProportional"
+                Clicked="OnCloseButtonClicked" 
                 FontSize="14"
                 TextColor="Black"
                 BackgroundColor="LightGreen"
                 WidthRequest="100"
                 HeightRequest="50"
-                />  
+                />   -->
 
+        
+       
     </AbsoluteLayout>
 
 </mct:Popup>

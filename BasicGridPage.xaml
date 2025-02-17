@@ -2,7 +2,8 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:drawables="clr-namespace:MazeEscape.Drawables"
-             x:Class="MazeEscape.BasicGridPage">
+             x:Class="MazeEscape.BasicGridPage"
+             NavigationPage.HasBackButton="False">
 
     <ContentPage.Resources>
         <drawables:PlayerDrawable x:Key="playerDrawable"/>

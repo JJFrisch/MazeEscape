@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<mct:Popup xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:mct="clr-namespace:CommunityToolkit.Maui.Views;assembly=CommunityToolkit.Maui"
+             x:Class="MazeEscape.ComfrimPurchasePage"
+             CanBeDismissedByTappingOutsideOfPopup="False">
+
+    <AbsoluteLayout AbsoluteLayout.LayoutBounds="1,1,1,1"
+                    AbsoluteLayout.LayoutFlags="All">
+
+        <Image AbsoluteLayout.LayoutBounds="0.5, 0.5, 300, 300"
+            AbsoluteLayout.LayoutFlags="PositionProportional" 
+            Source="popout_background.png"
+            Aspect="Fill"
+            Opacity="1" />
+
+        <ImageButton 
+                     AbsoluteLayout.LayoutBounds="1.1,-0.1,50,50"
+                     AbsoluteLayout.LayoutFlags="PositionProportional"
+                     Opacity="0"
+                     Clicked="ExitButton_Clicked"
+                     Background="Transparent"/>
+
+        <Label x:Name="titleLabel"
+              AbsoluteLayout.LayoutBounds="0.5, -0.10, 200, 60"
+              AbsoluteLayout.LayoutFlags="PositionProportional"
+              HorizontalTextAlignment="Center"
+              VerticalTextAlignment="Center"
+               FontAttributes="Bold"
+              FontSize="28"
+              TextColor="Black" />
+
+        <Image x:Name="itemImage" 
+               AbsoluteLayout.LayoutBounds="0.5, 0.5, 200, 200"
+               AbsoluteLayout.LayoutFlags="All"
+               WidthRequest="110"
+               HeightRequest="110"
+               Source="player_image1_icon.png" />
+
+        <Button Background="Gray" x:Name="purchaseButton"
+                Opacity="0.5"
+                AbsoluteLayout.LayoutBounds="0.5,1.06,130,45"
+                AbsoluteLayout.LayoutFlags="PositionProportional" />
+
+
+        <Label x:Name="itemPriceLabel"
+               AbsoluteLayout.LayoutBounds="0.5,1.06,130,45"
+               AbsoluteLayout.LayoutFlags="PositionProportional"
+               FontAutoScalingEnabled="True"
+               HorizontalTextAlignment="Center"
+               VerticalTextAlignment="Center"
+               TextColor="Gold"
+               FontAttributes="Bold"
+               Opacity="0.8"
+               FontSize="18"  />    
+
+    </AbsoluteLayout>
+
+</mct:Popup>

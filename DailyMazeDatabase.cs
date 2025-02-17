@@ -69,6 +69,12 @@ namespace MazeEscape
         public async Task<DailyMazeLevel> GetItemAsync(string shortDate)
         {
             await Init();
+
+            //List<DailyMazeLevel> x = await GetLevelsAsync();
+            //if (x.Count == 0)
+            //{
+            //    return null;
+            //}
             return await database.Table<DailyMazeLevel>().Where(i => i.ShortDate == shortDate).FirstAsync();
             //return await database.Table<DailyMazeLevel>().Where(i => i.TimeNeeded == 0).FirstOrDefaultAsync();
         }

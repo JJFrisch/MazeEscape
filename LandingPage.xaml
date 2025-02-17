@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MazeEscape.LandingPage"
              BackgroundColor="IndianRed"
-             Shell.NavBarIsVisible="False">
+             Shell.NavBarIsVisible="False"
+             NavigationPage.HasBackButton="False">
 
 
     <ContentPage.Resources>
@@ -31,7 +32,8 @@
             VerticalOptions="Center"
             Opacity=".95"
             Source="play_button_image_1.png"
-            Aspect="Fill">
+            Aspect="Fill"
+            Background="Transparent">
             <VisualStateManager.VisualStateGroups>
                 <VisualStateGroupList>
                 <VisualStateGroup x:Name="CommonStates">

@@ -59,7 +59,7 @@ namespace MazeEscape.Models
             Date = DateTime.Now;
             ShortDate = Date.ToString("d");
             Month_Year = Date.ToString("MM-yyyy");
-            Status = "not_started";
+            Status = "Not Attempted";
             TimeNeeded = 0;
             CompletetionTime = 0;
             MovesNeeded = 0;
@@ -77,7 +77,7 @@ namespace MazeEscape.Models
             Date = DateTime.Now;
             ShortDate = Date.ToString("d");
             Month_Year = Date.ToString("MM-yyyy");
-            Status = "not_started";
+            Status = "Not Attempted";
             TimeNeeded = 0;
             CompletetionTime = 0;
             MovesNeeded = 0;

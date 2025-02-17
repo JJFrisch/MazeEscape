@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MazeEscape.SettingsPage"
-             Title="">
+             NavigationPage.HasBackButton="False">
     <ScrollView  Margin="0, -80, 0, 0">
         
         
@@ -17,7 +17,8 @@
                         AbsoluteLayout.LayoutBounds="25,25,50,50"
                         AbsoluteLayout.LayoutFlags="None"
                         Clicked="backButton_Clicked"
-                        CornerRadius="20">      
+                        CornerRadius="20"
+                         Background="Transparent">      
                 <VisualStateManager.VisualStateGroups>
                     <VisualStateGroupList>
                         <VisualStateGroup x:Name="CommonStates">
@@ -51,7 +52,7 @@
             <Label AbsoluteLayout.LayoutBounds="0.5,0,400,100"
                    HorizontalTextAlignment="Center"
                    AbsoluteLayout.LayoutFlags="PositionProportional"
-                   
+                   TextColor="White"
             Text="Settings"
             VerticalOptions="Center" 
             HorizontalOptions="Center"
@@ -67,9 +68,10 @@
                        >
                 <TableRoot>
                     <TableSection Title="">
-
+                        <!--
                         <SwitchCell Text="Music" On="False" />
-                        <SwitchCell Text="Noises" On="False" />
+                        <SwitchCell Text="Noises" On="False" /> -->
+                        <!--
                         <ViewCell>
                             <HorizontalStackLayout Spacing="100">
                                 <Label Text="Volume"/>
@@ -77,6 +79,8 @@
                                         WidthRequest="100"/>
                             </HorizontalStackLayout>
                         </ViewCell>
+                        -->
+                        
                         <EntryCell x:Name="ChangeUsernameEntryCell" Label="Change Your Username" LabelColor="WhiteSmoke" PropertyChanged="ChangeUsernameEntryCell_PropertyChanged"
                                    Height="150"/>
 

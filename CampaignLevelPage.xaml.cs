@@ -38,6 +38,8 @@ public partial class CampaignLevelPage : ContentPage
     private System.Timers.Timer _timer;
     private DateTime timeStarted;
 
+    private bool sent = false;
+
     public void StartTimer()
     {
         timeStarted = DateTime.Now;
@@ -81,7 +83,7 @@ public partial class CampaignLevelPage : ContentPage
 
         Level = level;
 
-        AbsoluteLayout.SetLayoutBounds(main_absolute_layout, new Rect(0.45, 0.6, MazeWindowWidth, MazeWindowHeight));
+        AbsoluteLayout.SetLayoutBounds(main_absolute_layout, new Rect(0.5, 0.55, MazeWindowWidth, MazeWindowHeight));
         AbsoluteLayout.SetLayoutFlags(main_absolute_layout, AbsoluteLayoutFlags.PositionProportional);
 
         InitializeReactiveKeyboard();
@@ -256,7 +258,7 @@ public partial class CampaignLevelPage : ContentPage
         }
         else
         {
-            Level.ThreeStarTime = Maze.PathLength / (1 + (int)(Maze.PathLength / 100));
+            Level.ThreeStarTime = Maze.PathLength / (int)Math.Max(1.5 + (Maze.PathLength / 100), 2);
         }
 
         drawer.WindowWidth = MazeWindowWidth;
@@ -419,21 +421,30 @@ public partial class CampaignLevelPage : ContentPage
         if (time < Level.ThreeStarTime && !Level.Star3)
         {
             Level.Star3 = true;
-            Level.NumberOfStars++;
+            //Level.NumberOfStars++;
             PlayerData.StarCount++;
-            
-            coinsEarned += num * 3;
+            coinsEarned += num;
         }
 
 
         if (numberOfMoves <= Level.TwoStarMoves && !Level.Star2)
         {
             Level.Star2 = true;
-            Level.NumberOfStars++;
+            //Level.NumberOfStars++; 
             PlayerData.StarCount++;
-            coinsEarned += num * 2;
+            coinsEarned += num;
         }
-        
+
+        //Use if number of stars is what matters
+        int number_of_stars = 1;
+        if (numberOfMoves <= Level.TwoStarMoves) { number_of_stars++; }
+        if (TotalTime.TotalSeconds <= Level.ThreeStarTime) { number_of_stars++; }
+
+        if (number_of_stars > Level.NumberOfStars)
+        {
+            Level.NumberOfStars = number_of_stars;
+        }
+
         if (time < Level.BestTime.TotalSeconds)
         {
             Level.BestTime = TotalTime;
@@ -453,41 +464,53 @@ public partial class CampaignLevelPage : ContentPage
         try
         {
             mazeGraphicsView.IsGameOver = false;
-            var result = await this.ShowPopupAsync(new CampaignMazeFinishedPopupPage(TotalTime, numberOfMoves, Level, coinsEarned), CancellationToken.None);
-            if (result == "Retry")
+            if (!sent)
             {
-                var page = new CampaignLevelPage(Level);
-                page.LevelSaved += async (obj, copyOfLevel) => { // Any variables that may be changed
-                    Level.BestTime = copyOfLevel.BestTime;
-                    Level.BestMoves = copyOfLevel.BestMoves;
-                    Level.Completed = copyOfLevel.Completed;
-                    Level.Star1 = copyOfLevel.Star1;
-                    Level.Star2 = copyOfLevel.Star2;
-                    Level.Star3 = copyOfLevel.Star3;
-                    Level.NumberOfStars = copyOfLevel.NumberOfStars;
-                    await PlayerData.levelDatabase.SaveLevelAsync(Level);
-                };
-                await Navigation.PushAsync(page);
-            }
-            else if (result == "Close")
-            {
-                await Navigation.PushAsync(new CampaignPage());
-            }
-            else if (result == "Next Level")
-            {
-                CampaignLevel next_level = await PlayerData.levelDatabase.GetItemAsync(PlayerData.LevelConnectsToDictionary[Level.LevelNumber][0]);
-                var page = new CampaignLevelPage(next_level);
-                page.LevelSaved += async (obj, copyOfLevel) => { // Any variables that may be changed
-                    next_level.BestTime = copyOfLevel.BestTime;
-                    next_level.BestMoves = copyOfLevel.BestMoves;
-                    next_level.Completed = copyOfLevel.Completed;
-                    next_level.Star1 = copyOfLevel.Star1;
-                    next_level.Star2 = copyOfLevel.Star2;
-                    next_level.Star3 = copyOfLevel.Star3;
-                    next_level.NumberOfStars = copyOfLevel.NumberOfStars;
-                    await PlayerData.levelDatabase.SaveLevelAsync(next_level);
-                };
-                await Navigation.PushAsync(page);
+                sent = true;
+                var result = await this.ShowPopupAsync(new CampaignMazeFinishedPopupPage(TotalTime, numberOfMoves, Level, coinsEarned), CancellationToken.None);
+                if (result == "Retry")
+                {
+                    var page = new CampaignLevelPage(Level);
+                    page.LevelSaved += async (obj, copyOfLevel) =>
+                    { // Any variables that may be changed
+                        Level.BestTime = copyOfLevel.BestTime;
+                        Level.BestMoves = copyOfLevel.BestMoves;
+                        Level.Completed = copyOfLevel.Completed;
+                        Level.Star1 = copyOfLevel.Star1;
+                        Level.Star2 = copyOfLevel.Star2;
+                        Level.Star3 = copyOfLevel.Star3;
+                        Level.NumberOfStars = copyOfLevel.NumberOfStars;
+                        await PlayerData.levelDatabase.SaveLevelAsync(Level);
+                    };
+                    await Navigation.PushAsync(page);
+                }
+                else if (result == "Close")
+                {
+                    await Navigation.PushAsync(new CampaignPage());
+                }
+                else if (result == "Shop")
+                {
+                    await Navigation.PushAsync(new CampaignPage());
+                    await Navigation.PushAsync(new ShopPage());
+
+                }
+                else if (result == "Next Level")
+                {
+                    CampaignLevel next_level = await PlayerData.levelDatabase.GetItemAsync(PlayerData.LevelConnectsToDictionary[Level.LevelNumber][0]);
+                    var page = new CampaignLevelPage(next_level);
+                    page.LevelSaved += async (obj, copyOfLevel) =>
+                    { // Any variables that may be changed
+                        next_level.BestTime = copyOfLevel.BestTime;
+                        next_level.BestMoves = copyOfLevel.BestMoves;
+                        next_level.Completed = copyOfLevel.Completed;
+                        next_level.Star1 = copyOfLevel.Star1;
+                        next_level.Star2 = copyOfLevel.Star2;
+                        next_level.Star3 = copyOfLevel.Star3;
+                        next_level.NumberOfStars = copyOfLevel.NumberOfStars;
+                        await PlayerData.levelDatabase.SaveLevelAsync(next_level);
+                    };
+                    await Navigation.PushAsync(page);
+                }
             }
         }
         catch (Exception ex)
@@ -513,7 +536,37 @@ public partial class CampaignLevelPage : ContentPage
         {
             PlayerData.HintsOwned--;
             hintPowerUpLabel.Text = PlayerData.HintsOwned.ToString();
-            //Maze.Path.Find()
+            var path = Maze.FindPathFrom();
+            //path = path[:3];   
+
+            double cell_width = MazeWindowWidth / Maze.Width;
+            double cell_height = MazeWindowHeight / Maze.Height;
+
+            int line_thickness = 4;
+            List<BoxView> pathBoxViews = new List<BoxView>();
+            for (int i = 1; i <= 10; i++)
+            //foreach (var (w, h) in path)
+            {
+                try {
+                    var (w, h) = path[path.Count - i];
+                    var square = new BoxView
+                    {
+                        Color = Colors.Gold,
+                    };
+                    pathBoxViews.Add(square);
+                    main_absolute_layout.Add(square, new Rect(w * cell_width + (line_thickness / 2), h * cell_height + (line_thickness / 2), cell_width - line_thickness, cell_height - line_thickness));
+                }
+                catch (Exception ex)
+                {
+                    break;
+                }
+            }
+            //pathBoxViews.Reverse();
+            foreach (var boxView in pathBoxViews)
+            {
+                await boxView.FadeTo(0, 300);
+                boxView.IsVisible = false;
+            }
         }
         else
         {
@@ -528,9 +581,9 @@ public partial class CampaignLevelPage : ContentPage
             PlayerData.ExtraTimesOwned--;
             extraTimePowerUpLabel.Text = PlayerData.ExtraTimesOwned.ToString();
             Level.ThreeStarTime += 10;
-            labelTimer.TextColor = Colors.Green;
-            await labelTimer.ScaleTo(1.2, 800);
-            await labelTimer.ScaleTo(1, 800);
+            labelTimer.TextColor = Colors.Gold;
+            await labelTimer.ScaleTo(1.1, 300);
+            await labelTimer.ScaleTo(1, 300);
             labelTimer.TextColor = Colors.White;
 
         }
@@ -548,8 +601,8 @@ public partial class CampaignLevelPage : ContentPage
             extraMovesPowerUpLabel.Text = PlayerData.ExtraMovesOwned.ToString();
             Level.TwoStarMoves += 10;
             moveNumberText.TextColor = Colors.Gold;
-            await moveNumberText.ScaleTo(1.2, 800);
-            await moveNumberText.ScaleTo(1, 800);
+            await moveNumberText.ScaleTo(1.1, 300);
+            await moveNumberText.ScaleTo(1, 300);
             moveNumberText.TextColor = Colors.White;
         }
         else

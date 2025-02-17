@@ -9,6 +9,8 @@ public partial class CampaignPage : ContentPage
     static ObservableCollection<CampaignLevel> campaignLevels = new ObservableCollection<CampaignLevel>();
 
     public bool loading = false;
+    ImageButton last_unlocked_level = new ImageButton();
+
 
     public CampaignPage()
 	{
@@ -16,9 +18,7 @@ public partial class CampaignPage : ContentPage
 
         campaignMazeBackgroundAbsoluteLayout.HeightRequest = 0.7 * PlayerData.WindowHeight;
 
-        _ = checkAreasUnlocked();
-
-        Task.Delay(100).ContinueWith(t => ScrollTo(campaignScrollView, PlayerData.distanceScrolled, true));
+        Task.Delay(100).ContinueWith(t => ScrollTo(campaignScrollView, PlayerData.distanceScrolled, false));
     }
 
     protected override async void OnAppearing()
@@ -27,13 +27,18 @@ public partial class CampaignPage : ContentPage
 
         await LoadLevelsFromDatabase();
 
+        await checkAreasUnlocked();
+
+        InitializeFogs();
         InitializeLevelButtons();
         InitializeGates();
         InitializeChests();
-        InitializeFogs();
 
         CoinCountLabel.Text = PlayerData.CoinCount.ToString();
         starCountLabel.Text = PlayerData.StarCount.ToString();
+
+        await Task.Delay(100).ContinueWith(t => ScrollTo(campaignScrollView, PlayerData.distanceScrolled, false));
+
     }
 
     public async Task LoadLevelsFromDatabase()
@@ -68,26 +73,27 @@ public partial class CampaignPage : ContentPage
         campaignLevelGrid.Children.Clear();
 
         all_button_positions = area_1_LevelButtonPositions.Concat(area_1_BonusLevelButtonPositions).ToList();
-        if (PlayerData.HighestAreaUnlocked >= 1)
+        if (PlayerData.HighestAreaUnlocked >= 2)
         {
             all_button_positions.AddRange(area_2_LevelButtonPositions);
             all_button_positions.AddRange(area_2_BonusLevelButtonPositions);
         }
-        if (PlayerData.HighestAreaUnlocked >= 2)
+        if (PlayerData.HighestAreaUnlocked >= 3)
         {
             all_button_positions.AddRange(area_3_LevelButtonPositions);
             all_button_positions.AddRange(area_3_BonusLevelButtonPositions);
         }
-        if (PlayerData.HighestAreaUnlocked >= 3)
+        if (PlayerData.HighestAreaUnlocked >= 4)
         {
             all_button_positions.AddRange(area_4_LevelButtonPositions);
             all_button_positions.AddRange(area_4_BonusLevelButtonPositions);
         }
-        if (PlayerData.HighestAreaUnlocked >= 4)
+        if (PlayerData.HighestAreaUnlocked >= 5)
         {
             all_button_positions.AddRange(area_5_LevelButtonPositions);
             all_button_positions.AddRange(area_5_BonusLevelButtonPositions);
         }
+
 
         for (int i = 0; i < all_button_positions.Count; i++) {
 
@@ -104,6 +110,7 @@ public partial class CampaignPage : ContentPage
                     HeightRequest = 80,
                     WidthRequest = 80,
                     Source = "level_button_icon_locked.png",
+                    Background = Colors.Transparent,
                 };
                 Grid.SetRow(imageButton, y);
                 Grid.SetColumn(imageButton, x);
@@ -141,6 +148,7 @@ public partial class CampaignPage : ContentPage
                     HeightRequest = 80,
                     WidthRequest = 80,
                     Source = $"level_button_icon_{level.NumberOfStars}_stars.png",
+                    Background = Colors.Transparent,
                 };
                 Grid.SetRow(imageButton, y);
                 Grid.SetColumn(imageButton, x);
@@ -150,6 +158,7 @@ public partial class CampaignPage : ContentPage
                     await GoToLevel(level, imageButton);
                 };
 
+
                 if (level.LevelNumber.Contains('b'))
                 {
                     imageButton.Source = $"bonus_level_button_icon_{level.NumberOfStars}_stars.png";
@@ -158,6 +167,8 @@ public partial class CampaignPage : ContentPage
                 else
                 {
                     campaignLevelGrid.Add(imageButton);
+
+                    last_unlocked_level = imageButton;
 
                     TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
                     tapGestureRecognizer.Tapped += async (s, e) =>
@@ -177,8 +188,15 @@ public partial class CampaignPage : ContentPage
                     Grid.SetColumn(label, x);
                     campaignLevelGrid.Add(label);
                 }
+
             }
+            
         }
+        Pulselevel(last_unlocked_level);
+
+        // Scroll to last unlocked level
+        //PlayerData.distanceScrolled = Math.Max(last_unlocked_level.X-200, 0);
+        //Task.Delay(200).ContinueWith(t => ScrollTo(campaignScrollView, Math.Max(last_unlocked_level.X-200, 0), true));
     }
 
     public async Task GoToLevel(CampaignLevel level, ImageButton imageButton)
@@ -186,6 +204,9 @@ public partial class CampaignPage : ContentPage
         if (!loading)
         {
             loading = true;
+
+            _ = imageButton.FadeTo(1, 100);
+            await imageButton.ScaleTo(1, 100);
 
             _ = imageButton.FadeTo(0.5, 1000);
             await imageButton.ScaleTo(1.2, 1000);
@@ -210,57 +231,35 @@ public partial class CampaignPage : ContentPage
         imageButton.Scale = 1;
     }
 
+
     public void InitializeGates()
     {
+        List<(ImageButton, Label, string)> Gates = new List<(ImageButton, Label, string)>() //gate image, number of stars required label, number of level to unlock
+        {
+            (gateImage1, gateLabel1, "1b"),
+            (gateImage2, gateLabel2, "4b"),
+            (gateImage3, gateLabel3, "15"),
+            (gateImage4, gateLabel4, "5b"),
+            (gateImage5, gateLabel5, "29"),
+            (gateImage6, gateLabel6, "8b"),
+            (gateImage7, gateLabel7, "44"),
+            (gateImage8, gateLabel8, "10b"),
+            (gateImage9, gateLabel9, "56"),
+            (gateImage10, gateLabel10, "21b"),
+            (gateImage11, gateLabel11, "22b"),
+            (gateImage12, gateLabel12, "68"),
+
+        };
         int num_stars = PlayerData.StarCount;
 
-        gateImage1.IsVisible = num_stars < PlayerData.gateCoinRequired[0];
-        gateLabel1.IsVisible = num_stars < PlayerData.gateCoinRequired[0];
-        gateLabel1.Text = PlayerData.gateCoinRequired[0].ToString();
-
-        gateImage2.IsVisible = num_stars < PlayerData.gateCoinRequired[1];
-        gateLabel2.IsVisible = num_stars < PlayerData.gateCoinRequired[1];
-        gateLabel2.Text = PlayerData.gateCoinRequired[1].ToString();
-
-        gateImage3.IsVisible = num_stars < PlayerData.gateCoinRequired[2];
-        gateLabel3.IsVisible = num_stars < PlayerData.gateCoinRequired[2];
-        gateLabel3.Text = PlayerData.gateCoinRequired[2].ToString();
-
-        gateImage4.IsVisible = num_stars < PlayerData.gateCoinRequired[3];
-        gateLabel4.IsVisible = num_stars < PlayerData.gateCoinRequired[3];
-        gateLabel4.Text = PlayerData.gateCoinRequired[3].ToString();
-
-        gateImage5.IsVisible = num_stars < PlayerData.gateCoinRequired[4];
-        gateLabel5.IsVisible = num_stars < PlayerData.gateCoinRequired[4];
-        gateLabel5.Text = PlayerData.gateCoinRequired[4].ToString();
-
-        gateImage6.IsVisible = num_stars < PlayerData.gateCoinRequired[5];
-        gateLabel6.IsVisible = num_stars < PlayerData.gateCoinRequired[5];
-        gateLabel6.Text = PlayerData.gateCoinRequired[5].ToString();
-
-        gateImage7.IsVisible = num_stars < PlayerData.gateCoinRequired[6];
-        gateLabel7.IsVisible = num_stars < PlayerData.gateCoinRequired[6];
-        gateLabel7.Text = PlayerData.gateCoinRequired[6].ToString();
-
-        gateImage8.IsVisible = num_stars < PlayerData.gateCoinRequired[7];
-        gateLabel8.IsVisible = num_stars < PlayerData.gateCoinRequired[7];
-        gateLabel8.Text = PlayerData.gateCoinRequired[7].ToString();
-
-        gateImage9.IsVisible = num_stars < PlayerData.gateCoinRequired[8];
-        gateLabel9.IsVisible = num_stars < PlayerData.gateCoinRequired[8];
-        gateLabel9.Text = PlayerData.gateCoinRequired[8].ToString();
-
-        gateImage10.IsVisible = num_stars < PlayerData.gateCoinRequired[9];
-        gateLabel10.IsVisible = num_stars < PlayerData.gateCoinRequired[9];
-        gateLabel10.Text = PlayerData.gateCoinRequired[9].ToString();
-
-        gateImage11.IsVisible = num_stars < PlayerData.gateCoinRequired[10];
-        gateLabel11.IsVisible = num_stars < PlayerData.gateCoinRequired[10];
-        gateLabel11.Text = PlayerData.gateCoinRequired[10].ToString();
-
-        gateImage12.IsVisible = num_stars < PlayerData.gateCoinRequired[11];
-        gateLabel12.IsVisible = num_stars < PlayerData.gateCoinRequired[11];
-        gateLabel12.Text = PlayerData.gateCoinRequired[11].ToString();
+        for (int i = 0; i < Gates.Count; i++)
+        {
+            (ImageButton gateImage, Label gateLabel, string prev_level) = Gates[i];
+            bool open = num_stars < PlayerData.gateCoinRequired[i] || !PlayerData.UnlockedMazesNumbers.Contains(prev_level);
+            gateImage.IsVisible = open;
+            gateLabel.IsVisible = open;
+            gateLabel.Text = PlayerData.gateCoinRequired[i].ToString();
+        }
 
     }
 
@@ -271,14 +270,14 @@ public partial class CampaignPage : ContentPage
         fog_area_3_image.IsVisible = PlayerData.HighestAreaUnlocked == 3;
         fog_area_4_image.IsVisible = PlayerData.HighestAreaUnlocked == 4;
 
-        await campaignScrollView.ScrollToAsync(PlayerData.distanceScrolled, 0, true);
+        //await campaignScrollView.ScrollToAsync(PlayerData.distanceScrolled, 0, true);
     }
 
     public void InitializeChests()
     {
         foreach (ChestModel chest in PlayerData.ChestModels)
         {
-            if (!chest.Opened)
+            if (PlayerData.HighestAreaUnlocked >= chest.Area)
             {
                 ImageButton imageButton = new ImageButton
                 {
@@ -288,14 +287,17 @@ public partial class CampaignPage : ContentPage
                     Aspect = Aspect.AspectFit,
                     HeightRequest = 60,
                     WidthRequest = 60,
-                    Source = $"chest.png",
+                    Source = "chest.png",
+                    Background = Colors.Transparent,
                 };
+                if (chest.Opened) { imageButton.Source = "opened_chest.png"; }
+
                 if (PlayerData.UnlockedMazesNumbers.Contains(chest.Name))
                 {
                     chest.Unlocked = true;
                 }
 
-                if (chest.Unlocked)
+                if (chest.Unlocked && !chest.Opened)
                 {
                     imageButton.Clicked += async (s, e) =>
                     {
@@ -327,11 +329,11 @@ public partial class CampaignPage : ContentPage
         if (PlayerData.HighestAreaUnlocked == 1 && PlayerData.UnlockedMazesNumbers.Contains("15"))
         {
             // Fog changing animation
-            await fog_area_1_image.FadeTo(0, 1000);
+            _ = fog_area_1_image.FadeTo(0, 5000);
             fog_area_1_image.IsVisible = false;
             fog_area_2_image.Opacity = 0;
             fog_area_2_image.IsVisible = true;
-            await fog_area_2_image.FadeTo(1, 1000);
+            _ = fog_area_2_image.FadeTo(1, 1000);
 
             PlayerData.HighestAreaUnlocked = 2;
         }
@@ -365,6 +367,32 @@ public partial class CampaignPage : ContentPage
             await fog_area_4_image.FadeTo(1, 1000);
 
             PlayerData.HighestAreaUnlocked = 5;
+        }
+
+    }
+
+    public async void DrawArrowToStart()
+    {
+        startingArrow.IsVisible = true;
+        int i = 0;
+        while (i < 10 && !campaignLevels[0].Star1)
+        {
+            await startingArrow.FadeTo(1, 1000);
+            await startingArrow.FadeTo(0.2, 1000);
+            i++;
+        }
+    }
+        
+
+    public async void Pulselevel(ImageButton levelButton)
+    {
+        while (!loading) {
+            _ = levelButton.ScaleTo(1.1, 1000);
+            await levelButton.FadeTo(1, 1000);
+
+            _ = levelButton.ScaleTo(1, 1000);
+            await levelButton.FadeTo(0.7, 1000);
+            
         }
 
     }
@@ -412,16 +440,40 @@ public partial class CampaignPage : ContentPage
         await self.ScaleTo(1, 500);
     }
 
+    ImageButton coin = new ImageButton();
+
     public async Task OpenChest(object sender, EventArgs e)
     {
         ImageButton self = (ImageButton)sender;
-        await self.ScaleTo(1.1, 1000);
+        _ = self.ScaleTo(1.1, 1000);
         Random rnd = new Random();
         int coinsEarned = rnd.Next(100, 1000);
-        await this.ShowPopupAsync(new CampaignChestOpenedPopupPage(coinsEarned), CancellationToken.None);
-        CoinCountLabel.Text = PlayerData.CoinCount.ToString();
+        PlayerData.CoinCount += coinsEarned;
+        PlayerData.Save();
+        ImageButton chest = (ImageButton)sender;
+
         await self.FadeTo(0, 1000);
-        self.IsVisible = false;
+
+
+        Label coinsEarnedLabel = new Label
+        {
+            Text = coinsEarned.ToString(),
+            TextColor = Colors.Gold,
+            FontAttributes = FontAttributes.Bold,
+            FontSize = 16,
+            HorizontalTextAlignment = TextAlignment.Center,
+        };
+        campaignMazeBackgroundAbsoluteLayout.Add(coinsEarnedLabel, new Rect(chest.X, chest.Y-10, 50, 110));
+
+        chest.Source = "coin_pile.png";
+        await self.FadeTo(1, 500);
+
+        //chest.
+        //await this.ShowPopupAsync(new CampaignChestOpenedPopupPage(coinsEarned), CancellationToken.None);
+        CoinCountLabel.Text = PlayerData.CoinCount.ToString();
+
+        await coinsEarnedLabel.FadeTo(0, 10000);
+        coinsEarnedLabel.IsVisible = false;
     }
 
     public void OnScrollViewScrolled(object sender, ScrolledEventArgs e)
@@ -431,9 +483,17 @@ public partial class CampaignPage : ContentPage
 
     public async Task ScrollTo(ScrollView scrollView, double pos, bool animate = false)
     {
-		var timer = new Timer((object obj) => {
-				MainThread.BeginInvokeOnMainThread(() => scrollView.ScrollToAsync(pos, 0, animate));
-		}, null, 100, Timeout.Infinite);
+        var timer = new Timer((object? obj) =>
+        {
+            MainThread.BeginInvokeOnMainThread(async () => await scrollView.ScrollToAsync(pos, 0, animate));
+        }, null, 300, Timeout.Infinite);
+    }
+
+    public async Task ScrollTo(ScrollView scrollView, ImageButton pos, bool animate = false)
+    {
+		var timer = new Timer((object? obj) => {
+				MainThread.BeginInvokeOnMainThread(async () => await scrollView.ScrollToAsync(pos, 0, animate));
+		}, null, 900, Timeout.Infinite);
     }
 
 }

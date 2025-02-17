@@ -141,9 +141,10 @@ public partial class ShopPage : ContentPage
         {
             PlayerData.CoinCount -= CostsOfPowerUps[name];
             PlayerData.AddPowerup(name);
+            PlayerData.Save();
 
             _ = imageButton.FadeTo(0.5, 500);
-            await imageButton.ScaleTo(1.2, 500);
+            await imageButton.ScaleTo(0.8, 500);
             _ = imageButton.FadeTo(1, 500);
             await imageButton.ScaleTo(1, 500);
 

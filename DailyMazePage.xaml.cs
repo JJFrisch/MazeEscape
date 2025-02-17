@@ -11,6 +11,7 @@ using Microsoft.Maui.Layouts;
 using SharpHook;
 using SharpHook.Reactive;
 using SharpHook.Native;
+using System.Collections.Generic;
 
 
 
@@ -27,7 +28,7 @@ public partial class DailyMazePage : ContentPage
 
     string date;
 
-    string month_year;
+    int number_of_stars_won = 0;
 
     int days_in_this_month; 
 
@@ -39,8 +40,8 @@ public partial class DailyMazePage : ContentPage
     // For Play State
     public event EventHandler<CampaignLevel>? LevelSaved;
 
-    public double MazeWindowWidth = Application.Current.MainPage.Width * 0.9;
-    public double MazeWindowHeight = Application.Current.MainPage.Height * 0.8;
+    public double MazeWindowWidth = Application.Current.MainPage.Width * 0.95;
+    public double MazeWindowHeight = Application.Current.MainPage.Height * 0.83;
 
     MazeModel Maze = new MazeModel();
     MazeGraphicsView mazeGraphicsView;
@@ -56,33 +57,47 @@ public partial class DailyMazePage : ContentPage
     private System.Timers.Timer _timer;
     private DateTime timeStarted;
 
+    private bool RestartMonth = false;
+
     public DailyMazePage()
 	{
 		InitializeComponent();
 
-        stateContainerModel.CurrentState = "Calendar";
+        stateContainerModel.CurrentState = "Loading";
+
+        //stateContainerModel.CurrentState = "Calendar";
         PageAbsoluteLayout.BindingContext = stateContainerModel;
 
 
         date = date_time.ToString("d");
-        month_year = date_time.ToString("MM-yyyy");
+        //month_year = date_time.ToString("MM-yyyy");
         days_in_this_month = DateTime.DaysInMonth(date_time.Year, date_time.Month);
+        streakNumberLabel.Text = number_of_stars_won.ToString();
+        prizeLabel1.Text = ((int)days_in_this_month / 2).ToString();
+        prizeLabel2.Text = ((int)days_in_this_month).ToString();
+
+
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        //await PlayerData.dailyMazeDatabase.DeleteAllLevelsAsync();
+        if (PlayerData.MostRecentMonth != date_time.ToShortDateString())
+        {
+            RestartMonth = true;
+            PlayerData.MostRecentMonth = date_time.ToShortDateString();
+            PlayerData.Save();
+        }
 
         if (monthlyMazes.Count == 0)
         {
             await InitializeDays();
         }
 
-        //await LoadLevelsFromDatabase(month_year);
+        await DrawLevels(true);
 
-        await DrawLevels();
+        stateContainerModel.CurrentState = "Calendar";
     }
 
     BoxView previous_boxView;
@@ -90,7 +105,7 @@ public partial class DailyMazePage : ContentPage
 
     public async Task InitializeDays()
     {
-        if (PlayerData.dailyMazeDatabase.GetItemAsync(date) == null)
+        if (RestartMonth)
         {
             string mazeType = Maze.MazeTypes[rnd.Next(0, Maze.MazeTypes.Count)];
 
@@ -109,9 +124,9 @@ public partial class DailyMazePage : ContentPage
             DateTime new_date_time = new DateTime(date_time.Year, date_time.Month, i);
             string days_short_date = new_date_time.ToString("d");
 
-            DailyMazeLevel day_item = await PlayerData.dailyMazeDatabase.GetItemAsync(days_short_date);
+            //DailyMazeLevel day_item = await PlayerData.dailyMazeDatabase.GetItemAsync(days_short_date);
 
-            if (day_item == null)
+            if (RestartMonth)
             {
                 string mazeType = Maze.MazeTypes[rnd.Next(0, Maze.MazeTypes.Count)];
 
@@ -119,8 +134,8 @@ public partial class DailyMazePage : ContentPage
 
                 DailyMazeLevel that_day = new DailyMazeLevel()
                 {
-                    Width = rnd.Next(12, 30),
-                    Height = rnd.Next(12, 30),
+                    Width = rnd.Next(12, 35),
+                    Height = rnd.Next(12, 35),
                     LevelType = mazeType,
                     Date = new_date_time,
                     ShortDate = new_date_time.ToString("d"),
@@ -129,9 +144,13 @@ public partial class DailyMazePage : ContentPage
                 };
 
                 await PlayerData.dailyMazeDatabase.AddNewLevelAsync(that_day);
+
+                monthlyMazes.Add(that_day);
             }
             else
             {
+                DailyMazeLevel day_item = await PlayerData.dailyMazeDatabase.GetItemAsync(days_short_date);
+
                 monthlyMazes.Add(day_item);
             }
         }
@@ -139,8 +158,10 @@ public partial class DailyMazePage : ContentPage
 
     Dictionary<string, int> dayOfWeekDict = new Dictionary<string, int>() ;
 
-    public async Task DrawLevels()
+    public async Task DrawLevels(bool isFirstTime)
     {
+        number_of_stars_won = 0;
+
         dayOfWeekDict["Sunday"] = 0;
         dayOfWeekDict["Monday"] = 1;
         dayOfWeekDict["Tuesday"] = 2;
@@ -160,7 +181,7 @@ public partial class DailyMazePage : ContentPage
                     BackgroundColor = Color.FromArgb("8d99ae"),
                     CornerRadius = 10,
                 };
-                if (date == dailyLevel.ShortDate)
+                if (date == dailyLevel.ShortDate && isFirstTime)
                 {
                     boxView.BackgroundColor = Color.FromArgb("588157");
                     boxView.Opacity = 0.6;
@@ -198,16 +219,20 @@ public partial class DailyMazePage : ContentPage
                 label.GestureRecognizers.Add(tapGestureRecognizer);
                 Grid.SetRow(label, row);
                 Grid.SetColumn(label, dayOfWeekDict[dailyLevel.Date.DayOfWeek.ToString()]);
-                monthGrid.Add(label);
+                
 
                 if (dailyLevel.Status == "Completed"){
+                    number_of_stars_won++;
+
                     ImageButton star = new ImageButton()
                     {
                         Aspect = Aspect.AspectFit,
                         VerticalOptions = LayoutOptions.Start,
-                        HorizontalOptions = LayoutOptions.Start,
-                        WidthRequest = 15,
-                        HeightRequest = 15,
+                        HorizontalOptions = LayoutOptions.Center,
+                        MinimumHeightRequest = 50,
+                        Source = "full_star.png",
+                        Opacity = 0.75,
+                        Background = Colors.Transparent,
                     };
                     star.Clicked += async (s, e) =>
                     {
@@ -215,7 +240,9 @@ public partial class DailyMazePage : ContentPage
                     };
                     Grid.SetRow(star, row);
                     Grid.SetColumn(star, dayOfWeekDict[dailyLevel.Date.DayOfWeek.ToString()]);
+                    monthGrid.Add(star);
                 }
+                monthGrid.Add(label);
             }
             else
             {
@@ -223,9 +250,9 @@ public partial class DailyMazePage : ContentPage
                 {
                     HorizontalOptions = LayoutOptions.Center,
                     VerticalOptions = LayoutOptions.Center,
-                    TextColor = Colors.Gray,
+                    TextColor = Colors.DarkGray,
                     Text = dailyLevel.Date.Day.ToString(),
-                    //FontSize = 16,
+                    FontSize = 16,
                     FontAutoScalingEnabled = true,
 
                 };
@@ -241,6 +268,29 @@ public partial class DailyMazePage : ContentPage
                 row++; // Move to next row on grid
             }
 
+        }
+        streakNumberLabel.Text = number_of_stars_won.ToString();
+        progressStarSlider.WidthRequest = 220 * number_of_stars_won / days_in_this_month;
+
+        if (!PlayerData.MonthPrize1_achieved && number_of_stars_won >= ((int)days_in_this_month / 2))
+        {
+            PlayerData.CoinCount += 200;
+            PlayerData.MonthPrize1_achieved = true;
+            await this.ShowPopupAsync(new CampaignChestOpenedPopupPage(200), CancellationToken.None);
+            PlayerData.Save();
+        }
+        if (!PlayerData.MonthPrize2_achieved && number_of_stars_won >= days_in_this_month)
+        {
+            PlayerData.CoinCount += 500;
+            PlayerData.MonthPrize2_achieved = true;
+            await this.ShowPopupAsync(new CampaignChestOpenedPopupPage(500), CancellationToken.None);
+            PlayerData.Save();
+        }
+        if (number_of_stars_won == 0)
+        {
+            PlayerData.MonthPrize1_achieved = false;
+            PlayerData.MonthPrize2_achieved = false;
+            PlayerData.Save();
         }
 
     }
@@ -261,20 +311,10 @@ public partial class DailyMazePage : ContentPage
         }
 
         _ = background.FadeTo(0.8, 500);
-        await background.BackgroundColorTo(Color.FromArgb("588157"), 16, 500);
+        _ = background.BackgroundColorTo(Color.FromArgb("588157"), 16, 500);
 
         playLabelCalendar.Text = $"Play {level.Date.Day}";
         playLabelInfo.Text = $"Play {level.Date.Day}";
-
-        //if (level.Status == "not_started")
-        //{
-        //    await DisplayAlert($"{level.ShortDate}", $"{level.Month_Year} {level.LevelID} {level.LevelType} {level.Width} {level.Height}", "OK");
-        //    //await Navigation.PushAsync(new ShopPage());
-        //}
-        //else
-        //{
-        //    await DisplayAlert("Level Completed", $"You completed this level in {level.CompletetionMoves} moves and {level.CompletetionTime} seconds", "OK");
-        //}
 
         previous_boxView = background;
     }
@@ -292,6 +332,7 @@ public partial class DailyMazePage : ContentPage
 
     private async void OnHomeButtonClicked(object sender, EventArgs e)
     {
+        running = false;
         hook?.Dispose();
         stateContainerModel.CurrentState = "Calendar";
         await Navigation.PushAsync(new MainPage());
@@ -299,8 +340,11 @@ public partial class DailyMazePage : ContentPage
 
     private void OnInfoButtonClicked(object sender, EventArgs e)
     {
+        running = false;
         hook?.Dispose();
         stateContainerModel.CurrentState = "Info";
+
+        DisplayInfoOnMaze();
         //await Navigation.PushAsync(new MainPage());
     }
 
@@ -313,13 +357,82 @@ public partial class DailyMazePage : ContentPage
 
     private void OnCalendarButtonClicked(object sender, EventArgs e)
     {
+        running = false;
         hook?.Dispose();
         stateContainerModel.CurrentState = "Calendar";
         //await Navigation.PushAsync(new MainPage());
     }
 
+    Dictionary<string, string> GenerationMethodDescriptions = new Dictionary<string, string>() 
+    {
+        {"GenerateHuntAndKill", "The Hunt and Kill algorithm is a method for generating mazes that operates by progressively carving pathways through a grid of walls. " +
+            "The process begins with the selection of a random starting point within the grid. From there, the algorithm \"hunts\" for an adjacent unvisited cell, breaking " +
+            "down the wall to create a passage. This step is repeated until the hunter reaches a dead-end, where further progress is impossible. When the hunter is blocked " +
+            "by a dead-end, the algorithm transitions to the \"kill\" phase, where the search for a new point to continue the maze generation begins. This new point is typically " +
+            "an unvisited cell that is connected to the previously visited cells. The process of hunting and killing continues until all cells in the grid have been visited and a " +
+            "fully connected maze has been created." },
 
+        {"GenerateKruskals", "Kruskal’s algorithm generates a maze by constructing a minimum spanning tree (MST) over a grid graph. Each cell is a vertex, and walls between them " +
+            "represent weighted edges. Initially, each cell is its own disjoint set. The algorithm sorts all walls randomly and iterates through them, removing a wall if it connects " +
+            "vertices from different sets. This is efficiently managed using the union-find data structure. The process continues until a spanning tree forms, ensuring connectivity " +
+            "without cycles. The resulting maze has uniform randomness, as edge selection is globally randomized rather than biased by a growing frontier, like Prim’s algorithm." },
 
+        {"GeneratePrims", "Prim’s algorithm generates a maze using a growing tree approach, treating the grid as a graph where cells are vertices and walls are edges." +
+            " It begins with a random single cell and tracks its frontier—walls separating it from unvisited cells. At each step, a random frontier wall is removed, and the adjacent cell " +
+            "is added to the tree. This continues until all cells are connected. The algorithm’s selection method shapes the maze: purely random choices create sprawling, natural " +
+            "mazes, while always selecting the newest frontier cell results in long, winding corridors with fewer short loops." },
+
+        {"GenerateGrowingTree_50_0", "The GrowingTree_50_0 algorithm generates a maze using a growing tree approach with edges selected 50% of the time by random and 0% the newest edges," +
+            " leaving the other 50% of edges chosen by being the oldest. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edges—walls separating " +
+            "the tree from unvisited cells—are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
+            " and the new cell added to the tree. This continues until all cells are connected. The maze’s structure depends on edge " +
+            "selection: a purely random choice creates a Prim-like maze, while preferring the newest edges mimics recursive backtracking." },
+
+        {"GenerateGrowingTree_25_75", "The GrowingTree_25_75 algorithm generates a maze using a growing tree approach with edges selected 75% of the time by random and 25% of the time the newest edge" +
+            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edges—walls separating " +
+            "the tree from unvisited cells—are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
+            " and the new cell added to the tree. This continues until all cells are connected. The maze’s structure depends on edge " +
+            "selection: a purely random choice creates a Prim-like maze, while preferring the newest edges mimics recursive backtracking." },
+
+        {"GenerateGrowingTree_75_25", "The GrowingTree_75_25 algorithm generates a maze using a growing tree approach with edges selected 25% of the time by random and 75% of the time the newest edge" +
+            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edges—walls separating " +
+            "the tree from unvisited cells—are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
+            " and the new cell added to the tree. This continues until all cells are connected. The maze’s structure depends on edge " +
+            "selection: a purely random choice creates a Prim-like maze, while preferring the newest edges mimics recursive backtracking." },
+
+        {"GenerateGrowingTree_50_50", "The GrowingTree_50_50 algorithm generates a maze using a growing tree approach with edges selected 50% of the time by random and 50% of the time the newest edge" +
+            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edges—walls separating " +
+            "the tree from unvisited cells—are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
+            " and the new cell added to the tree. This continues until all cells are connected. The maze’s structure depends on edge " +
+            "selection: a purely random choice creates a Prim-like maze, while preferring the newest edges mimics recursive backtracking." },
+
+        {"GenerateBacktracking", "The backtracking algorithm generates a maze using depth-first search, treating the grid as a graph where cells are vertices and walls are edges. " +
+            "It starts from a random cell, marks it as visited, and repeatedly selects an unvisited neighbor, removing the wall between them and moving forward. When no unvisited neighbors remain," +
+            " it backtracks to the last cell with available paths and continues. This process repeats until all cells are visited. The result is a maze with long, winding corridors and " +
+            "few short cycles, often featuring a bias toward deep, snaking paths rather than evenly distributed branching structures." },
+
+    };
+
+    public async void DisplayInfoOnMaze()
+    {
+        selected_dailyLevel = await PlayerData.dailyMazeDatabase.GetItemAsync(selected_dailyLevel.Date.ToString("d"));
+
+        dateInfoLabel.Text = selected_dailyLevel.Date.ToString("D");
+        generationTypeInfoLabel.Text = selected_dailyLevel.LevelType;
+        sizeInfoLabel.Text = $"{selected_dailyLevel.Width} x {selected_dailyLevel.Height}";
+        descriptionInfoLabel.Text = GenerationMethodDescriptions[selected_dailyLevel.LevelType];
+        statusInfoLabel.Text = selected_dailyLevel.Status;
+
+        if (selected_dailyLevel.Status == "Not Attempted")
+        {
+            timeInfoLabel.Text = "";
+        }
+        else
+        {
+            timeInfoLabel.Text = $"{Math.Round(selected_dailyLevel.CompletetionTime, 1)}s / {selected_dailyLevel.TimeNeeded}s";
+        }
+
+    }
 
 
     public void StartTimer()
@@ -332,6 +445,7 @@ public partial class DailyMazePage : ContentPage
         running = true;
     }
 
+    bool countingDown = false;
     private void OnTimedEvent(object? source, ElapsedEventArgs e)
     {
         if (!running)
@@ -344,13 +458,26 @@ public partial class DailyMazePage : ContentPage
         TimeSpan timePassed = DateTime.Now - timeStarted;
         Dispatcher.Dispatch(new Action(() =>
         {
-            labelTimer.Text = selected_dailyLevel.TimeNeeded.ToString() + ":  " + Math.Round(timePassed.TotalSeconds, 1).ToString();
-            //moveNumberText.Text = Level.TwoStarMoves.ToString() + ":  " + numberOfMoves.ToString();
-
-            if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
+            if (selected_dailyLevel.TimeNeeded >= timePassed.TotalSeconds)
             {
-                TotalTime = DateTime.Now - timeStarted;
-                CompletedMaze();
+                labelTimer.Text = selected_dailyLevel.TimeNeeded.ToString() + ":  " + Math.Round(timePassed.TotalSeconds, 1).ToString();
+                //moveNumberText.Text = Level.TwoStarMoves.ToString() + ":  " + numberOfMoves.ToString();
+
+                if (selected_dailyLevel.TimeNeeded - timePassed.TotalSeconds <= 5 && !countingDown)
+                {
+                    countingDown = true;
+                    DrawCountDownTimer(5);
+                }
+
+                if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
+                {
+                    TotalTime = DateTime.Now - timeStarted;
+                    CompletedMaze();
+                }
+            }
+            else
+            {
+                mazeGraphicsView.IsGameOver = true;
             }
         }));
     }
@@ -386,7 +513,7 @@ public partial class DailyMazePage : ContentPage
 
         main_absolute_layout = new AbsoluteLayout() { };
 
-        AbsoluteLayout.SetLayoutBounds(main_absolute_layout, new Rect(0.45, 0.6, MazeWindowWidth, MazeWindowHeight));
+        AbsoluteLayout.SetLayoutBounds(main_absolute_layout, new Rect(0.5, 0.5, MazeWindowWidth, MazeWindowHeight));
         AbsoluteLayout.SetLayoutFlags(main_absolute_layout, AbsoluteLayoutFlags.PositionProportional);
 
         BoxView mazeBackgroundBoxView = new BoxView
@@ -423,6 +550,11 @@ public partial class DailyMazePage : ContentPage
         stateContainerModel.CurrentState = "Play";
         int time_to_wait = selected_dailyLevel.Width * selected_dailyLevel.Height * 5;
         Task.Delay(time_to_wait).ContinueWith(t => StartTimer());
+
+        if (selected_dailyLevel.Status != "Completed")
+        {
+            selected_dailyLevel.Status = "Attempted";
+        }
     }
 
     public void InitializeMaze()
@@ -433,10 +565,13 @@ public partial class DailyMazePage : ContentPage
         if (selected_dailyLevel.Width * selected_dailyLevel.Height < 100)
         {
             selected_dailyLevel.TimeNeeded = Maze.PathLength / 2;
+        }else if (Maze.PathLength > 100)
+        {
+            selected_dailyLevel.TimeNeeded = (int)(Maze.PathLength * .3);
         }
         else
         {
-            selected_dailyLevel.TimeNeeded = Maze.PathLength / (2 + (int)(Maze.PathLength / 100));
+            selected_dailyLevel.TimeNeeded = Maze.PathLength / (int)Math.Max(1.3 + 0.15 * (Maze.PathLength / 10), 0.5);
         }
 
         drawer.WindowWidth = MazeWindowWidth;
@@ -705,13 +840,13 @@ public partial class DailyMazePage : ContentPage
         // Award 0-3 stars
         // Button to retry Maze or exit back to previous screen
         running = false;
-        mazeGraphicsView.IsGameOver = false;
+        mazeGraphicsView.IsGameOver = true;
         hook?.Dispose();
 
         double time = TotalTime.TotalSeconds;
 
 
-        if (time < selected_dailyLevel.CompletetionTime)
+        if (time < selected_dailyLevel.CompletetionTime || selected_dailyLevel.CompletetionTime == 0)
         {
             selected_dailyLevel.CompletetionTime = time;
         }
@@ -723,6 +858,8 @@ public partial class DailyMazePage : ContentPage
             Source = "full_star.png",
             Opacity = 0,
             Scale = 0.1,
+            IsVisible = true,
+            Background = Colors.Transparent,
         };
         AbsoluteLayout.SetLayoutBounds(winningStar, new Rect(0.5, 0.5, 1, 1));
         AbsoluteLayout.SetLayoutFlags(winningStar, AbsoluteLayoutFlags.All);
@@ -732,59 +869,106 @@ public partial class DailyMazePage : ContentPage
         _ = main_absolute_layout.FadeTo(0.2, 500);
 
         _ = winningStar.FadeTo(1, 1000);
-        await winningStar.ScaleTo(5, 1000);
+        await winningStar.ScaleTo(3, 3000);
+        _ = winningStar.ScaleTo(0.1, 100);
+        winningStar.IsVisible = false;
 
+        monthlyMazes[selected_dailyLevel.Date.Day - 1].Status = "Completed";
         await PlayerData.dailyMazeDatabase.SaveLevelAsync(selected_dailyLevel);
 
-        //try
-        //{
-        //    mazeGraphicsView.IsGameOver = false;
-        //    var result = await this.ShowPopupAsync(new CampaignMazeFinishedPopupPage(TotalTime, numberOfMoves, Level, coinsEarned), CancellationToken.None);
-        //    if (result == "Retry")
-        //    {
-        //        var page = new CampaignLevelPage(Level);
-        //        page.LevelSaved += async (obj, copyOfLevel) => { // Any variables that may be changed
-        //            Level.BestTime = copyOfLevel.BestTime;
-        //            Level.BestMoves = copyOfLevel.BestMoves;
-        //            Level.Completed = copyOfLevel.Completed;
-        //            Level.Star1 = copyOfLevel.Star1;
-        //            Level.Star2 = copyOfLevel.Star2;
-        //            Level.Star3 = copyOfLevel.Star3;
-        //            Level.NumberOfStars = copyOfLevel.NumberOfStars;
-        //            await PlayerData.levelDatabase.SaveLevelAsync(Level);
-        //        };
-        //        await Navigation.PushAsync(page);
-        //    }
-        //    else if (result == "Close")
-        //    {
-        //        await Navigation.PushAsync(new CampaignPage());
-        //    }
-        //    else if (result == "Next Level")
-        //    {
-        //        CampaignLevel next_level = await PlayerData.levelDatabase.GetItemAsync(PlayerData.LevelConnectsToDictionary[Level.LevelNumber][0]);
-        //        var page = new CampaignLevelPage(next_level);
-        //        page.LevelSaved += async (obj, copyOfLevel) => { // Any variables that may be changed
-        //            next_level.BestTime = copyOfLevel.BestTime;
-        //            next_level.BestMoves = copyOfLevel.BestMoves;
-        //            next_level.Completed = copyOfLevel.Completed;
-        //            next_level.Star1 = copyOfLevel.Star1;
-        //            next_level.Star2 = copyOfLevel.Star2;
-        //            next_level.Star3 = copyOfLevel.Star3;
-        //            next_level.NumberOfStars = copyOfLevel.NumberOfStars;
-        //            await PlayerData.levelDatabase.SaveLevelAsync(next_level);
-        //        };
-        //        await Navigation.PushAsync(page);
-        //    }
-        //}
-        //catch (Exception ex)
-        //{
-        //    mazeGraphicsView.IsGameOver = true;
-        //}
+        //await DrawLevels(false);
 
+        //stateContainerModel.CurrentState = "Calendar";
+
+        await Navigation.PushAsync(new DailyMazePage());
+    }
+
+    Label numlabel;
+    public async void DrawCountDownTimer(int secondsLeft)
+    {
+        if (running)
+        {
+            if (secondsLeft == 5)
+            {
+                numlabel = new Label()
+                {
+                    Text = secondsLeft.ToString(),
+                    TextColor = Colors.Red,
+                    Opacity = 0.6,
+                    FontSize = 100,
+                    VerticalOptions = LayoutOptions.Center,
+                    HorizontalOptions = LayoutOptions.Center,
+                    IsVisible = true,
+                };
+
+                AbsoluteLayout.SetLayoutBounds(numlabel, new Rect(0.5, 0.5, 0.6, 0.6));
+                AbsoluteLayout.SetLayoutFlags(numlabel, AbsoluteLayoutFlags.All);
+
+                playAbsoluteLayout.Add(numlabel);
+            }
+            numlabel.Text = secondsLeft.ToString();
+
+            _ = numlabel.FadeTo(1, 500);
+            await numlabel.ScaleXTo(1.2, 500);
+
+            _ = numlabel.FadeTo(0.6, 500);
+            await numlabel.ScaleXTo(0.8, 500);
+
+            if (secondsLeft == 0)
+            {
+                _ = numlabel.FadeTo(0, 500);
+                await numlabel.ScaleTo(0.5, 500);
+                numlabel.IsVisible = false;
+                countingDown = false;
+                FailedMaze();
+            }
+            else
+            {
+                DrawCountDownTimer(--secondsLeft);
+            }
+        }
+        else
+        {
+            countingDown = false;
+        }
     }
 
 
+    public async void FailedMaze()
+    {
+        // Button to retry Maze or exit back to previous screen
+        running = false;
+        mazeGraphicsView.IsGameOver = true;
+        hook?.Dispose();
 
+        double time = TotalTime.TotalSeconds;
+
+        ImageButton losingStar = new ImageButton
+        {
+            Source = "empty_star.png",
+            Opacity = 0,
+            Scale = 0.1,
+            IsVisible = true,
+            Background = Colors.Transparent,
+        };
+        AbsoluteLayout.SetLayoutBounds(losingStar, new Rect(0.5, 0.5, 1, 1));
+        AbsoluteLayout.SetLayoutFlags(losingStar, AbsoluteLayoutFlags.All);
+
+        playAbsoluteLayout.Add(losingStar);
+
+        _ = main_absolute_layout.FadeTo(0, 500);
+
+        _ = losingStar.FadeTo(1, 500);
+        await losingStar.ScaleTo(3, 2500);
+        _ = losingStar.ScaleTo(0.1, 100);
+        losingStar.IsVisible = false;
+
+        monthlyMazes[selected_dailyLevel.Date.Day - 1].Status = selected_dailyLevel.Status;
+        await PlayerData.dailyMazeDatabase.SaveLevelAsync(selected_dailyLevel);
+
+        //stateContainerModel.CurrentState = "Calendar";
+        await Navigation.PushAsync(new DailyMazePage());
+    }
 
 
 

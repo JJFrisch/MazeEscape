@@ -4,7 +4,8 @@
              xmlns:drawables="clr-namespace:MazeEscape.Drawables"
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="MazeEscape.CampaignLevelPage"
-             BackgroundColor="AliceBlue">
+             BackgroundColor="AliceBlue"
+             NavigationPage.HasBackButton="False">
 
     <ContentPage.Resources>
         <drawables:PlayerDrawable x:Key="playerDrawable"/>
@@ -12,11 +13,9 @@
 
   
 
-    <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="Red" x:Name="PageAbsoluteLayout"
+    <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="WhiteSmoke" x:Name="PageAbsoluteLayout"
                     toolkit:StateContainer.CurrentState="{Binding CurrentState}">
         
-        <Label Text="Hello"/>
-
         <toolkit:StateContainer.StateViews>
 
             <AbsoluteLayout BackgroundColor="LightBlue"
@@ -25,8 +24,8 @@
                             AbsoluteLayout.LayoutFlags="All">
 
                 <Image Source="maze_home_screen_1.png"
-                       AbsoluteLayout.LayoutBounds="0.5,0.5,400,1"
-                        AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+                       AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
+                        AbsoluteLayout.LayoutFlags="All"
                         Aspect="Fill"/>
 
                 <ActivityIndicator
@@ -63,15 +62,16 @@
                             AbsoluteLayout.LayoutFlags="All">
 
                 <Image Source="background_blue_2.png"
-       AbsoluteLayout.LayoutBounds="0.5,0.5,390,1"
-       AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+       AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
+       AbsoluteLayout.LayoutFlags="All"
        Aspect="Fill"/>
 
                 <ImageButton Source="back_button_normal.png"
              AbsoluteLayout.LayoutBounds="10,20,50,50"
              AbsoluteLayout.LayoutFlags="None"
              Clicked="BackButton_Clicked"
-             CornerRadius="20">
+             CornerRadius="20"
+                             Background="Transparent">
                     <VisualStateManager.VisualStateGroups>
                         <VisualStateGroupList>
                             <VisualStateGroup x:Name="CommonStates">
@@ -137,29 +137,29 @@
         </AbsoluteLayout>
 
 
-        <BoxView BackgroundColor="White"
-                 Opacity="0.4"
+        <BoxView BackgroundColor="Black"
+                 Opacity="0.6"
                  AbsoluteLayout.LayoutBounds="0.5,0,0.6,80"
                  AbsoluteLayout.LayoutFlags="XProportional,WidthProportional"
                  CornerRadius="0,0,50,50"/>
 
         <Label Text="Time" 
-               HorizontalOptions="Center"
+               HorizontalOptions="Center" TextColor="White"
                AbsoluteLayout.LayoutBounds="0.35,15,0.2,0.1"
                AbsoluteLayout.LayoutFlags="XProportional,SizeProportional"/>
         
         <Label x:Name="labelTimer" Text="00:00" 
-               HorizontalOptions="Center"
+               HorizontalOptions="Center" TextColor="White"
                AbsoluteLayout.LayoutBounds="0.35,40,0.2,0.1"
                AbsoluteLayout.LayoutFlags="XProportional,SizeProportional" />
 
         <Label Text="Moves" 
-               HorizontalOptions="Center"
+               HorizontalOptions="Center" TextColor="White"
                AbsoluteLayout.LayoutBounds="0.65,15,0.2,0.1"
                AbsoluteLayout.LayoutFlags="XProportional,SizeProportional"/>
 
         <Label x:Name="moveNumberText" Text="" 
-               HorizontalOptions="Center"
+               HorizontalOptions="Center" TextColor="White"
                AbsoluteLayout.LayoutBounds="0.65,40,0.2,0.1"
                AbsoluteLayout.LayoutFlags="XProportional,SizeProportional" />
 
@@ -169,19 +169,19 @@
                                Padding="50,5,0,5">
 
             <ImageButton x:Name="extraTimePowerUpImage"
-
+                Background="Transparent"
             Source="time.png"
             Clicked="OnExtraTimeButtonClicked"/>
 
         <Label x:Name="extraTimePowerUpLabel"
                FontSize="18"
                Text="00"
-               TextColor="AntiqueWhite"
+               TextColor="White"
                FontAttributes="Bold"
                VerticalTextAlignment="Center"/>
 
         <ImageButton x:Name="hintPowerUpImage"
-
+            Background="Transparent"
             Source="hint.png"
             Aspect="AspectFit"
             Clicked="OnHintButtonClicked"/>
@@ -190,11 +190,11 @@
                FontSize="18"
                Text="3"
                VerticalTextAlignment="Center"
-
+                TextColor="White"
                FontAttributes="Bold"/>
 
         <ImageButton x:Name="extraMovesPowerUpImage"
-
+            Background="Transparent"
             Source="maze_box.png"
             Aspect="AspectFit"
             Clicked="OnExtraMovesButtonClicked"/>
@@ -203,7 +203,7 @@
                FontSize="18"
                Text="3"
                VerticalTextAlignment="Center"
-
+                TextColor="White"
                FontAttributes="Bold"/>
 
         </HorizontalStackLayout>

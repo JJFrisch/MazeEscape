@@ -15,9 +15,12 @@ namespace MazeEscape
         public bool Unlocked {  get; set; }
         public string Name { get; set; }
 
+        public int Area { get; set; }
 
-        public ChestModel(int x, int y, string name) 
+
+        public ChestModel(int area, int x, int y, string name) 
         {
+            Area = area;
             X = x;
             Y=y; 
             Name=name;

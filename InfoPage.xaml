@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MazeEscape.InfoPage"
+             NavigationPage.HasBackButton="False">
+
+    <AbsoluteLayout Margin="0,-79,0,0" BackgroundColor="WhiteSmoke">
+
+        <ScrollView AbsoluteLayout.LayoutBounds="0.5, 1, 1, 0.9"
+                    AbsoluteLayout.LayoutFlags="All"
+                    VerticalScrollBarVisibility="Always">
+            
+            <VerticalStackLayout Spacing="-5">
+                
+                <Image Source="info_1.png" WidthRequest="390" HeightRequest="630" HorizontalOptions="Center"
+                       Aspect="Fill"/>
+                <Image Source="info_2.png" WidthRequest="400" HeightRequest="680"/>
+                <Image Source="info_3.png" WidthRequest="400" HeightRequest="680"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <BoxView     AbsoluteLayout.LayoutBounds="0.5,0.97,120,90"
+                     AbsoluteLayout.LayoutFlags="PositionProportional"
+                     BackgroundColor="Black"
+                     Opacity="0.6"
+                     CornerRadius="20"/>
+
+     <!--   <Label     AbsoluteLayout.LayoutBounds="0.5,0.97,200,90"
+                   AbsoluteLayout.LayoutFlags="PositionProportional"
+                   Text="Play" TextColor="Orange"
+                   HorizontalTextAlignment="Center"
+                   FontSize="20"/> -->
+
+        <Image AbsoluteLayout.LayoutBounds="0.5, 0, 400, 0.1"
+               AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional" 
+               Source="info_header.png"
+               Aspect="AspectFill"/>
+
+        <ImageButton Source="home_button_icon.png"
+                     AbsoluteLayout.LayoutBounds="0.5,0.96,70,70"
+                     AbsoluteLayout.LayoutFlags="PositionProportional"
+                     Clicked="HomeButton_Clicked"
+                     Background="Transparent"/>
+
+    </AbsoluteLayout>
+
+</ContentPage>

@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MazeEscape.MainPage"
              Title=""
-             Shell.NavBarIsVisible="False">
+             Shell.NavBarIsVisible="False"
+             NavigationPage.HasBackButton="False">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -20,8 +21,8 @@
                AbsoluteLayout.LayoutFlags="All"
                BackgroundColor="IndianRed"/>
 
-        <Image AbsoluteLayout.LayoutBounds="0.5,1,400,1"
-               AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
+        <Image AbsoluteLayout.LayoutBounds="0.5,1,1.04,1"
+               AbsoluteLayout.LayoutFlags="All"
                Source="maze_escape_background.png"
                Aspect="Fill"/> 
 
@@ -41,19 +42,21 @@
                     AbsoluteLayout.LayoutFlags="PositionProportional"
                          Style="{StaticResource menuImageButtonStyle}"
                          HorizontalOptions="Start"
-                         Source="setting_button_image.png"/>
+                         Source="setting_button_image.png"
+                     Background="Transparent"/>
             <Label x:Name="usernameLabel" 
                     AbsoluteLayout.LayoutBounds="0.5,0.6,300,50"
                     AbsoluteLayout.LayoutFlags="PositionProportional"
                     HorizontalOptions="Center" VerticalOptions="Center"
                    TextColor="WhiteSmoke"
                    FontAttributes="Bold"/>
-            <ImageButton x:Name="shopButton" Clicked="OnShopButtonClicked"  
+            <ImageButton x:Name="infoButton" Clicked="OnInfoButtonClicked"  
                     AbsoluteLayout.LayoutBounds="0.72, 0.58, 50, 43"
                     AbsoluteLayout.LayoutFlags="PositionProportional"
-                    HorizontalOptions="Start"
+                    HorizontalOptions="Start" Scale="1.2"
                     Style="{StaticResource menuImageButtonStyle}"
-                    Source="shop_button_image.png"/>
+                    Source="info_icon_white.png"
+                         Background="Transparent"/>
             
         </AbsoluteLayout>
             
@@ -61,18 +64,18 @@
         <VerticalStackLayout
             AbsoluteLayout.LayoutBounds="0.5,0.8,1,.3"
             AbsoluteLayout.LayoutFlags="All"
-            Spacing="20"
+            Spacing="15"
             HorizontalOptions="Center">
 
             
-            <Button
-                Text="Daily Maze"
+            <ImageButton
+                Source="daily_mazes_button_background.png"
                 Clicked="OnDailyMazeClicked"
-                Style="{DynamicResource baseButtonStyle}"
-                BackgroundColor="Grey"
-                Opacity="0.5"
-                BorderWidth="2"
-                BorderColor="Black">
+                WidthRequest="200"
+                HeightRequest="50"
+                Aspect="AspectFit"
+                Opacity="0.97"
+                Background="Transparent">
                 
                 <VisualStateManager.VisualStateGroups>
                     <VisualStateGroupList>
@@ -100,7 +103,7 @@
                         </VisualStateGroup>
                     </VisualStateGroupList>
                 </VisualStateManager.VisualStateGroups>
-            </Button>
+            </ImageButton>
           
 
             <ImageButton
@@ -108,9 +111,10 @@
                 Clicked="OnCampaignMazesClicked"
                 Source="button_background_1.png"
                 WidthRequest="230"
-                HeightRequest="70"
+                HeightRequest="60"
                 Aspect="AspectFit"
-                Opacity="0.97">
+                Opacity="0.97"
+                Background="Transparent">
                     <VisualStateManager.VisualStateGroups>
                         <VisualStateGroupList>
                             <VisualStateGroup x:Name="CommonStates">

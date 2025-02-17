@@ -357,61 +357,43 @@ namespace MazeEscape.Models
             Path = path[max_key];
         }
 
-        public void FindPathFrom(int x, int y) // Used for the hint power-up. Finds path from current position to the finish and returns the path.
+        public List<(int, int)> FindPathFrom() // Used for the hint power-up. Finds path from current position to the finish and returns the path.
         {
-            // for every n too to queue
-            // if nei end: return path + this 
-            // call find path
+            Dictionary<(int, int), bool> visited = new Dictionary<(int, int), bool>();
+            for (var col = 0; col < Height; col++)
+            {
+                for (var row = 0; row < Width; row++)
+                {
+                    visited[(row, col)] = false;
+                }
+            }
+            var (x, y) = (Player.X, Player.Y);
+            visited[(x,y)] = true;
 
+            var path = SearchForFinish(visited, (x,y));
+            return path;
+        }
 
+        public List<(int, int)> SearchForFinish(Dictionary<(int, int), bool> visited, (int,int) cell)
+        {
+            var neighbors = Neighbors(cell);
+            foreach (var n in neighbors)
+            {
+                if (visited[n]) continue;
+                visited[n] = true;
 
-            //(int, int) Start = (x, y);
-            //Queue<(int, int)> myQueue = new Queue<(int, int)>();
-            //myQueue.Enqueue(Start);
-            //Dictionary<(int, int), (int, int)?> came_from = new Dictionary<(int, int), (int, int)?>();
-            //Dictionary<(int, int), List<(int, int)>> path = new Dictionary<(int, int), List<(int, int)>>();
-            //came_from[Start] = null;
-            //path[Start] = new List<(int, int)> { Start };
-
-            //while (myQueue.Count != 0)
-            //{
-            //    (int, int) current_cell = myQueue.Dequeue();
-
-            //    foreach ((int, int) next_cell in Neighbors(current_cell))
-            //    {
-            //        if (next_cell == End)
-            //        {
-
-            //        }
-
-            //        if (!came_from.ContainsKey(next_cell))
-            //        {
-            //            path[next_cell] = [.. path[current_cell], current_cell];
-            //            myQueue.Enqueue(next_cell);
-            //            came_from[next_cell] = current_cell;
-            //        }
-            //    }
-            //}
-
-            //(int, int) least_key = Start;
-            //int least_len = 10000000;
-            //foreach ((int, int) key in path.Keys)
-            //{
-            //    int current_len = path[key].Count;
-            //    if (current_len < least_len)
-            //    {
-            //        least_key = key;
-            //        least_len = current_len;
-            //    }
-            //}
-
-            //Cells[End.Item2][End.Item1].Value = 0;
-            //End = (max_key.Item1, max_key.Item2);
-            //Cells[max_key.Item2][max_key.Item1].Value = 3;
-
-            //PathLength = max_len;
-            //Path = path[max_key];
-            //return Path;
+                if (n == End)
+                {
+                    return new List<(int, int)> { n, cell };
+                }
+                List<(int, int)> x = SearchForFinish(visited, n);
+                if (x.Count > 0)
+                {
+                    x.Add(cell);
+                    return x;
+                }
+            }
+            return new List<(int, int)>() { };
         }
 
         public void MakePathRecursive(Dictionary<(int, int), bool> visited, (int,int) cell)
@@ -546,7 +528,7 @@ namespace MazeEscape.Models
             {
                 int chance = rnd.Next(0, 100);
 
-                if (chance <= recursive_percent) // Do Choose Random (Prims)
+                if (chance <= prims_percent) // Do Choose Random (Prims)
                 {
                     current_cell = cellList[rnd.Next(cellList.Count)];
                 }

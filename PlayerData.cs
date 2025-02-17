@@ -33,7 +33,7 @@ namespace MazeEscape
         public const int WindowWidth = 400;
         public const int WindowHeight = 670;
 
-        public static List<string> UnlockedMazesNumbers = new List<string> { "1"    };
+        public static List<string> UnlockedMazesNumbers = new List<string> { "1" };
         
         public static List<ChestModel> ChestModels = new List<ChestModel>();
 
@@ -54,6 +54,8 @@ namespace MazeEscape
         public static List<int> UnlockedSkins = new List<int> { 0 };
 
         public static string MostRecentMonth = "";
+
+        public static Color WallColor = Colors.Black;
 
         public async static Task InitializeLevels()
         {
@@ -229,6 +231,7 @@ namespace MazeEscape
                 MonthPrize2_achieved = MonthPrize2_achieved,
                 MostRecentMonth = MostRecentMonth,
                 UnlockedSkins = UnlockedSkins,
+                WallColor = WallColor,
             };
 
             var serializedData = JsonSerializer.Serialize(data);
@@ -258,6 +261,7 @@ namespace MazeEscape
             MonthPrize2_achieved = data.MonthPrize2_achieved;
             MostRecentMonth = data.MostRecentMonth;
             UnlockedSkins = data.UnlockedSkins;
+            WallColor = data.WallColor;
 
         }
 
@@ -338,5 +342,9 @@ namespace MazeEscape
 
         public List<int>? UnlockedSkins { get; set; }
 
-    }
+        public required Color WallColor { get; set; }
+
+
+        }
+        
 }

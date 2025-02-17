@@ -68,14 +68,15 @@
             HorizontalOptions="Center">
 
             
-            <ImageButton
-                Source="daily_mazes_button_background.png"
+            <ImageButton x:Name="dailyChallengeButton"
+                Source="daily_mazes_locked_button_background.png"
                 Clicked="OnDailyMazeClicked"
                 WidthRequest="200"
                 HeightRequest="50"
                 Aspect="AspectFit"
                 Opacity="0.97"
-                Background="Transparent">
+                Background="Transparent"
+                IsEnabled="False">
                 
                 <VisualStateManager.VisualStateGroups>
                     <VisualStateGroupList>

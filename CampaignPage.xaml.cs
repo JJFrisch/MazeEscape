@@ -256,7 +256,8 @@ public partial class CampaignPage : ContentPage
         {
             (ImageButton gateImage, Label gateLabel, string prev_level) = Gates[i];
             bool open = num_stars < PlayerData.gateCoinRequired[i] || !PlayerData.UnlockedMazesNumbers.Contains(prev_level);
-            gateImage.IsVisible = open;
+            if (!open) { gateImage.Source = "gate_opened.png"; }
+            //gateImage.IsVisible = open;
             gateLabel.IsVisible = open;
             gateLabel.Text = PlayerData.gateCoinRequired[i].ToString();
         }

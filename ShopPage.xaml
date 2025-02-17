@@ -72,8 +72,13 @@
                AbsoluteLayout.LayoutFlags="XProportional"
                    TextColor="White"/>
 
+            <Label x:Name="shopTitleLabel" HorizontalOptions="Center" VerticalOptions="Start"
+               AbsoluteLayout.LayoutBounds="0.5,30,100,100"
+               AbsoluteLayout.LayoutFlags="XProportional"
+                   TextColor="White" Text="Shop" FontSize="35"/>
+
             <Grid
-                  AbsoluteLayout.LayoutBounds="0.5,0.2,350,80"
+                  AbsoluteLayout.LayoutBounds="0.5,0.25,350,80"
                   AbsoluteLayout.LayoutFlags="PositionProportional"
                   ColumnDefinitions="30,*,*,*,*,*,*,10"
                   RowDefinitions="*">
@@ -95,26 +100,26 @@
             
 
             <BoxView BackgroundColor="Black"
-                     AbsoluteLayout.LayoutBounds="0.5,1,350,0.65"
+                     AbsoluteLayout.LayoutBounds="0.5,1,350,0.55"
                      AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
                      Opacity="0.8"
                      CornerRadius="50,50,10,10"/>
 
-            <ScrollView Orientation="Vertical" AbsoluteLayout.LayoutBounds="0.5,1,320,0.6"
+            <ScrollView Orientation="Vertical" AbsoluteLayout.LayoutBounds="0.5,1,320,0.5"
                         AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional">
 
 
                 <Grid 
                     RowDefinitions="*,*,*"
-                    ColumnDefinitions="2*,3*"
-                    RowSpacing="30"
+                    ColumnDefinitions="2*,*,*"
+                    RowSpacing="20"
                     ColumnSpacing="0"
                     Padding="0,20"
-                    HeightRequest="400"
+                    HeightRequest="320"
                     VerticalOptions="Start">
 
                     <ImageButton Source="store_item_background.png"
-                                 Grid.ColumnSpan="2"
+                                 Grid.ColumnSpan="3"
                                  Grid.Row="0"
                                  Clicked="BuyTimeClicked"
                                  x:Name="timeImageButton"
@@ -129,6 +134,17 @@
                                  BackgroundColor="Transparent"
                                  WidthRequest="50"/>
 
+                    <ImageButton Source="coin.png"
+                                 x:Name="timeCoinImageButton"
+                                 Grid.Column="2"
+                                 Grid.Row="0"
+                                 Clicked="BuyTimeClicked"
+                                 Aspect="AspectFit"
+                                 BackgroundColor="Transparent"
+                                 HorizontalOptions="End"
+                                 WidthRequest="90"
+                                 Scale="0.9"/>
+
                     <Label x:Name="extraTimeCostLabel"
                            Text="50"
                            FontSize="28"
@@ -136,10 +152,10 @@
                            Grid.Column="1"
                            Grid.Row="0"
                            VerticalOptions="Center"
-                           HorizontalOptions="Center"/>
+                           HorizontalOptions="End"/>
 
                     <ImageButton Source="store_item_background.png"
-                                 Grid.ColumnSpan="2"
+                                 Grid.ColumnSpan="3"
                                  Grid.Row="1"
                                  Clicked="BuyHintClicked"
                                  x:Name="hintImageButton"
@@ -154,6 +170,17 @@
                                  BackgroundColor="Transparent"
                                  WidthRequest="50"/>
 
+                    <ImageButton Source="coin.png"
+                                 x:Name="hintCoinImageButton"
+                                 Grid.Column="2"
+                                 Grid.Row="1"
+                                 Clicked="BuyTimeClicked"
+                                 Aspect="AspectFit"
+                                 BackgroundColor="Transparent"
+                                 HorizontalOptions="End"
+                                 WidthRequest="90"
+                                 Scale="0.9"/>
+
                     <Label x:Name="hintCostLabel"
                            Text="50"
                            FontSize="28"
@@ -161,10 +188,10 @@
                            Grid.Column="1"
                            Grid.Row="1"
                            VerticalOptions="Center"
-                           HorizontalOptions="Center"/>
+                           HorizontalOptions="End"/>
 
                     <ImageButton Source="store_item_background.png"
-                                 Grid.ColumnSpan="2"
+                                 Grid.ColumnSpan="3"
                                  Grid.Row="2"
                                  Clicked="BuyMovesClicked"
                                  x:Name="movesImageButton"
@@ -179,6 +206,17 @@
                                  BackgroundColor="Transparent"
                                  WidthRequest="50"/>
 
+                    <ImageButton Source="coin.png"
+                                 x:Name="movesCoinImageButton"
+                                 Grid.Column="2"
+                                 Grid.Row="2"
+                                 Clicked="BuyTimeClicked"
+                                 Aspect="AspectFit"
+                                 BackgroundColor="Transparent"
+                                 HorizontalOptions="End"
+                                 WidthRequest="90"
+                                 Scale="0.9"/>
+
                     <Label x:Name="extraMovesCostLabel"
                            Text="50"
                            FontSize="28"
@@ -186,7 +224,7 @@
                            Grid.Column="1"
                            Grid.Row="2"
                            VerticalOptions="Center"
-                           HorizontalOptions="Center"/>
+                           HorizontalOptions="End"/>
 
 
                 </Grid>

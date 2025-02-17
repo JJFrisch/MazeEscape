@@ -18,6 +18,7 @@ public partial class SettingsPage : ContentPage
         base.OnAppearing();
 
         ChangeUsernameEntryCell.Text = PlayerData.PlayerName;
+        ColorPicker.PickedColor = PlayerData.WallColor;
     }
 
     public void OnChangeTheme(object sender, EventArgs e)
@@ -52,6 +53,15 @@ public partial class SettingsPage : ContentPage
 
     private void backButton_Clicked(object sender, EventArgs e)
     {
+        PlayerData.Save();
         Navigation.PushAsync(new MainPage());
+    }
+
+    private void ColorPicker_PickedColorChanged(object sender, Maui.ColorPicker.PickedColorChangedEventArgs e)
+    {
+        var color = e.NewPickedColorValue;
+        choosenColorBoxView.Color = color;
+        PlayerData.WallColor = color;
+        PlayerData.Save();
     }
 }

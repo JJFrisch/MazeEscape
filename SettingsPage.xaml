@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:controls="clr-namespace:Maui.ColorPicker;assembly=Maui.ColorPicker"
              x:Class="MazeEscape.SettingsPage"
              NavigationPage.HasBackButton="False">
     <ScrollView  Margin="0, -80, 0, 0">
@@ -95,6 +96,27 @@
                 </TableRoot>
             </TableView>
 
+
+            <Label Text="Pick a Wall Color"
+                   AbsoluteLayout.LayoutBounds="0.5, 0.48, 200, 100"
+                   AbsoluteLayout.LayoutFlags="PositionProportional"
+                   FontAttributes="Bold"/>
+
+            <controls:ColorPicker
+                x:Name="ColorPicker"
+                AbsoluteLayout.LayoutBounds="0.5, 0.53, 200, 100"
+                AbsoluteLayout.LayoutFlags="PositionProportional"
+                ColorFlowDirection="Horizontal"                
+                PickedColorChanged="ColorPicker_PickedColorChanged"
+                PointerRingBorderUnits="0.3"
+                PointerRingDiameterUnits="0.7"
+                ColorSpectrumStyle="ShadeToHueStyle">
+            </controls:ColorPicker>
+
+            <BoxView AbsoluteLayout.LayoutBounds="0.5, 0.65, 30, 30"
+                     AbsoluteLayout.LayoutFlags="PositionProportional"
+                     Color="Black"
+                     x:Name="choosenColorBoxView"/>
 
         </AbsoluteLayout>
 

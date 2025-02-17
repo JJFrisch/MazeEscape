@@ -15,6 +15,7 @@ namespace MazeEscape
         public MainPage()
         {
             InitializeComponent();
+
         }
         protected override async void OnAppearing()
         {
@@ -37,7 +38,6 @@ namespace MazeEscape
 
                     Preferences.Default.Set("toRestart", "NO");
 
-                    //infoButton.BackgroundColor = Colors.Green;
                     await infoButton.ScaleTo(2, 500);
                     await Navigation.PushAsync(new InfoPage());
                     infoButton.Scale = 1.2;
@@ -57,6 +57,12 @@ namespace MazeEscape
 
             Preferences.Default.Set("toRestart", "NO");
 
+            var level = await PlayerData.levelDatabase.GetItemAsync("10");
+            if (level.Star1)
+            {
+                dailyChallengeButton.Source = "daily_mazes_button_background.png";
+                dailyChallengeButton.IsEnabled = true;
+            }
         }
 
 

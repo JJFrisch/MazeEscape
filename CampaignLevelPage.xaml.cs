@@ -147,7 +147,7 @@ public partial class CampaignLevelPage : ContentPage
     {
         Dictionary<int, Color> dict_int_to_color = new Dictionary<int, Color>();
         dict_int_to_color.Add(0, Colors.White);
-        dict_int_to_color.Add(1, Colors.Black);
+        dict_int_to_color.Add(1, PlayerData.WallColor);
         dict_int_to_color.Add(2, Colors.GreenYellow);
         dict_int_to_color.Add(3, Colors.IndianRed);
         dict_int_to_color.Add(4, Colors.LightGoldenrodYellow); // For Debugging Purposes
@@ -175,9 +175,10 @@ public partial class CampaignLevelPage : ContentPage
         (w, h) = Maze.End;
         main_absolute_layout.Add(new BoxView
         {
-            Color = dict_int_to_color[3]
+            Color = dict_int_to_color[3],
+            Opacity = 0.8,
 
-        }, new Rect(w * cell_width + (line_thickness / 2), h * cell_height + (line_thickness / 2), cell_width - line_thickness, cell_height - line_thickness));
+        }, new Rect(w * cell_width + (line_thickness / 2), h * cell_height + (line_thickness / 2), cell_width - (line_thickness/2), cell_height - (line_thickness/2)));
 
 
 

@@ -111,8 +111,8 @@ public partial class DailyMazePage : ContentPage
 
             DailyMazeLevel today = new DailyMazeLevel()
             {
-                Width = rnd.Next(12, 30),
-                Height = rnd.Next(12, 30),
+                Width = rnd.Next(15, 28),
+                Height = rnd.Next(15, 28),
                 LevelType = mazeType,
             };
 

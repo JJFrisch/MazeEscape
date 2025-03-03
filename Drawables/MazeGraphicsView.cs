@@ -29,8 +29,8 @@ namespace MazeEscape.Drawables
 
         public bool IsGameOver { get; set; }
 
-        public double MazeWindowWidth = PlayerData.WindowWidth * 0.95;
-        public double MazeWindowHeight = PlayerData.WindowHeight * 0.8;
+        public double MazeWindowWidth = App.PlayerData.WindowWidth * 0.95;
+        public double MazeWindowHeight = App.PlayerData.WindowHeight * 0.8;
 
         public MazeGraphicsView()
         {

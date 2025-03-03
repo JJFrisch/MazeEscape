@@ -7,10 +7,10 @@ using SQLite;
 using MazeEscape.Models;
 
 namespace MazeEscape
-{
-    public class LevelDatabase
+{ 
+    public class LevelDatabase(string number)
     {
-        public string DatabasePath = Path.Combine(FileSystem.AppDataDirectory, "CampaignLevelSQLite.db3");
+        public string DatabasePath { get; set; } = Path.Combine(FileSystem.AppDataDirectory, $"CampaignWorld{number}SQLite.db3");
         public SQLiteOpenFlags Flags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create;
 
         private SQLiteAsyncConnection database;

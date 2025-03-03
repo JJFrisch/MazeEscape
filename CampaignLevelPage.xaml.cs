@@ -2,6 +2,7 @@ using CommunityToolkit.Maui.Views;
 using MazeEscape.Drawables;
 using MazeEscape.Models;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Graphics.Text;
 using Microsoft.Maui.Layouts;
 using SharpHook;
 using SharpHook.Native;
@@ -28,10 +29,10 @@ public partial class CampaignLevelPage : ContentPage
     MazeModel Maze = new MazeModel();
 
     PlayerDrawable drawer;
-    SimpleReactiveGlobalHook? hook;
+    SimpleReactiveGlobalHook? hook = null;
 
     //private DateTime timeStarted;
-    public int numberOfMoves = 0;
+    public int numberOfMoves = -1;
     private bool running;
     TimeSpan TotalTime;
 
@@ -39,6 +40,8 @@ public partial class CampaignLevelPage : ContentPage
     private DateTime timeStarted;
 
     private bool sent = false;
+
+    CampaignWorld World;
 
     public void StartTimer()
     {
@@ -62,8 +65,8 @@ public partial class CampaignLevelPage : ContentPage
         TimeSpan timePassed = DateTime.Now - timeStarted;
         Dispatcher.Dispatch(new Action(() =>
         {
-            labelTimer.Text = Level.ThreeStarTime.ToString() + ":  " + Math.Round(timePassed.TotalSeconds, 1).ToString();
-            moveNumberText.Text = Level.TwoStarMoves.ToString() + ":  " + numberOfMoves.ToString();
+            labelTimer.Text = $"{Math.Round(timePassed.TotalSeconds, 1).ToString("N1")} / {Level.ThreeStarTime.ToString()}"; 
+            moveNumberText.Text = $"{numberOfMoves.ToString()} / {Level.TwoStarMoves.ToString()}";
 
             if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
             {
@@ -74,8 +77,10 @@ public partial class CampaignLevelPage : ContentPage
     }
 
     StateContainerViewModel stateContainerModel = new StateContainerViewModel();
-    public CampaignLevelPage(CampaignLevel level)
+    public CampaignLevelPage(CampaignLevel level, CampaignWorld world)
     {
+        World = world;
+
         InitializeComponent();
 
         PageAbsoluteLayout.BindingContext = stateContainerModel;
@@ -101,11 +106,12 @@ public partial class CampaignLevelPage : ContentPage
         AddSwipeGestures();
 
         Task.Delay(1000).ContinueWith(t => StartPlay());
+        World = world;
     }
 
     public void StartPlay()
     {
-        //var list = PlayerData.levelDatabase.GetItemsAsync().Result;
+        //var list = App.PlayerData.world1_LevelDatabase.GetItemsAsync().Result;
         stateContainerModel.CurrentState = "Success";
         int time_to_wait = Level.Width * Level.Height * 5;
         Task.Delay(time_to_wait).ContinueWith(t => StartTimer());
@@ -115,10 +121,10 @@ public partial class CampaignLevelPage : ContentPage
     {
         base.OnAppearing();
         
-        extraTimePowerUpLabel.Text = PlayerData.ExtraTimesOwned.ToString();
-        extraMovesPowerUpLabel.Text = PlayerData.ExtraMovesOwned.ToString();
-        hintPowerUpLabel.Text = PlayerData.HintsOwned.ToString();
-        //CoinCountLabel.Text = PlayerData.CoinCount.ToString();
+        extraTimePowerUpLabel.Text = App.PlayerData.ExtraTimesOwned.ToString();
+        extraMovesPowerUpLabel.Text = App.PlayerData.ExtraMovesOwned.ToString();
+        hintPowerUpLabel.Text = App.PlayerData.HintsOwned.ToString();
+        //CoinCountLabel.Text = App.PlayerData.CoinCount.ToString();
 
     }
 
@@ -147,7 +153,7 @@ public partial class CampaignLevelPage : ContentPage
     {
         Dictionary<int, Color> dict_int_to_color = new Dictionary<int, Color>();
         dict_int_to_color.Add(0, Colors.White);
-        dict_int_to_color.Add(1, PlayerData.WallColor);
+        dict_int_to_color.Add(1, App.PlayerData.WallColor);
         dict_int_to_color.Add(2, Colors.GreenYellow);
         dict_int_to_color.Add(3, Colors.IndianRed);
         dict_int_to_color.Add(4, Colors.LightGoldenrodYellow); // For Debugging Purposes
@@ -270,14 +276,17 @@ public partial class CampaignLevelPage : ContentPage
     }
 
     public async void InitializeReactiveKeyboard()
-    {
-        hook = new SimpleReactiveGlobalHook(GlobalHookType.Keyboard, runAsyncOnBackgroundThread: true);
-        hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcUp).Subscribe(OnUpArrowKeyPressed);
-        hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcDown).Subscribe(OnDownArrowKeyPressed);
-        hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcLeft).Subscribe(OnLeftArrowKeyPressed);
-        hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcRight).Subscribe(OnRightArrowKeyPressed);
+    {        
+        if (hook == null)
+        {
+            hook = new SimpleReactiveGlobalHook(GlobalHookType.Keyboard, runAsyncOnBackgroundThread: true);
+            hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcUp).Subscribe(OnUpArrowKeyPressed);
+            hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcDown).Subscribe(OnDownArrowKeyPressed);
+            hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcLeft).Subscribe(OnLeftArrowKeyPressed);
+            hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcRight).Subscribe(OnRightArrowKeyPressed);
 
-        await hook.RunAsync();
+            await hook.RunAsync();
+        }
     }
 
     public void AddSwipeGestures()
@@ -411,19 +420,19 @@ public partial class CampaignLevelPage : ContentPage
 
         if (Level.Star1 == false)
         {
-            PlayerData.UnlockedMazesNumbers.AddRange(PlayerData.LevelConnectsToDictionary[Level.LevelNumber]);
-            PlayerData.StarCount++;
+            World.UnlockedMazesNumbers.AddRange(World.LevelConnectsToDictionary[Level.LevelNumber]);
+            World.StarCount++;
             Level.NumberOfStars++;
             coinsEarned += num;
         }
 
         Level.Star1 = true;
 
-        if (time < Level.ThreeStarTime && !Level.Star3)
+        if (Math.Round(time, 1) <= Level.ThreeStarTime && !Level.Star3)
         {
             Level.Star3 = true;
             //Level.NumberOfStars++;
-            PlayerData.StarCount++;
+            World.StarCount++;
             coinsEarned += num;
         }
 
@@ -432,7 +441,7 @@ public partial class CampaignLevelPage : ContentPage
         {
             Level.Star2 = true;
             //Level.NumberOfStars++; 
-            PlayerData.StarCount++;
+            World.StarCount++;
             coinsEarned += num;
         }
 
@@ -455,9 +464,14 @@ public partial class CampaignLevelPage : ContentPage
             Level.BestMoves = numberOfMoves;
         }
 
-        PlayerData.CoinCount += coinsEarned;
+        if (World.HighestBeatenLevel < num)
+        {
+            World.HighestBeatenLevel = num;
+        }
 
-        PlayerData.Save();
+        App.PlayerData.CoinCount += coinsEarned;
+
+        App.PlayerData.Save();
 
         await main_absolute_layout.FadeTo(0.2, 1000);
         LevelSaved?.Invoke(this, Level);
@@ -471,7 +485,7 @@ public partial class CampaignLevelPage : ContentPage
                 var result = await this.ShowPopupAsync(new CampaignMazeFinishedPopupPage(TotalTime, numberOfMoves, Level, coinsEarned), CancellationToken.None);
                 if (result == "Retry")
                 {
-                    var page = new CampaignLevelPage(Level);
+                    var page = new CampaignLevelPage(Level, World);
                     page.LevelSaved += async (obj, copyOfLevel) =>
                     { // Any variables that may be changed
                         Level.BestTime = copyOfLevel.BestTime;
@@ -481,7 +495,7 @@ public partial class CampaignLevelPage : ContentPage
                         Level.Star2 = copyOfLevel.Star2;
                         Level.Star3 = copyOfLevel.Star3;
                         Level.NumberOfStars = copyOfLevel.NumberOfStars;
-                        await PlayerData.levelDatabase.SaveLevelAsync(Level);
+                        await App.PlayerData.World1_LevelDatabase.SaveLevelAsync(Level);
                     };
                     await Navigation.PushAsync(page);
                 }
@@ -497,8 +511,8 @@ public partial class CampaignLevelPage : ContentPage
                 }
                 else if (result == "Next Level")
                 {
-                    CampaignLevel next_level = await PlayerData.levelDatabase.GetItemAsync(PlayerData.LevelConnectsToDictionary[Level.LevelNumber][0]);
-                    var page = new CampaignLevelPage(next_level);
+                    CampaignLevel next_level = await App.PlayerData.World1_LevelDatabase.GetItemAsync(World.LevelConnectsToDictionary[Level.LevelNumber][0]);
+                    var page = new CampaignLevelPage(next_level, World);
                     page.LevelSaved += async (obj, copyOfLevel) =>
                     { // Any variables that may be changed
                         next_level.BestTime = copyOfLevel.BestTime;
@@ -508,7 +522,7 @@ public partial class CampaignLevelPage : ContentPage
                         next_level.Star2 = copyOfLevel.Star2;
                         next_level.Star3 = copyOfLevel.Star3;
                         next_level.NumberOfStars = copyOfLevel.NumberOfStars;
-                        await PlayerData.levelDatabase.SaveLevelAsync(next_level);
+                        await App.PlayerData.World1_LevelDatabase.SaveLevelAsync(next_level);
                     };
                     await Navigation.PushAsync(page);
                 }
@@ -523,20 +537,22 @@ public partial class CampaignLevelPage : ContentPage
 
     private async void BackButton_Clicked(object sender, EventArgs e)
     {
+        hook?.Dispose();
         await Navigation.PushAsync(new CampaignPage());
     }
 
     public async void OnShopButtonClicked(object sender, EventArgs e)
     {
+        hook?.Dispose();
         await Navigation.PushAsync(new ShopPage());
     }
 
     public async void OnHintButtonClicked(object sender, EventArgs e)
     {
-        if (PlayerData.HintsOwned > 0)
+        if (App.PlayerData.HintsOwned > 0)
         {
-            PlayerData.HintsOwned--;
-            hintPowerUpLabel.Text = PlayerData.HintsOwned.ToString();
+            App.PlayerData.HintsOwned--;
+            hintPowerUpLabel.Text = App.PlayerData.HintsOwned.ToString();
             var path = Maze.FindPathFrom();
             //path = path[:3];   
 
@@ -577,10 +593,10 @@ public partial class CampaignLevelPage : ContentPage
 
     public async void OnExtraTimeButtonClicked(object sender, EventArgs e)
     {
-        if (PlayerData.ExtraTimesOwned > 0)
+        if (App.PlayerData.ExtraTimesOwned > 0)
         {
-            PlayerData.ExtraTimesOwned--;
-            extraTimePowerUpLabel.Text = PlayerData.ExtraTimesOwned.ToString();
+            App.PlayerData.ExtraTimesOwned--;
+            extraTimePowerUpLabel.Text = App.PlayerData.ExtraTimesOwned.ToString();
             Level.ThreeStarTime += 10;
             labelTimer.TextColor = Colors.Gold;
             await labelTimer.ScaleTo(1.1, 300);
@@ -596,10 +612,10 @@ public partial class CampaignLevelPage : ContentPage
 
     public async void OnExtraMovesButtonClicked(object sender, EventArgs e)
     {
-        if (PlayerData.ExtraMovesOwned > 0)
+        if (App.PlayerData.ExtraMovesOwned > 0)
         {
-            PlayerData.ExtraMovesOwned--;
-            extraMovesPowerUpLabel.Text = PlayerData.ExtraMovesOwned.ToString();
+            App.PlayerData.ExtraMovesOwned--;
+            extraMovesPowerUpLabel.Text = App.PlayerData.ExtraMovesOwned.ToString();
             Level.TwoStarMoves += 10;
             moveNumberText.TextColor = Colors.Gold;
             await moveNumberText.ScaleTo(1.1, 300);
@@ -614,6 +630,7 @@ public partial class CampaignLevelPage : ContentPage
 
     public async void OnResetButtonClicked(object sender, EventArgs e)
     {
+        hook?.Dispose();
         bool ans = await DisplayAlert("Reset", "Are you sure you want to reset the maze?", "Yes", "No");
         if (ans)
         {

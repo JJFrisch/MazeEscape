@@ -111,7 +111,7 @@
 
             <Image AbsoluteLayout.LayoutBounds="0.5,1,1,1"
                    AbsoluteLayout.LayoutFlags="All"
-                   Source="background_paper.png"
+                   Source="aztec_background_1.png"
                    Aspect="Fill"
                    Opacity="0.6"/>
 

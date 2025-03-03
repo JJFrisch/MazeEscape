@@ -14,8 +14,8 @@ using System.Threading.Tasks;
 
 public partial class BasicGridPage : ContentPage
 {
-    public double MazeWindowWidth = PlayerData.WindowWidth * 0.95;
-    public double MazeWindowHeight = PlayerData.WindowHeight * 0.8;
+    public double MazeWindowWidth = App.PlayerData.WindowWidth * 0.95;
+    public double MazeWindowHeight = App.PlayerData.WindowHeight * 0.8;
 
 
     MazeModel Maze = new MazeModel();

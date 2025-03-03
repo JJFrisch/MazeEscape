@@ -100,7 +100,8 @@
             <Label Text="Pick a Wall Color"
                    AbsoluteLayout.LayoutBounds="0.5, 0.48, 200, 100"
                    AbsoluteLayout.LayoutFlags="PositionProportional"
-                   FontAttributes="Bold"/>
+                   FontAttributes="Bold"
+                   TextColor="White"/>
 
             <controls:ColorPicker
                 x:Name="ColorPicker"

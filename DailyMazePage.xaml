@@ -13,7 +13,8 @@
     </ContentPage.Resources>
 
     <AbsoluteLayout Margin="0,-80,0,0" x:Name="PageAbsoluteLayout"
-                    toolkit:StateContainer.CurrentState="{Binding CurrentState}">
+                    toolkit:StateContainer.CurrentState="{Binding CurrentState}"
+                    BackgroundColor="WhiteSmoke">
 
 
         <toolkit:StateContainer.StateViews>
@@ -608,7 +609,8 @@ Value="1" />
                 <Image Source="background_blue_2.png"
                        AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
                        AbsoluteLayout.LayoutFlags="All"
-                       Aspect="Fill"/>
+                       Aspect="Fill"
+                       Opacity="0.85"/>
 
                 <ImageButton Source="full_star.png" Opacity="0" IsVisible="True" x:Name="winningStar"
                              AbsoluteLayout.LayoutBounds="0.5, 0.5, 20, 20"
@@ -640,19 +642,20 @@ Value="1" />
 
                 <BoxView BackgroundColor="Black"
          Opacity="0.8"
-         AbsoluteLayout.LayoutBounds="0.5,0.02,0.6,50"
-         AbsoluteLayout.LayoutFlags="PositionProportional,WidthProportional"
+         AbsoluteLayout.LayoutBounds="0.5,20,300,50"
+         AbsoluteLayout.LayoutFlags="XProportional"
          CornerRadius="10"/>
 
                 <Label Text="Time:" 
-       HorizontalOptions="Center" FontSize="22" TextColor="White"
-       AbsoluteLayout.LayoutBounds="0.3,0.045,0.2,0.1"
-       AbsoluteLayout.LayoutFlags="PositionProportional,SizeProportional"/>
+       HorizontalOptions="Start" FontSize="22" TextColor="White"
+       AbsoluteLayout.LayoutBounds="0.5,30,200,50"
+       AbsoluteLayout.LayoutFlags="XProportional"/>
 
-                <Label x:Name="labelTimer" Text="00:00"  TextColor="White"
-       HorizontalOptions="Start" FontSize="18"
-       AbsoluteLayout.LayoutBounds="0.7,0.054,0.3,0.1"
-       AbsoluteLayout.LayoutFlags="PositionProportional,SizeProportional" />
+                <Label x:Name="labelTimer" Text="00 / 00"  TextColor="White"
+       HorizontalOptions="End" FontSize="18"
+       AbsoluteLayout.LayoutBounds="0.5,20,175,50"
+       AbsoluteLayout.LayoutFlags="XProportional"
+                       VerticalOptions="Center"/>
 
          <!--       <Label Text="Moves" 
        HorizontalOptions="Center"

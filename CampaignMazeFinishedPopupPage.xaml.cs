@@ -15,8 +15,8 @@ public partial class CampaignMazeFinishedPopupPage : Popup
     public CampaignMazeFinishedPopupPage(TimeSpan time, int moves, CampaignLevel level, int coinsEarned)  
 	{
 		InitializeComponent();
-        double width = PlayerData.WindowWidth * 0.6;  // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Width / 4;
-        double height = PlayerData.WindowHeight * 0.6; // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Height / 4;
+        double width = App.PlayerData.WindowWidth * 0.6;  // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Width / 4;
+        double height = App.PlayerData.WindowHeight * 0.6; // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Height / 4;
 
         // Set   the size of the popup
         this.Size = new Size(width, height);
@@ -58,20 +58,20 @@ public partial class CampaignMazeFinishedPopupPage : Popup
         starTwoImage.Source = starType[number_of_stars >= 2];
         starThreeImage.Source = starType[number_of_stars >= 3];
 
-        CheckIfNextLevelWorks();
+        //CheckIfNextLevelWorks();
         
     }
 
     public async void CheckIfNextLevelWorks()
     {
-        CampaignLevel next_level = await PlayerData.levelDatabase.GetItemAsync(PlayerData.LevelConnectsToDictionary[Level.LevelNumber][0]);
+        CampaignLevel next_level = await App.PlayerData.World1_LevelDatabase.GetItemAsync(App.PlayerData.Worlds[0].LevelConnectsToDictionary[Level.LevelNumber][0]);
         if (next_level == null)
         {
             nextLevelButton.IsEnabled = false;
             nextLevelButton.Source = "disabled_next_icon.png";
 
         }
-        else if (!next_level.LevelNumber.Contains('c') && PlayerData.StarCount >= next_level.MinimumStarsToUnlock){
+        else if (!next_level.LevelNumber.Contains('c') && App.PlayerData.Worlds[0].StarCount >= next_level.MinimumStarsToUnlock){
             nextLevelButton.IsEnabled = true;
         }
         else

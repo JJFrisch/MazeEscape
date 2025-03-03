@@ -22,42 +22,22 @@ namespace MazeEscape
             base.OnAppearing();
 
 
-            toRestart = Preferences.Get("toRestart", "YES");
-
-
-            if (PlayerData.PlayerName == "")
+            if (App.PlayerData.PlayerName == "") // If the player is starting an account
             {
-                // Uncomment these out to restart all progress
-                if (toRestart == "YES")
-                {
-                    running = true;
+                await InitializePlayer();
 
-                    await PlayerData.InitializeLevels();
-                    await InitializePlayer();
-                    PlayerData.Save();
+                App.PlayerData.Save();
 
-                    Preferences.Default.Set("toRestart", "NO");
-
-                    await infoButton.ScaleTo(2, 500);
-                    await Navigation.PushAsync(new InfoPage());
-                    infoButton.Scale = 1.2;
-
-                    running = false;
-                }   
-                else if (toRestart != "YES") 
-                {
-                    PlayerData.Load();
-                    usernameLabel.Text = "" + PlayerData.PlayerName + "";
-                }
+                await infoButton.ScaleTo(2, 500);
+                await Navigation.PushAsync(new InfoPage());
+                infoButton.Scale = 1.2;
             }
-            else
+            else // returning player
             {
-                usernameLabel.Text = "" + PlayerData.PlayerName + "";
+                usernameLabel.Text = "" + App.PlayerData.PlayerName + "";
             }
 
-            Preferences.Default.Set("toRestart", "NO");
-
-            var level = await PlayerData.levelDatabase.GetItemAsync("10");
+            var level = await App.PlayerData.World1_LevelDatabase.GetItemAsync("10");
             if (level.Star1)
             {
                 dailyChallengeButton.Source = "daily_mazes_button_background.png";
@@ -74,14 +54,15 @@ namespace MazeEscape
                 await InitializePlayer();
             }
 
-            PlayerData.PlayerName = result;
+            App.PlayerData.PlayerName = result;
             usernameLabel.Text = "" + result + "";
         }
 
         public async void OnCampaignMazesClicked(object sender, EventArgs e)
         {
             if (running) { return; }
-            await Navigation.PushAsync(new CampaignPage());
+            await Navigation.PushAsync(new WorldsPage());
+            //await Navigation.PushAsync(new CampaignPage(1));
         }
 
         public async void OnDailyMazeClicked(object sender, EventArgs e)

@@ -83,11 +83,11 @@ public partial class DailyMazePage : ContentPage
     {
         base.OnAppearing();
 
-        if (PlayerData.MostRecentMonth != date_time.ToShortDateString())
+        if (App.PlayerData.MostRecentMonth != date_time.ToShortDateString())
         {
             RestartMonth = true;
-            PlayerData.MostRecentMonth = date_time.ToShortDateString();
-            PlayerData.Save();
+            App.PlayerData.MostRecentMonth = date_time.ToShortDateString();
+            App.PlayerData.Save();
         }
 
         if (monthlyMazes.Count == 0)
@@ -116,7 +116,7 @@ public partial class DailyMazePage : ContentPage
                 LevelType = mazeType,
             };
 
-            await PlayerData.dailyMazeDatabase.AddNewLevelAsync(today);
+            await App.PlayerData.dailyMazeDatabase.AddNewLevelAsync(today);
         }
 
         for (int i = 1; i <= days_in_this_month; i++)
@@ -124,7 +124,7 @@ public partial class DailyMazePage : ContentPage
             DateTime new_date_time = new DateTime(date_time.Year, date_time.Month, i);
             string days_short_date = new_date_time.ToString("d");
 
-            //DailyMazeLevel day_item = await PlayerData.dailyMazeDatabase.GetItemAsync(days_short_date);
+            //DailyMazeLevel day_item = await App.PlayerData.dailyMazeDatabase.GetItemAsync(days_short_date);
 
             if (RestartMonth)
             {
@@ -134,8 +134,8 @@ public partial class DailyMazePage : ContentPage
 
                 DailyMazeLevel that_day = new DailyMazeLevel()
                 {
-                    Width = rnd.Next(12, 35),
-                    Height = rnd.Next(12, 35),
+                    Width = rnd.Next(15, 28),
+                    Height = rnd.Next(15, 28),
                     LevelType = mazeType,
                     Date = new_date_time,
                     ShortDate = new_date_time.ToString("d"),
@@ -143,13 +143,13 @@ public partial class DailyMazePage : ContentPage
 
                 };
 
-                await PlayerData.dailyMazeDatabase.AddNewLevelAsync(that_day);
+                await App.PlayerData.dailyMazeDatabase.AddNewLevelAsync(that_day);
 
                 monthlyMazes.Add(that_day);
             }
             else
             {
-                DailyMazeLevel day_item = await PlayerData.dailyMazeDatabase.GetItemAsync(days_short_date);
+                DailyMazeLevel day_item = await App.PlayerData.dailyMazeDatabase.GetItemAsync(days_short_date);
 
                 monthlyMazes.Add(day_item);
             }
@@ -272,25 +272,25 @@ public partial class DailyMazePage : ContentPage
         streakNumberLabel.Text = number_of_stars_won.ToString();
         progressStarSlider.WidthRequest = 220 * number_of_stars_won / days_in_this_month;
 
-        if (!PlayerData.MonthPrize1_achieved && number_of_stars_won >= ((int)days_in_this_month / 2))
+        if (!App.PlayerData.MonthPrize1_achieved && number_of_stars_won >= ((int)days_in_this_month / 2))
         {
-            PlayerData.CoinCount += 200;
-            PlayerData.MonthPrize1_achieved = true;
+            App.PlayerData.CoinCount += 200;
+            App.PlayerData.MonthPrize1_achieved = true;
             await this.ShowPopupAsync(new CampaignChestOpenedPopupPage(200), CancellationToken.None);
-            PlayerData.Save();
+            App.PlayerData.Save();
         }
-        if (!PlayerData.MonthPrize2_achieved && number_of_stars_won >= days_in_this_month)
+        if (!App.PlayerData.MonthPrize2_achieved && number_of_stars_won >= days_in_this_month)
         {
-            PlayerData.CoinCount += 500;
-            PlayerData.MonthPrize2_achieved = true;
+            App.PlayerData.CoinCount += 500;
+            App.PlayerData.MonthPrize2_achieved = true;
             await this.ShowPopupAsync(new CampaignChestOpenedPopupPage(500), CancellationToken.None);
-            PlayerData.Save();
+            App.PlayerData.Save();
         }
         if (number_of_stars_won == 0)
         {
-            PlayerData.MonthPrize1_achieved = false;
-            PlayerData.MonthPrize2_achieved = false;
-            PlayerData.Save();
+            App.PlayerData.MonthPrize1_achieved = false;
+            App.PlayerData.MonthPrize2_achieved = false;
+            App.PlayerData.Save();
         }
 
     }
@@ -415,7 +415,7 @@ public partial class DailyMazePage : ContentPage
 
     public async void DisplayInfoOnMaze()
     {
-        selected_dailyLevel = await PlayerData.dailyMazeDatabase.GetItemAsync(selected_dailyLevel.Date.ToString("d"));
+        selected_dailyLevel = await App.PlayerData.dailyMazeDatabase.GetItemAsync(selected_dailyLevel.Date.ToString("d"));
 
         dateInfoLabel.Text = selected_dailyLevel.Date.ToString("D");
         generationTypeInfoLabel.Text = selected_dailyLevel.LevelType;
@@ -460,7 +460,7 @@ public partial class DailyMazePage : ContentPage
         {
             if (selected_dailyLevel.TimeNeeded >= timePassed.TotalSeconds)
             {
-                labelTimer.Text = selected_dailyLevel.TimeNeeded.ToString() + ":  " + Math.Round(timePassed.TotalSeconds, 1).ToString();
+                labelTimer.Text = $"{Math.Round(timePassed.TotalSeconds, 1).ToString("N1")} / {selected_dailyLevel.TimeNeeded.ToString()}";
                 //moveNumberText.Text = Level.TwoStarMoves.ToString() + ":  " + numberOfMoves.ToString();
 
                 if (selected_dailyLevel.TimeNeeded - timePassed.TotalSeconds <= 5 && !countingDown)
@@ -586,7 +586,7 @@ public partial class DailyMazePage : ContentPage
     {
         Dictionary<int, Color> dict_int_to_color = new Dictionary<int, Color>();
         dict_int_to_color.Add(0, Colors.White);
-        dict_int_to_color.Add(1, Colors.Black);
+        dict_int_to_color.Add(1, App.PlayerData.WallColor);
         dict_int_to_color.Add(2, Colors.GreenYellow);
         dict_int_to_color.Add(3, Colors.IndianRed);
         dict_int_to_color.Add(4, Colors.LightGoldenrodYellow); // For Debugging Purposes
@@ -614,7 +614,8 @@ public partial class DailyMazePage : ContentPage
         (w, h) = Maze.End;
         main_absolute_layout.Add(new BoxView
         {
-            Color = dict_int_to_color[3]
+            Color = dict_int_to_color[3],
+            Opacity = 0.8,
 
         }, new Rect(w * cell_width + (line_thickness / 2), h * cell_height + (line_thickness / 2), cell_width - line_thickness, cell_height - line_thickness));
 
@@ -874,7 +875,7 @@ public partial class DailyMazePage : ContentPage
         winningStar.IsVisible = false;
 
         monthlyMazes[selected_dailyLevel.Date.Day - 1].Status = "Completed";
-        await PlayerData.dailyMazeDatabase.SaveLevelAsync(selected_dailyLevel);
+        await App.PlayerData.dailyMazeDatabase.SaveLevelAsync(selected_dailyLevel);
 
         //await DrawLevels(false);
 
@@ -964,7 +965,7 @@ public partial class DailyMazePage : ContentPage
         losingStar.IsVisible = false;
 
         monthlyMazes[selected_dailyLevel.Date.Day - 1].Status = selected_dailyLevel.Status;
-        await PlayerData.dailyMazeDatabase.SaveLevelAsync(selected_dailyLevel);
+        await App.PlayerData.dailyMazeDatabase.SaveLevelAsync(selected_dailyLevel);
 
         //stateContainerModel.CurrentState = "Calendar";
         await Navigation.PushAsync(new DailyMazePage());

@@ -11,8 +11,8 @@ public partial class EquipPage : ContentPage
 
         InitializeButtons();
 
-        characterImage.Source = PlayerData.PlayerImageName.Replace(".png", "")+"_icon.png";
-        CoinCountLabel.Text = PlayerData.CoinCount.ToString();
+        characterImage.Source = App.PlayerData.PlayerImageName.Replace(".png", "")+"_icon.png";
+        CoinCountLabel.Text = App.PlayerData.CoinCount.ToString();
 
 
     }
@@ -21,11 +21,22 @@ public partial class EquipPage : ContentPage
     List<int> prices = new List<int>() { 500, 1000, 2000, 3000, 5000, 10000 };
     public void InitializeButtons()
     {
+        int grid_cols = 3;
+
+        // Get the list of skin models
+        // Sort by price objListOrder.Sort((x, y) => x.OrderDate.CompareTo(y.OrderDate));
+        // Sort by unlocked objListOrder.Sort((x, y) => x.OrderDate.CompareTo(y.OrderDate));
+
+        //Display each skin in the grid
+        
+
+
+
         for (int num = 0; num <= 6; num++)
         {
             ImageButton imageButton;
-            int col = num % 3;
-            int row = num / 3;
+            int col = num % grid_cols;
+            int row = num / grid_cols;
             string name = $"player_image{num}";
 
 
@@ -38,7 +49,7 @@ public partial class EquipPage : ContentPage
                 Background = Colors.Transparent,
             };
 
-            if (PlayerData.UnlockedSkins.Contains(num))
+            if (App.PlayerData.UnlockedSkins.Contains(num))
             {
                 imageButton.Clicked += async (s, e) =>
                 {
@@ -77,7 +88,7 @@ public partial class EquipPage : ContentPage
                     VerticalOptions = LayoutOptions.End,
                 };
 
-                if (prices[num-1] > PlayerData.CoinCount)
+                if (prices[num-1] > App.PlayerData.CoinCount)
                 {
                     priceLabel.TextColor = Colors.Black;
                 }
@@ -121,9 +132,9 @@ public partial class EquipPage : ContentPage
 
     public async Task Equip(string name, ImageButton imageButton)
     {
-        PlayerData.PlayerImageName = name+".png";
+        App.PlayerData.PlayerImageName = name+".png";
         characterImage.Source = $"{name}_icon.png";
-        PlayerData.Save();
+        App.PlayerData.Save();
 
         await imageButton.FadeTo(0.8, 200);
         await imageButton.FadeTo(1, 200);
@@ -133,12 +144,12 @@ public partial class EquipPage : ContentPage
     {
 
         var result = await this.ShowPopupAsync(new ComfrimPurchasePage(num, imageButton, label, lock_icon), CancellationToken.None);
-        CoinCountLabel.Text = PlayerData.CoinCount.ToString();
+        CoinCountLabel.Text = App.PlayerData.CoinCount.ToString();
 
         if (result == "Purchased")
         {
             string name = $"player_image{num}";
-            PlayerData.PlayerImageName = name + ".png";
+            App.PlayerData.PlayerImageName = name + ".png";
             characterImage.Source = $"{name}_icon.png";
             await Navigation.PushAsync(new EquipPage());
         }
@@ -150,29 +161,29 @@ public partial class EquipPage : ContentPage
 
         //if (label.Text != "Comfirm?")
         //{
-        //    if (PlayerData.CoinCount >= int.Parse(label.Text))
+        //    if (App.PlayerData.CoinCount >= int.Parse(label.Text))
         //    {
-        //        PlayerData.CoinCount -= int.Parse(label.Text);
-        //        CoinCountLabel.Text = PlayerData.CoinCount.ToString();
+        //        App.PlayerData.CoinCount -= int.Parse(label.Text);
+        //        CoinCountLabel.Text = App.PlayerData.CoinCount.ToString();
         //        label.Text = "Comfirm?";
         //    }
         //    else
         //    {
-        //        await DisplayAlert("Not enough coins", "You need " + (int.Parse(label.Text) - PlayerData.CoinCount) + " more coins to unlock this skin", "OK");
+        //        await DisplayAlert("Not enough coins", "You need " + (int.Parse(label.Text) - App.PlayerData.CoinCount) + " more coins to unlock this skin", "OK");
         //    }
         //}
         //else
         //{
-        //    PlayerData.CoinCount -= int.Parse(label.Text);
-        //    CoinCountLabel.Text = PlayerData.CoinCount.ToString();
+        //    App.PlayerData.CoinCount -= int.Parse(label.Text);
+        //    CoinCountLabel.Text = App.PlayerData.CoinCount.ToString();
 
-        //    PlayerData.UnlockedSkins.Add(num);  
+        //    App.PlayerData.UnlockedSkins.Add(num);  
         //}
     }
 
 
     private async void BackButton_Clicked(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new CampaignPage());
+        await Navigation.PopAsync();
     }
 }

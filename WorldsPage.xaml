@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MazeEscape.WorldsPage"
+             Title=""
+            Shell.NavBarIsVisible="False"
+            NavigationPage.HasBackButton="False"
+            xmlns:controls="clr-namespace:MazeEscape.Controls">
+
+    <ContentPage.Resources>
+        <DataTemplate x:Key="UnlockedWorldTemplate">
+            <AbsoluteLayout x:Name="absoluteDataTemplate"
+                Padding="0,10"
+                WidthRequest="{Binding Width}"
+                HeightRequest="{Binding Height}"
+                Background="Transparent">
+
+
+                <Image AbsoluteLayout.LayoutBounds="0.5,1,1,0.95"
+           AbsoluteLayout.LayoutFlags="All"
+   Source="{Binding ImageUrl}"
+   Aspect="AspectFill" />
+
+                <BoxView BackgroundColor="Black"
+             AbsoluteLayout.LayoutBounds="0.5,0.15,300,40"
+           AbsoluteLayout.LayoutFlags="PositionProportional"
+             Opacity="0.5"/>
+
+                <Label AbsoluteLayout.LayoutBounds="0.5,0.15,300,40"
+           AbsoluteLayout.LayoutFlags="PositionProportional"
+   Text="{Binding WorldName}"
+   FontAttributes="Bold" FontSize="20"
+           VerticalTextAlignment="Center"
+           HorizontalTextAlignment="Center"/>
+
+                <BoxView BackgroundColor="Black"
+             AbsoluteLayout.LayoutBounds="1,1,80,40"
+           AbsoluteLayout.LayoutFlags="PositionProportional"
+             Opacity="0.5"/>
+
+                <Label AbsoluteLayout.LayoutBounds="1,1,80,40"
+           AbsoluteLayout.LayoutFlags="PositionProportional"
+           FontAttributes="Bold" FontSize="12"
+           VerticalTextAlignment="Center"
+           HorizontalTextAlignment="Center">
+
+                    <Label.Text>
+                        <MultiBinding StringFormat="{}{0} / {1}">
+                            <Binding Path="HighestBeatenLevel" />
+                            <Binding Path="NumberOfLevels" />
+                        </MultiBinding>
+                    </Label.Text>
+
+                </Label>
+
+
+            </AbsoluteLayout>
+        </DataTemplate>
+
+        <DataTemplate x:Key="LockedWorldTemplate">
+
+            <AbsoluteLayout x:Name="absoluteDataTemplate"
+             Padding="0,10"
+             WidthRequest="{Binding Width}"
+             HeightRequest="{Binding Height}"
+             Background="Transparent">
+
+
+                <Image AbsoluteLayout.LayoutBounds="0.5,1,1,0.95"
+                        AbsoluteLayout.LayoutFlags="All"
+                        Source="{Binding ImageUrl}"
+                        Aspect="AspectFill" 
+                       Opacity="0.5"/>
+
+                <BoxView BackgroundColor="Black"
+          AbsoluteLayout.LayoutBounds="0,0.05,120,40"
+        AbsoluteLayout.LayoutFlags="PositionProportional"
+          Opacity="0.5"/>
+
+                <Label AbsoluteLayout.LayoutBounds="0,0.05,120,40"
+        AbsoluteLayout.LayoutFlags="PositionProportional"
+Text="{Binding WorldName}"
+FontAttributes="Bold" FontSize="14"
+        VerticalTextAlignment="Center"
+        HorizontalTextAlignment="Center"/>
+
+                <BoxView BackgroundColor="Black"
+          AbsoluteLayout.LayoutBounds="1,1,80,40"
+        AbsoluteLayout.LayoutFlags="PositionProportional"
+          Opacity="0.5"/>
+
+                <Label AbsoluteLayout.LayoutBounds="1,1,80,40"
+        AbsoluteLayout.LayoutFlags="PositionProportional"
+        FontAttributes="Bold" FontSize="12"
+        VerticalTextAlignment="Center"
+        HorizontalTextAlignment="Center">
+
+                    <Label.Text>
+                        <MultiBinding StringFormat="{}{0} / {1}">
+                            <Binding Path="HighestBeatenLevel" />
+                            <Binding Path="NumberOfLevels" />
+                        </MultiBinding>
+                    </Label.Text>
+
+                </Label>
+
+
+                <Image Source="lock.png"
+                       AbsoluteLayout.LayoutBounds="0.5, 0.5, 0.2, 0.7"
+                       AbsoluteLayout.LayoutFlags="All"
+                       IsVisible="{Binding Locked}"
+                       Aspect="AspectFit"/>
+
+
+            </AbsoluteLayout>
+
+        </DataTemplate>
+
+        <controls:WorldsDataTemplateSelector x:Key="WorldsUnlockedSelector"
+                                             UnlockedWorld="{StaticResource UnlockedWorldTemplate}"
+                                             LockedWorld="{StaticResource LockedWorldTemplate}" />
+    </ContentPage.Resources>
+
+    <AbsoluteLayout Margin="0,-80,0,0" Background="Black">
+
+        <Image Source="background14.png"
+               AbsoluteLayout.LayoutBounds="0,0,1,1"
+               AbsoluteLayout.LayoutFlags="All"
+               Aspect="AspectFill" Opacity="0"/>
+
+        <CollectionView x:Name="worldsCollectionView" Margin="0,-80,0,0"
+                    AbsoluteLayout.LayoutBounds="0.5,0.5,300,600"
+                    AbsoluteLayout.LayoutFlags="PositionProportional"
+                    Background="Transparent"
+                    SelectionMode="Single"
+                    SelectionChanged="worldsCollectionView_SelectionChanged"
+                    ItemTemplate="{StaticResource WorldsUnlockedSelector}">
+            <CollectionView.Header>
+            <AbsoluteLayout Background="Transparent"
+                            HeightRequest="80">
+
+                    <BoxView BackgroundColor="Black" Opacity="0.95"
+                         AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
+                         AbsoluteLayout.LayoutFlags="All" />
+
+
+                    <ImageButton Source="back_button_normal.png"
+                             Background="Transparent"
+                             AbsoluteLayout.LayoutBounds="10,0.5,100,100"
+                             AbsoluteLayout.LayoutFlags="YProportional"
+                             Clicked="BackButton_Clicked"
+                             CornerRadius="50">
+
+                    <VisualStateManager.VisualStateGroups>
+                        <VisualStateGroupList>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal">
+                                    <VisualState.Setters>
+                                        <Setter Property="Scale"
+                Value="1" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Property="Source"
+                    Value="back_button_clicked.png" />
+                                        <Setter Property="Opacity"
+                    Value="0.6" />
+                                        <Setter Property="Scale"
+                    Value="0.9" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Property="Opacity"
+                    Value="0.7" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateGroupList>
+                    </VisualStateManager.VisualStateGroups>
+                </ImageButton>
+
+                <Label Text="" 
+                       AbsoluteLayout.LayoutBounds="0.5,0.5,150,50"
+                       AbsoluteLayout.LayoutFlags="PositionProportional"
+                        TextColor="White" 
+                        FontSize="24"
+                        HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
+
+            </AbsoluteLayout>
+            </CollectionView.Header>
+
+        </CollectionView>
+
+
+    </AbsoluteLayout>
+
+</ContentPage>

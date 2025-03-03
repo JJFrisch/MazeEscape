@@ -8,7 +8,7 @@ public partial class SettingsPage : ContentPage
 	{
 		InitializeComponent();
 
-        ChangeUsernameEntryCell.Text = PlayerData.PlayerName;
+        ChangeUsernameEntryCell.Text = App.PlayerData.PlayerName;
         running = true;
 
     }
@@ -17,8 +17,8 @@ public partial class SettingsPage : ContentPage
     {
         base.OnAppearing();
 
-        ChangeUsernameEntryCell.Text = PlayerData.PlayerName;
-        ColorPicker.PickedColor = PlayerData.WallColor;
+        ChangeUsernameEntryCell.Text = App.PlayerData.PlayerName;
+        ColorPicker.PickedColor = App.PlayerData.WallColor;
     }
 
     public void OnChangeTheme(object sender, EventArgs e)
@@ -37,11 +37,11 @@ public partial class SettingsPage : ContentPage
         {
             if (ChangeUsernameEntryCell.Text == "")
             {
-                ChangeUsernameEntryCell.Text = PlayerData.PlayerName;
+                ChangeUsernameEntryCell.Text = App.PlayerData.PlayerName;
             }
             else
             {
-                PlayerData.PlayerName = ChangeUsernameEntryCell.Text;
+                App.PlayerData.PlayerName = ChangeUsernameEntryCell.Text;
             }
         }
     }
@@ -53,7 +53,7 @@ public partial class SettingsPage : ContentPage
 
     private void backButton_Clicked(object sender, EventArgs e)
     {
-        PlayerData.Save();
+        App.PlayerData.Save();
         Navigation.PushAsync(new MainPage());
     }
 
@@ -61,7 +61,6 @@ public partial class SettingsPage : ContentPage
     {
         var color = e.NewPickedColorValue;
         choosenColorBoxView.Color = color;
-        PlayerData.WallColor = color;
-        PlayerData.Save();
+        App.PlayerData.WallColor = color;
     }
 }

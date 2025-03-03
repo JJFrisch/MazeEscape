@@ -120,15 +120,15 @@ namespace MazeEscape.Models
             }
         }
 
-        public void Init()
+        public void Init(CampaignWorld world)
         {
-            var l = new List<String>() { ConnectTo1, ConnectTo2};
-            l.Remove("");
-            PlayerData.LevelConnectsToDictionary.Add(LevelNumber, l);
+            //var l = new List<String>() { ConnectTo1, ConnectTo2};
+            //l.Remove("");
+            //world.LevelConnectsToDictionary.Add(LevelNumber, l);
         }
 
 
-        public CampaignLevel(string levelNum, int width, int height, string type, List<string> connects_to, int minimum_stars_to_unlock=0)
+        public CampaignLevel(string levelNum, int width, int height, string type, List<string> connects_to = null, int minimum_stars_to_unlock = 0)
         {
             Width = width;
             Height = height;
@@ -143,12 +143,26 @@ namespace MazeEscape.Models
             MinimumStarsToUnlock = minimum_stars_to_unlock;
             NumberOfStars = 0;
 
+            if (connects_to == null)
+            {
+                connects_to = new List<string>();
+            }
+
+            if (!levelNum.Contains("b"))
+            {
+                string next = (int.Parse(levelNum) + 1).ToString();
+                if (!connects_to.Contains(next))
+                {
+                    connects_to.Add(next);
+                }
+            }
+
             if (connects_to.Count == 1)
             {
                 ConnectTo1 = connects_to[0];
                 ConnectTo2 = "";
             }
-            else if(connects_to.Count == 2)
+            else if (connects_to.Count == 2)
             {
                 ConnectTo1 = connects_to[0];
                 ConnectTo2 = connects_to[1];
@@ -158,13 +172,6 @@ namespace MazeEscape.Models
                 ConnectTo1 = "";
                 ConnectTo2 = "";
             }
-            //PlayerData.LevelConnectsToDictionary.Add(levelNum, connects_to);
-
-
-            //Maze.MazeGenerationDelegateList[type](width, height);
-
-            //TwoStarMoves = Math.Max(Width * Height / 3, Maze.PathLength + 5);
-            //ThreeStarTime = Maze.PathLength / 2;
         }
 
         //public CampaignLevel(int width, int height, string type, int twoStarMoves, int threeStarTime)
@@ -200,7 +207,7 @@ namespace MazeEscape.Models
             MinimumStarsToUnlock = 0;
             NumberOfStars = 0;
 
-            //PlayerData.LevelConnectsToDictionary.Add(-1, new List<int> { 0,1});
+            //App.PlayerData.LevelConnectsToDictionary.Add(-1, new List<int> { 0,1});
 
         }
 

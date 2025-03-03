@@ -26,8 +26,8 @@ public partial class ComfrimPurchasePage : Popup
         PlayerIconNames.Add(5, "Fireball");
         PlayerIconNames.Add(6, "Galaxy Marble");
 
-        double width = 250; // PlayerData.WindowWidth * 0.4;  // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Width / 4;
-        double height = 250; // PlayerData.WindowHeight * 0.6; // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Height / 4;
+        double width = 250; // App.PlayerData.WindowWidth * 0.4;  // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Width / 4;
+        double height = 250; // App.PlayerData.WindowHeight * 0.6; // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Height / 4;
 
         // Set   the size of the popup
         this.Size = new Size(width, height);
@@ -42,7 +42,7 @@ public partial class ComfrimPurchasePage : Popup
 
 
 
-        if (PlayerData.CoinCount >= price)
+        if (App.PlayerData.CoinCount >= price)
         {
             itemPriceLabel.TextColor = Colors.Gold;
             itemPriceLabel.Opacity = 1;
@@ -75,9 +75,9 @@ public partial class ComfrimPurchasePage : Popup
 
     async Task PurchaseButton_Clicked(object sender, EventArgs e)
     {
-        PlayerData.CoinCount -= price;
-        PlayerData.UnlockedSkins.Add(skin_number);
-        PlayerData.Save();
+        App.PlayerData.CoinCount -= price;
+        App.PlayerData.UnlockedSkins.Add(skin_number);
+        App.PlayerData.Save();
 
         _ = itemPriceLabel.ScaleTo(1.1, 500);
         await itemPriceLabel.TextColorTo(Colors.Green, 200, 500);

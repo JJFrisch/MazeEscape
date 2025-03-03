@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MazeEscape"
              x:Class="MazeEscape.CampaignPage"
              NavigationPage.HasBackButton="False">
 
@@ -56,7 +57,7 @@
 
         <Label x:Name="CoinCountLabel"  
                FontSize="25"
-               Text="30"
+               Text="{Binding Name, Source={Static local:App.PlayerData}}"
                TextColor="White"
                VerticalTextAlignment="Center"
                HorizontalTextAlignment="Start"
@@ -93,272 +94,6 @@
 
 
 
-                <!-- Gates, Gate Labels-->
-
-                <ImageButton x:Name="gateImage1"
-                           AbsoluteLayout.LayoutBounds="21,240,55,88"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Aspect="AspectFit"
-                           Source="gate4.png"
-                           Rotation="270"
-                           Clicked="OnLockedGateImageButtonClicked"
-                             Background="Transparent"/>
-
-                                    <Label x:Name="gateLabel1"
-                           AbsoluteLayout.LayoutBounds="40.5,275,20,20"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Text="20"
-                           FontSize="12"
-                           TextColor="Gold"
-                           FontAttributes="Bold"/>
-
-
-
-                                    <ImageButton x:Name="gateImage2"
-                           AbsoluteLayout.LayoutBounds="230,91,55,98"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Aspect="AspectFit"
-                           Source="gate4.png"
-                           Clicked="OnLockedGateImageButtonClicked"
-                                                 Background="Transparent"/>
-
-                                    <Label x:Name="gateLabel2"
-                           AbsoluteLayout.LayoutBounds="250,129.5,20,20"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Text="45"
-                           FontSize="12"
-                           TextColor="Gold"
-                           FontAttributes="Bold"
-                           Rotation="0"/>
-
-
-                                    
-
-                                    <ImageButton x:Name="gateImage4"
-                        AbsoluteLayout.LayoutBounds="570,94,55,96"
-                        AbsoluteLayout.LayoutFlags="None"
-                        Aspect="AspectFit"
-                        Source="gate4.png"
-                        Rotation="0"
-                        Clicked="OnLockedGateImageButtonClicked"
-                                                 Background="Transparent"/>
-
-                <Label x:Name="gateLabel4"
-                           AbsoluteLayout.LayoutBounds="589.2,130.5,20,20"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Text="60"
-                           FontSize="12"
-                           TextColor="Gold"
-                           FontAttributes="Bold"
-                           Rotation="0"/>
-                
-
-                <ImageButton x:Name="gateImage6"
-                        AbsoluteLayout.LayoutBounds="824,0,55,96"
-                        AbsoluteLayout.LayoutFlags="None"
-                        Aspect="AspectFit"
-                        Source="gate4.png"
-                        Rotation="0"
-                        Clicked="OnLockedGateImageButtonClicked"
-                             Background="Transparent"/>
-
-                <Label x:Name="gateLabel6"
-                           AbsoluteLayout.LayoutBounds="843.5,40.5,20,20"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Text="80"
-                           FontSize="8"
-                           TextColor="Gold"
-                           FontAttributes="Bold"
-                           Rotation="0"/>
-
-                <ImageButton x:Name="gateImage8"
-                        AbsoluteLayout.LayoutBounds="1332.5,375,55,96"
-                        AbsoluteLayout.LayoutFlags="None"
-                        Aspect="AspectFit"
-                        Source="gate4.png"
-                        Rotation="0"
-                        Clicked="OnLockedGateImageButtonClicked"
-                             Background="Transparent"/>
-
-                                    <Label x:Name="gateLabel8"
-                           AbsoluteLayout.LayoutBounds="1352,415.5,20,20"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Text="80"
-                           FontSize="8"
-                           TextColor="Gold"
-                           FontAttributes="Bold"
-                           Rotation="0"/>
-
-                                    <ImageButton x:Name="gateImage10"
-                        AbsoluteLayout.LayoutBounds="1460,145,55,88"
-                        AbsoluteLayout.LayoutFlags="None"
-                        Aspect="AspectFit"
-                        Source="gate4.png"
-                        Rotation="270"
-                        Clicked="OnLockedGateImageButtonClicked"
-                                                 Background="Transparent"/>
-
-                <Label x:Name="gateLabel10"
-                           AbsoluteLayout.LayoutBounds="1478.6,183,20,20"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Text="80"
-                           FontSize="8"
-                           TextColor="Gold"
-                           FontAttributes="Bold"
-                           Rotation="0"/>
-
-                <ImageButton x:Name="gateImage11"
-                        AbsoluteLayout.LayoutBounds="1418.5,0,55,96"
-                        AbsoluteLayout.LayoutFlags="None"
-                        Aspect="AspectFit"
-                        Source="gate4.png"
-                        Rotation="0"
-                        Clicked="OnLockedGateImageButtonClicked"
-                             Background="Transparent"/>
-
-                                    <Label x:Name="gateLabel11"
-                           AbsoluteLayout.LayoutBounds="1438,40.5,20,20"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Text="80"
-                           FontSize="8"
-                           TextColor="Gold"
-                           FontAttributes="Bold"
-                           Rotation="0"/>
-
-                                    <ImageButton x:Name="gateImage12"
-                        AbsoluteLayout.LayoutBounds="1585.5,0,55,96"
-                        AbsoluteLayout.LayoutFlags="None"
-                        Aspect="AspectFit"
-                        Source="gate4.png"
-                        Rotation="0"
-                        Clicked="OnLockedGateImageButtonClicked"
-                                                 Background="Transparent"/>
-
-                                    <Label x:Name="gateLabel12"
-                           AbsoluteLayout.LayoutBounds="1604.7,40.5,20,20"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Text="80"
-                           FontSize="8"
-                           TextColor="Gold"
-                           FontAttributes="Bold"
-                           Rotation="0"/>
-
-
-                                    <!-- Fog Images -->
-
-
-                <Image x:Name="fog_area_4_image"
-                           AbsoluteLayout.LayoutBounds="1,0,335,467"
-                           AbsoluteLayout.LayoutFlags="PositionProportional"
-                           Aspect="Fill"
-                           HorizontalOptions="End"
-                           IsVisible="True"
-                           Source="fog_stage_4.png"/>
-
-                <ImageButton x:Name="gateImage9"
-                        AbsoluteLayout.LayoutBounds="1419,375,55,96"
-                        AbsoluteLayout.LayoutFlags="None"
-                        Aspect="AspectFit"
-                        Source="gate4.png"
-                        Rotation="0"
-                        Clicked="OnLockedGateImageButtonClicked"
-                             Background="Transparent"/>
-
-                <Label x:Name="gateLabel9"
-                           AbsoluteLayout.LayoutBounds="1439.5,415,20,20"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Text="820"
-                           FontSize="8"
-                           TextColor="Gold"
-                           FontAttributes="Bold"
-                           Rotation="0"/>
-
-
-                <Image x:Name="fog_area_3_image"
-                           AbsoluteLayout.LayoutBounds="1,0.5,853,465"
-                           AbsoluteLayout.LayoutFlags="PositionProportional"
-                           Aspect="Fill"
-                           HorizontalOptions="End"
-                           IsVisible="False"
-                           Source="fog_stage_3.png"/>
-
-
-                <ImageButton x:Name="gateImage7"
-                        AbsoluteLayout.LayoutBounds="1078,188,55,96"
-                        AbsoluteLayout.LayoutFlags="None"
-                        Aspect="AspectFit"
-                        Source="gate4.png"
-                        Rotation="0"
-                        Clicked="OnLockedGateImageButtonClicked"
-                             Background="Transparent"/>
-
-                <Label x:Name="gateLabel7"
-                           AbsoluteLayout.LayoutBounds="1098,228.5,20,20"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Text="80"
-                           FontSize="8"
-                           TextColor="Gold"
-                           FontAttributes="Bold"
-                           Rotation="0"/>
-
-
-                <Image x:Name="fog_area_2_image"
-                           AbsoluteLayout.LayoutBounds="1.02,0.5,1115,470"
-                           AbsoluteLayout.LayoutFlags="PositionProportional"
-                           Aspect="Fill"
-                           HorizontalOptions="End"
-                           IsVisible="False"
-                           Source="fog_stage_2.png"/>
-
-
-
-                <ImageButton x:Name="gateImage5"
-                        AbsoluteLayout.LayoutBounds="654.5,375,55,96"
-                        AbsoluteLayout.LayoutFlags="None"
-                        Aspect="AspectFit"
-                        Source="gate4.png"
-                        Rotation="0"
-                        Clicked="OnLockedGateImageButtonClicked"
-                             Background="Transparent"/>
-
-                <Label x:Name="gateLabel5"
-                           AbsoluteLayout.LayoutBounds="674.5,412.5,20,20"
-                           AbsoluteLayout.LayoutFlags="None"
-                           Text="80"
-                           FontSize="12"
-                           TextColor="Gold"
-                           FontAttributes="Bold"
-                           Rotation="0"/>
-
-
-                <Image x:Name="fog_area_1_image"
-                           AbsoluteLayout.LayoutBounds="1,0.5,1360,470"
-                           AbsoluteLayout.LayoutFlags="PositionProportional"
-                           Aspect="Fill"
-                           HorizontalOptions="End"
-                           IsVisible="True"
-                           Source="fog_stage_1.png"/>
-
-                <ImageButton x:Name="gateImage3"
-                            AbsoluteLayout.LayoutBounds="314,187,55,98"
-                            AbsoluteLayout.LayoutFlags="None"
-                            Aspect="AspectFit"
-                            Source="gate4.png"
-                            Rotation="0"
-                            Clicked="OnLockedGateImageButtonClicked"
-                             Background="Transparent"/>
-
-                      <Label x:Name="gateLabel3"
-                               AbsoluteLayout.LayoutBounds="334.2,225.5,20,20"
-                               AbsoluteLayout.LayoutFlags="None"
-                               Text="30"
-                               FontSize="12"
-                               TextColor="Gold"
-                               FontAttributes="Bold"
-                               Rotation="0"/>   
-
-
-
 
 
 
@@ -367,7 +102,8 @@
                     AbsoluteLayout.LayoutBounds="0,0,1,1"
                     AbsoluteLayout.LayoutFlags="All"
                     ColumnDefinitions="*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*,*"
-                    RowDefinitions="*,*,*,*,*">
+                    RowDefinitions="*,*,*,*,*"
+                      ZIndex="1">
 
                     <Image Source="background_paper.png"
                            Grid.ColumnSpan="20"
@@ -377,8 +113,280 @@
                            Aspect="Fill"/>
 
                 </Grid>
-       
 
+                <!-- Gates, Gate Labels-->
+
+                <ImageButton x:Name="gateImage1"
+           AbsoluteLayout.LayoutBounds="24,243,35,80"
+           AbsoluteLayout.LayoutFlags="None"
+           Aspect="AspectFit"
+           Source="gate4.png"
+           Rotation="270"
+           Clicked="OnLockedGateImageButtonClicked"
+             Background="Transparent"/>
+
+                <Label x:Name="gateLabel1"
+           AbsoluteLayout.LayoutBounds="38.5,274.5,20,20"
+           AbsoluteLayout.LayoutFlags="None"
+           Text="20"
+           FontSize="12"
+           TextColor="Gold"
+           FontAttributes="Bold"/>
+
+
+
+                <ImageButton x:Name="gateImage2"
+           AbsoluteLayout.LayoutBounds="235,91,35,98"
+           AbsoluteLayout.LayoutFlags="None"
+           Aspect="AspectFit"
+           Source="gate4.png"
+           Clicked="OnLockedGateImageButtonClicked"
+                                 Background="Transparent"/>
+
+                <Label x:Name="gateLabel2"
+           AbsoluteLayout.LayoutBounds="250,130.5,20,20"
+           AbsoluteLayout.LayoutFlags="None"
+           Text="45"
+           FontSize="12"
+           TextColor="Gold"
+           FontAttributes="Bold"
+           Rotation="0"/>
+
+
+
+
+                <ImageButton x:Name="gateImage4"
+        AbsoluteLayout.LayoutBounds="570,94,55,96"
+        AbsoluteLayout.LayoutFlags="None"
+        Aspect="AspectFit"
+        Source="gate4.png"
+        Rotation="0"
+        Clicked="OnLockedGateImageButtonClicked"
+                                 Background="Transparent"/>
+
+                <Label x:Name="gateLabel4"
+           AbsoluteLayout.LayoutBounds="589.2,130.5,20,20"
+           AbsoluteLayout.LayoutFlags="None"
+           Text="60"
+           FontSize="12"
+           TextColor="Gold"
+           FontAttributes="Bold"
+           Rotation="0"/>
+
+
+                <ImageButton x:Name="gateImage6"
+        AbsoluteLayout.LayoutBounds="824,0,55,96"
+        AbsoluteLayout.LayoutFlags="None"
+        Aspect="AspectFit"
+        Source="gate4.png"
+        Rotation="0"
+        Clicked="OnLockedGateImageButtonClicked"
+             Background="Transparent"/>
+
+                <Label x:Name="gateLabel6"
+           AbsoluteLayout.LayoutBounds="843.5,40.5,20,20"
+           AbsoluteLayout.LayoutFlags="None"
+           Text="80"
+           FontSize="8"
+           TextColor="Gold"
+           FontAttributes="Bold"
+           Rotation="0"/>
+
+                <ImageButton x:Name="gateImage8"
+        AbsoluteLayout.LayoutBounds="1332.5,375,55,96"
+        AbsoluteLayout.LayoutFlags="None"
+        Aspect="AspectFit"
+        Source="gate4.png"
+        Rotation="0"
+        Clicked="OnLockedGateImageButtonClicked"
+             Background="Transparent"/>
+
+                <Label x:Name="gateLabel8"
+           AbsoluteLayout.LayoutBounds="1352,415.5,20,20"
+           AbsoluteLayout.LayoutFlags="None"
+           Text="80"
+           FontSize="8"
+           TextColor="Gold"
+           FontAttributes="Bold"
+           Rotation="0"/>
+
+                <ImageButton x:Name="gateImage10"
+        AbsoluteLayout.LayoutBounds="1460,145,55,88"
+        AbsoluteLayout.LayoutFlags="None"
+        Aspect="AspectFit"
+        Source="gate4.png"
+        Rotation="270"
+        Clicked="OnLockedGateImageButtonClicked"
+                                 Background="Transparent"/>
+
+                <Label x:Name="gateLabel10"
+           AbsoluteLayout.LayoutBounds="1478.6,183,20,20"
+           AbsoluteLayout.LayoutFlags="None"
+           Text="80"
+           FontSize="8"
+           TextColor="Gold"
+           FontAttributes="Bold"
+           Rotation="0"/>
+
+                <ImageButton x:Name="gateImage11"
+        AbsoluteLayout.LayoutBounds="1418.5,0,55,96"
+        AbsoluteLayout.LayoutFlags="None"
+        Aspect="AspectFit"
+        Source="gate4.png"
+        Rotation="0"
+        Clicked="OnLockedGateImageButtonClicked"
+             Background="Transparent"/>
+
+                <Label x:Name="gateLabel11"
+           AbsoluteLayout.LayoutBounds="1438,40.5,20,20"
+           AbsoluteLayout.LayoutFlags="None"
+           Text="80"
+           FontSize="8"
+           TextColor="Gold"
+           FontAttributes="Bold"
+           Rotation="0"/>
+
+                <ImageButton x:Name="gateImage12"
+        AbsoluteLayout.LayoutBounds="1585.5,0,55,96"
+        AbsoluteLayout.LayoutFlags="None"
+        Aspect="AspectFit"
+        Source="gate4.png"
+        Rotation="0"
+        Clicked="OnLockedGateImageButtonClicked"
+                                 Background="Transparent"/>
+
+                <Label x:Name="gateLabel12"
+           AbsoluteLayout.LayoutBounds="1604.7,40.5,20,20"
+           AbsoluteLayout.LayoutFlags="None"
+           Text="80"
+           FontSize="8"
+           TextColor="Gold"
+           FontAttributes="Bold"
+           Rotation="0"/>
+
+
+                <!-- Fog Images -->
+
+
+                <ImageButton x:Name="fog_area_4_image"
+           AbsoluteLayout.LayoutBounds="1,0,248,470"
+           AbsoluteLayout.LayoutFlags="PositionProportional"
+           Aspect="Fill"
+           HorizontalOptions="End"
+           IsVisible="False"
+           Background="Transparent"
+           Source="fog_stage_1.png"
+                             Opacity="0.9"
+                             ZIndex="2"/>
+
+                <ImageButton x:Name="gateImage9"
+        AbsoluteLayout.LayoutBounds="1419,375,55,96"
+        AbsoluteLayout.LayoutFlags="None"
+        Aspect="AspectFit"
+        Source="gate4.png"
+        Rotation="0"
+        Clicked="OnLockedGateImageButtonClicked"
+             Background="Transparent"/>
+
+                <Label x:Name="gateLabel9"
+           AbsoluteLayout.LayoutBounds="1439.5,415,20,20"
+           AbsoluteLayout.LayoutFlags="None"
+           Text="820"
+           FontSize="8"
+           TextColor="Gold"
+           FontAttributes="Bold"
+           Rotation="0"/>
+
+
+                <ImageButton x:Name="fog_area_3_image"
+           AbsoluteLayout.LayoutBounds="1,0.5,590,470"
+           AbsoluteLayout.LayoutFlags="PositionProportional"
+           Aspect="Fill"
+           HorizontalOptions="End"
+           IsVisible="False"
+           Source="fog_stage_1.png"
+                             Opacity="0.9"
+                             ZIndex="3"/>
+
+
+                <ImageButton x:Name="gateImage7"
+        AbsoluteLayout.LayoutBounds="1078,188,55,96"
+        AbsoluteLayout.LayoutFlags="None"
+        Aspect="AspectFit"
+        Source="gate4.png"
+        Rotation="0"
+        Clicked="OnLockedGateImageButtonClicked"
+             Background="Transparent"/>
+
+                <Label x:Name="gateLabel7"
+           AbsoluteLayout.LayoutBounds="1098,228.5,20,20"
+           AbsoluteLayout.LayoutFlags="None"
+           Text="80"
+           FontSize="8"
+           TextColor="Gold"
+           FontAttributes="Bold"
+           Rotation="0"/>
+
+
+                <ImageButton x:Name="fog_area_2_image"
+           AbsoluteLayout.LayoutBounds="1,0.5,1020,470"
+           AbsoluteLayout.LayoutFlags="PositionProportional"
+           Aspect="Fill"
+           HorizontalOptions="End"
+           IsVisible="False"
+           Source="fog_stage_1.png"
+                             Opacity="0.9"
+                             ZIndex="4"/>
+
+
+
+                <ImageButton x:Name="gateImage5"
+        AbsoluteLayout.LayoutBounds="654.5,375,55,96"
+        AbsoluteLayout.LayoutFlags="None"
+        Aspect="AspectFit"
+        Source="gate4.png"
+        Rotation="0"
+        Clicked="OnLockedGateImageButtonClicked"
+             Background="Transparent"/>
+
+                <Label x:Name="gateLabel5"
+           AbsoluteLayout.LayoutBounds="674.5,412.5,20,20"
+           AbsoluteLayout.LayoutFlags="None"
+           Text="80"
+           FontSize="12"
+           TextColor="Gold"
+           FontAttributes="Bold"
+           Rotation="0"/>
+
+
+                <ImageButton x:Name="fog_area_1_image"
+           AbsoluteLayout.LayoutBounds="1,0.5,1360,470"
+           AbsoluteLayout.LayoutFlags="PositionProportional"
+           Aspect="Fill"
+           HorizontalOptions="End"
+           IsVisible="True"
+           Opacity="0.9"
+           Background="Transparent"
+           Source="fog_stage_1.png"
+                             ZIndex="5"/>
+
+                <ImageButton x:Name="gateImage3"
+            AbsoluteLayout.LayoutBounds="319,187,35,98"
+            AbsoluteLayout.LayoutFlags="None"
+            Aspect="AspectFit"
+            Source="gate4.png"
+            Rotation="0"
+            Clicked="OnLockedGateImageButtonClicked"
+             Background="Transparent"/>
+
+                <Label x:Name="gateLabel3"
+               AbsoluteLayout.LayoutBounds="334.2,225.5,20,20"
+               AbsoluteLayout.LayoutFlags="None"
+               Text="30"
+               FontSize="12"
+               TextColor="Gold"
+               FontAttributes="Bold"
+               Rotation="0"/>
 
             </AbsoluteLayout>
 

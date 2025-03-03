@@ -26,12 +26,12 @@ public partial class ShopPage : ContentPage
 
         foreach (string name in NamesOfPowerUps)
         {
-            NumberOwnedLabels[name].Text = PlayerData.GetPowerupCountFromName(name).ToString();
+            NumberOwnedLabels[name].Text = App.PlayerData.GetPowerupCountFromName(name).ToString();
         }
 
         //DrawPowerUps();
 
-        CoinCountLabel.Text = PlayerData.CoinCount.ToString();
+        CoinCountLabel.Text = App.PlayerData.CoinCount.ToString();
 
     }
 
@@ -105,7 +105,7 @@ public partial class ShopPage : ContentPage
             {
                 HorizontalOptions = LayoutOptions.Center,
                 VerticalOptions = LayoutOptions.Center,
-                Text = PlayerData.GetPowerupCountFromName(name).ToString(),
+                Text = App.PlayerData.GetPowerupCountFromName(name).ToString(),
                 FontSize = 18,
                 TextColor = Colors.Black,
             };
@@ -137,19 +137,19 @@ public partial class ShopPage : ContentPage
 
     public async Task Buy(string name, ImageButton imageButton)
     {
-        if (PlayerData.CoinCount >= CostsOfPowerUps[name])
+        if (App.PlayerData.CoinCount >= CostsOfPowerUps[name])
         {
-            PlayerData.CoinCount -= CostsOfPowerUps[name];
-            PlayerData.AddPowerup(name);
-            PlayerData.Save();
+            App.PlayerData.CoinCount -= CostsOfPowerUps[name];
+            App.PlayerData.AddPowerup(name);
+            App.PlayerData.Save();
 
             _ = imageButton.FadeTo(0.5, 500);
             await imageButton.ScaleTo(0.8, 500);
             _ = imageButton.FadeTo(1, 500);
             await imageButton.ScaleTo(1, 500);
 
-            CoinCountLabel.Text = PlayerData.CoinCount.ToString();
-            NumberOwnedLabels[name].Text = PlayerData.GetPowerupCountFromName(name).ToString();
+            CoinCountLabel.Text = App.PlayerData.CoinCount.ToString();
+            NumberOwnedLabels[name].Text = App.PlayerData.GetPowerupCountFromName(name).ToString();
         }
         else
         {

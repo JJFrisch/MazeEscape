@@ -13,7 +13,7 @@
 		either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
 		<!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
 
-		<OutputType>Exe</OutputType>
+		<OutputType>Exe</OutputType> 
 		<RootNamespace>MazeEscape</RootNamespace>
 		<UseMaui>true</UseMaui>
 		<SingleProject>true</SingleProject>
@@ -36,20 +36,20 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
-		<GenerateAppInstallerFile>True</GenerateAppInstallerFile>
-		<AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
-		<PackageCertificateThumbprint>A0F0CE8ABCA99C8706DEEB1EE3DF452C35A63DFD</PackageCertificateThumbprint>
-		<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
-		<AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
-		<AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
-		<GenerateTestArtifacts>True</GenerateTestArtifacts>
-		<AppInstallerUri>C:\Users\jjfri\Downloads</AppInstallerUri>
-		<HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+		<GenerateAppInstallerFile>True</GenerateAppInstallerFile> <!-- Set to False to disable generating the app installer file -->
+		<AppxPackageSigningEnabled>True</AppxPackageSigningEnabled> <!-- Set to False to disable signing the package -->
+		<PackageCertificateThumbprint>A0F0CE8ABCA99C8706DEEB1EE3DF452C35A63DFD</PackageCertificateThumbprint> <!-- Replace with your certificate thumbprint -->
+		<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm> <!-- SHA256 or SHA1 -->
+		<AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision> <!-- Set to False to disable auto-incrementing the package revision -->
+		<AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled> <!-- Set to False to disable generating the symbol package -->
+		<GenerateTestArtifacts>True</GenerateTestArtifacts> <!-- Set to False to disable generating test artifacts -->
+		<AppInstallerUri>C:\Users\jjfri\Downloads</AppInstallerUri> <!-- Set to the location of the app installer file -->
+		<HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks> <!-- Set to 0 to disable update checks -->
 	</PropertyGroup>
 
 	<ItemGroup>
 		<!-- App Icon -->
-		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+		<MauiIcon Include="Resources\AppIcon\appiconrainbow.png" ForegroundFile="Resources\AppIcon\appiconrainbow.png" Color="#512BD4" />
 
 		<!-- Splash Screen -->
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
@@ -62,6 +62,15 @@
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AndroidResource Remove="C\**" />
+	  <Compile Remove="C\**" />
+	  <EmbeddedResource Remove="C\**" />
+	  <MauiCss Remove="C\**" />
+	  <MauiXaml Remove="C\**" />
+	  <None Remove="C\**" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -78,6 +87,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Remove="Resources\AppIcon\appiconrainbow.png" />
 	  <None Remove="Resources\Images\campaign_background_1.png" />
 	  <None Remove="Resources\Images\carousel_Maze_1.png" />
 	  <None Remove="Resources\Images\carousel_Maze_2.png" />
@@ -115,6 +125,7 @@
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="nor0x.Maui.ColorPicker" Version="2.0.4" />
+		<PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
 		<PackageReference Include="SharpHook.Reactive" Version="5.3.8" />
 		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
 		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.10" />
@@ -162,6 +173,18 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="ShopPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="World2CampaignLevelPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="World2CampaignMazeFinishedPopupPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="World2CampaignPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="WorldsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

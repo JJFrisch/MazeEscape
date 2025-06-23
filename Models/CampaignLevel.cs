@@ -122,9 +122,9 @@ namespace MazeEscape.Models
 
         public void Init(CampaignWorld world)
         {
-            //var l = new List<String>() { ConnectTo1, ConnectTo2};
-            //l.Remove("");
-            //world.LevelConnectsToDictionary.Add(LevelNumber, l);
+            var l = new List<String>() { ConnectTo1, ConnectTo2 };
+            l.Remove("");
+            world.LevelConnectsToDictionary.Add(LevelNumber, l);
         }
 
 

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace MazeEscape
 {
@@ -31,6 +32,7 @@ namespace MazeEscape
         public int Y { get; set; }
         public bool Opened { get; set; }
         public bool Unlocked { get; set; }
+        public ICommand? ButtonCommand { set; get; }
 
 
         void Draw(Grid gridView, AbsoluteLayout absLayout, Label coinCountLabel);
@@ -50,6 +52,7 @@ namespace MazeEscape
         public string Name { get; set; }
         public int WorldNumber { get; set; }
         public ImageButton? imageButton { get; set; }
+        public ICommand? ButtonCommand { set; get; }
 
 
         public ChestModel(int world, int x, int y, string name)
@@ -197,6 +200,8 @@ namespace MazeEscape
         public int WorldNumber { get; set; }
         public int StarsNeeded { get; set; }
         public Image? imageButton { get; set; }
+        public ICommand?ButtonCommand { set; get; }
+
 
         TapGestureRecognizer tapGestureRecognizer = new TapGestureRecognizer();
 
@@ -268,8 +273,8 @@ namespace MazeEscape
         }
         public void CancelAnimation()
         {
-            //imageButton?.AbortAnimation("ChildAnimations");
-            imageButton.CancelAnimations();
+            imageButton?.AbortAnimation("ChildAnimations");
+            //imageButton.CancelAnimations();
         }
 
         public async Task AnimationIsOver(bool isCompleted, bool isCancelled, int unlocked_num)
@@ -298,7 +303,8 @@ namespace MazeEscape
             else if (Unlocked && Opened)
             {
                 // Go to next world
-                await Application.Current.MainPage.Navigation.PushAsync(new WorldsPage());
+                CancelAnimation();
+                //await Application.Current.MainPage.Navigation.PushAsync(new WorldsPage());
             }
             else
             {
@@ -347,15 +353,20 @@ namespace MazeEscape
         public bool Unlocked { get; set; }
         public string Name { get; set; }
         public int WorldNumber { get; set; }
-        public string SkinName { get; set; }
+        public SkinModel Skin { get; set; }
         public ImageButton? imageButton { get; set; }
+        public ICommand? ButtonCommand { set; get; }
+
+
         public SkinUnlockModel(int world, int x, int y, string name, string skin_name)
         {
             WorldNumber = world;
             X = x;
             Y = y;
             Name = name;
-            SkinName = skin_name;
+
+            Skin = App.PlayerData.UnlockedSkins.Find(x => x.Name == skin_name);
+
         }
         public void Draw(Grid gridView, AbsoluteLayout absLayout, Label coinCountLabel)
         {
@@ -366,7 +377,7 @@ namespace MazeEscape
                 Aspect = Aspect.AspectFit,
                 HeightRequest = 60,
                 WidthRequest = 60,
-                Source = "skin_unlock.png",
+                Source = $"{Skin.ImageUrl}_icon.png",
                 Background = Colors.Transparent,
             };
             if (App.PlayerData.Worlds[WorldNumber - 1].UnlockedMazesNumbers.Contains(Name))
@@ -385,37 +396,24 @@ namespace MazeEscape
         {
             int degree_of_rotation = 10;
             if (imageButton == null) return;
-            double rand_duration = new Random().Next(10, 20);
+            double rand_duration = new Random().Next(10, 15);
             double rand_start_skew = new Random().Next(1, (int)(rand_duration - 2));
             double rand_start = rand_start_skew / rand_duration;
-            //Task.Delay(rand_start * 1000).Wait(); // Random delay to simulate different animation start times
+
             new Animation
             {
-                { rand_start, rand_start + (0.5 / rand_duration), new Animation (v => imageButton.Rotation = v, 0, +degree_of_rotation) },
-                { rand_start + (0.5 / rand_duration), rand_start + (1.5 / rand_duration), new Animation (v => imageButton.Rotation = v, +degree_of_rotation, -degree_of_rotation) },
-                { rand_start + (1.5 / rand_duration), rand_start + (2 / rand_duration), new Animation (v => imageButton.Rotation = v, -degree_of_rotation, 0) }
-                }.Commit(imageButton, "ChildAnimations", 16, (uint)(rand_duration * 1000), null, (v, c) => AnimationIsOver(true, false), () => true);
-
-
+                { rand_start, rand_start + (0.25 / rand_duration), new Animation (v => imageButton.Rotation = v, 0, +degree_of_rotation) },
+                { rand_start + (0.25 / rand_duration), rand_start + (0.75 / rand_duration), new Animation (v => imageButton.Rotation = v, +degree_of_rotation, -degree_of_rotation) },
+                { rand_start + (0.75 / rand_duration), rand_start + (1 / rand_duration), new Animation (v => imageButton.Rotation = v, -degree_of_rotation, 0) },
+                { rand_start + (0.1 / rand_duration), rand_start + (1.25 / rand_duration), new Animation (v => imageButton.Rotation = v, 0, +degree_of_rotation) },
+                { rand_start + (1.25 / rand_duration), rand_start + (1.75 / rand_duration), new Animation (v => imageButton.Rotation = v, +degree_of_rotation, -degree_of_rotation) },
+                { rand_start + (1.75 / rand_duration), rand_start + (2 / rand_duration), new Animation (v => imageButton.Rotation = v, -degree_of_rotation, 0) }
+                }.Commit(imageButton, "ChildAnimations", 16, (uint)(rand_duration * 1000), null, null, () => true);
         }
 
         public void CancelAnimation()
         {
             imageButton?.AbortAnimation("ChildAnimations");
-        }
-
-        public void AnimationIsOver(bool isCompleted, bool isCancelled)
-        {
-            if (isCompleted)
-            {
-                // Animation completed successfully
-                // Handle any post-animation logic here
-            }
-            else if (isCancelled)
-            {
-                // Animation was cancelled
-                // Handle any cancellation logic here
-            }
         }
 
         public async Task OnClicked(object sender, EventArgs e, AbsoluteLayout absLayout, Label coinCountLabel)
@@ -424,7 +422,14 @@ namespace MazeEscape
             {
                 Opened = true;
                 await OpenSkinUnlock(sender, e, absLayout);
-                coinCountLabel.Text = App.PlayerData.CoinCount.ToString();
+
+                await imageButton.ScaleTo(0, 250);
+                await imageButton.ScaleTo(1, 250);
+
+            }else if (Unlocked && Opened)
+            {
+                await imageButton.ScaleTo(0.5, 250);
+                await imageButton.ScaleTo(1, 250);
             }
             else
             {
@@ -435,26 +440,11 @@ namespace MazeEscape
         public async Task OpenSkinUnlock(object sender, EventArgs e, AbsoluteLayout absLayout)
         {
             CancelAnimation();
-            ImageButton self = (ImageButton)sender;
-            _ = self.ScaleTo(1.1, 1000);
-            Random rnd = new Random();
-            int coinsEarned = rnd.Next(100, 1000);
-            App.PlayerData.CoinCount += coinsEarned;
+            await imageButton.ScaleTo(0, 250);
+            await imageButton.ScaleTo(1, 250);
+
+            Skin.IsUnlocked = true;
             App.PlayerData.Save();
-            ImageButton chest = (ImageButton)sender;
-            await self.FadeTo(0, 1000);
-            Label coinsEarnedLabel = new Label
-            {
-                Text = coinsEarned.ToString(),
-                TextColor = Colors.Gold,
-                FontSize = 16,
-                HorizontalTextAlignment = TextAlignment.Center,
-            };
-            absLayout.Add(coinsEarnedLabel, new Rect(chest.X, chest.Y - 10, 50, 110));
-            chest.Source = "coin_pile.png";
-            await self.FadeTo(1, 500);
-            await coinsEarnedLabel.FadeTo(0, 10000);
-            coinsEarnedLabel.IsVisible = false;
         }
 
         public async Task OnLockedSkinUnlockImageButtonClicked(object sender, EventArgs e)
@@ -463,7 +453,126 @@ namespace MazeEscape
             await self.ScaleTo(1.1, 500);
             await self.ScaleTo(1, 500);
         }
-
-
     }
+
+    public class KeyModel : IReward
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public bool Opened { get; set; }
+        public bool Unlocked { get; set; }
+        public string Name { get; set; }
+        public string ConnectsTo { get; set; }
+        public string ImageUrl { get; set; }
+        public int WorldNumber { get; set; }
+        public ImageButton? imageButton { get; set; }
+        public ICommand? ButtonCommand { set; get; }
+
+        public KeyModel(int world, int x, int y, string name, string connectsTo, string imgUrl)
+        {
+            WorldNumber = world;
+            X = x;
+            Y = y;
+            Name = name;
+            ConnectsTo = connectsTo;
+            ImageUrl = imgUrl;
+
+        }
+        public void Draw(Grid gridView, AbsoluteLayout absLayout, Label coinCountLabel)
+        {
+            imageButton = new ImageButton
+            {
+                HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.Center,
+                Aspect = Aspect.AspectFit,
+                HeightRequest = 60,
+                WidthRequest = 60,
+                Source = $"{ImageUrl}.png",
+                Background = Colors.Transparent,
+                Command = ButtonCommand,
+            };
+            if (App.PlayerData.Worlds[WorldNumber - 1].UnlockedMazesNumbers.Contains(Name))
+            {
+                Unlocked = true;
+            }
+            imageButton.Clicked += async (s, e) =>
+            {
+                await OnClicked(s, e, absLayout, coinCountLabel);
+            };
+            Grid.SetRow(imageButton, Y);
+            Grid.SetColumn(imageButton, X);
+            gridView.Add(imageButton);
+        }
+        public void Animation()
+        {
+            int degree_of_rotation = 10;
+            if (imageButton == null) return;
+            double rand_duration = new Random().Next(5, 10);
+            double rand_start_skew = new Random().Next(1, (int)(rand_duration - 2));
+            double rand_start = rand_start_skew / rand_duration;
+
+            new Animation
+            {
+                { rand_start, rand_start + (0.25 / rand_duration), new Animation (v => imageButton.Rotation = v, 0, +degree_of_rotation) },
+                { rand_start + (0.25 / rand_duration), rand_start + (0.75 / rand_duration), new Animation (v => imageButton.Rotation = v, +degree_of_rotation, -degree_of_rotation) },
+                { rand_start + (0.75 / rand_duration), rand_start + (1 / rand_duration), new Animation (v => imageButton.Rotation = v, -degree_of_rotation, 0) },
+                { rand_start + (0.1 / rand_duration), rand_start + (1.25 / rand_duration), new Animation (v => imageButton.Rotation = v, 0, +degree_of_rotation) },
+                { rand_start + (1.25 / rand_duration), rand_start + (1.75 / rand_duration), new Animation (v => imageButton.Rotation = v, +degree_of_rotation, -degree_of_rotation) },
+                { rand_start + (1.75 / rand_duration), rand_start + (2 / rand_duration), new Animation (v => imageButton.Rotation = v, -degree_of_rotation, 0) },
+                { 0, 0.25, new Animation (v => imageButton.TranslationX = v, 0, +5) },
+                { 0.25, 0.75, new Animation (v => imageButton.Rotation = v, -5, +5) },
+                { 0.75, 1, new Animation (v => imageButton.Rotation = v, -5, 0) },
+                }.Commit(imageButton, "ChildAnimations", 16, (uint)(rand_duration * 1000), null, null, () => true);
+
+        }
+
+        public void CancelAnimation()
+        {
+            imageButton?.AbortAnimation("ChildAnimations");
+        }
+
+        public async Task OnClicked(object sender, EventArgs e, AbsoluteLayout absLayout, Label coinCountLabel)
+        {
+            if (Unlocked && !Opened)
+            {
+                Opened = true;
+                await OpenSkinUnlock(sender, e, absLayout);
+
+                await imageButton.ScaleTo(0, 250);
+                await imageButton.ScaleTo(1, 250);
+
+            }
+            else if (Unlocked && Opened)
+            {
+                await imageButton.ScaleTo(0.5, 250);
+                await imageButton.ScaleTo(1, 250);
+            }
+            else
+            {
+                await OnLockedSkinUnlockImageButtonClicked(sender, e);
+            }
+        }
+
+        public async Task OpenSkinUnlock(object sender, EventArgs e, AbsoluteLayout absLayout)
+        {
+            CancelAnimation();
+            await imageButton.ScaleTo(0, 250);
+            await imageButton.ScaleTo(1, 250);
+
+            App.PlayerData.Worlds[WorldNumber - 1].UnlockedMazesNumbers.Add(ConnectsTo);
+            App.PlayerData.Save();
+
+            ButtonCommand = null;
+        }
+
+        public async Task OnLockedSkinUnlockImageButtonClicked(object sender, EventArgs e)
+        {
+            ImageButton self = (ImageButton)sender;
+            await self.ScaleTo(1.1, 500);
+            await self.ScaleTo(1, 500);
+        }
+    }
+
+
+
 }

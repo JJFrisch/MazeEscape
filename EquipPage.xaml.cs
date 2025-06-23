@@ -1,4 +1,5 @@
 using CommunityToolkit.Maui.Views;
+using MazeEscape.Models;
 using System.Xml.Linq;
 
 namespace MazeEscape;
@@ -9,51 +10,54 @@ public partial class EquipPage : ContentPage
 	{
 		InitializeComponent();
 
+        playerImageGrid.HeightRequest = 7 * 110;
+
         InitializeButtons();
 
-        characterImage.Source = App.PlayerData.PlayerImageName.Replace(".png", "")+"_icon.png";
+        characterImage.Source = App.PlayerData.PlayerCurrentSkin.ImageUrl+"_icon.png";
         CoinCountLabel.Text = App.PlayerData.CoinCount.ToString();
 
 
     }
 
 
-    List<int> prices = new List<int>() { 500, 1000, 2000, 3000, 5000, 10000 };
+    //List<int> prices = new List<int>() { 500, 1000, 2000, 3000, 5000, 10000 };
     public void InitializeButtons()
     {
         int grid_cols = 3;
 
-        // Get the list of skin models
-        // Sort by price objListOrder.Sort((x, y) => x.OrderDate.CompareTo(y.OrderDate));
-        // Sort by unlocked objListOrder.Sort((x, y) => x.OrderDate.CompareTo(y.OrderDate));
+        //App.PlayerData.UnlockedSkins.Sort((x, y) => y.CoinPrice.CompareTo(x.CoinPrice));
+        //App.PlayerData.UnlockedSkins.Sort((x, y) => x.IsSpecialSkin.CompareTo(y.IsSpecialSkin));
+        //App.PlayerData.UnlockedSkins.Sort((x, y) => y.IsUnlocked.CompareTo(x.IsUnlocked));
 
-        //Display each skin in the grid
-        
+        App.PlayerData.UnlockedSkins =
+                    App.PlayerData.UnlockedSkins
+                        .OrderByDescending(m => m.IsUnlocked)
+                        .ThenBy(m => m.IsSpecialSkin)
+                        .ThenBy(m => m.CoinPrice)
+                        .ToList<SkinModel>();
 
-
-
-        for (int num = 0; num <= 6; num++)
+        for (int num = 0; num < App.PlayerData.UnlockedSkins.Count; num++)
         {
+            SkinModel skin = App.PlayerData.UnlockedSkins[num];
             ImageButton imageButton;
             int col = num % grid_cols;
             int row = num / grid_cols;
-            string name = $"player_image{num}";
-
 
             imageButton = new ImageButton
             {
                 WidthRequest = 80,
-                Source = $"player_image{num}_icon.png",
+                Source = $"{skin.ImageUrl}_icon.png",
                 CornerRadius = 20,
                 VerticalOptions = LayoutOptions.Start,
                 Background = Colors.Transparent,
             };
 
-            if (App.PlayerData.UnlockedSkins.Contains(num))
+            if (skin.IsUnlocked)
             {
                 imageButton.Clicked += async (s, e) =>
                 {
-                    await Equip(name, imageButton);
+                    await Equip(skin, imageButton);
                 };
                 Grid.SetColumn(imageButton, col);
                 Grid.SetRow(imageButton, row);
@@ -63,39 +67,70 @@ public partial class EquipPage : ContentPage
             else
             {
                 imageButton.Opacity = 0.3;
+                Label priceLabel = new Label();
 
-                BoxView priceBackground = new BoxView
+                if (!skin.IsSpecialSkin)
                 {
-                    BackgroundColor = Colors.DarkGreen,
-                    Opacity = 0.4,
-                    CornerRadius = 50,
-                    HorizontalOptions = LayoutOptions.Center,
-                    VerticalOptions = LayoutOptions.End,
-                    HeightRequest = 22,
-                    WidthRequest = 80,
-                };
-                Grid.SetColumn(priceBackground, col);
-                Grid.SetRow(priceBackground, row);
-                playerImageGrid.Add(priceBackground);
+                    BoxView priceBackground = new BoxView
+                    {
+                        BackgroundColor = Colors.DarkGreen,
+                        Opacity = 0.4,
+                        CornerRadius = 50,
+                        HorizontalOptions = LayoutOptions.Center,
+                        VerticalOptions = LayoutOptions.End,
+                        HeightRequest = 22,
+                        WidthRequest = 80,
+                    };
+                    Grid.SetColumn(priceBackground, col);
+                    Grid.SetRow(priceBackground, row);
+                    playerImageGrid.Add(priceBackground);
 
-                Label priceLabel = new Label
-                {
-                    Text = prices[num-1].ToString(),
-                    TextColor = Colors.Gold,
-                    FontSize = 15,
-                    FontAttributes = FontAttributes.Bold,
-                    HorizontalOptions = LayoutOptions.Center,
-                    VerticalOptions = LayoutOptions.End,
-                };
 
-                if (prices[num-1] > App.PlayerData.CoinCount)
-                {
-                    priceLabel.TextColor = Colors.Black;
+
+                    priceLabel = new Label
+                    {
+                        Text = skin.CoinPrice.ToString(),
+                        TextColor = Colors.Gold,
+                        FontSize = 15,
+                        WidthRequest = 70,
+                        FontAttributes = FontAttributes.Bold,
+                        HorizontalOptions = LayoutOptions.Center,
+                        HorizontalTextAlignment = TextAlignment.End,
+                        VerticalOptions = LayoutOptions.End,
+                    };
+
+                    if (skin.CoinPrice > App.PlayerData.CoinCount)
+                    {
+                        priceLabel.TextColor = Colors.Black;
+                    }
+
+                    Grid.SetColumn(priceLabel, col);
+                    Grid.SetRow(priceLabel, row);
+                    playerImageGrid.Add(priceLabel);
+
+
+                    ImageButton coin = new ImageButton
+                    {
+                        Source = "coin.png",
+                        BackgroundColor = Colors.Transparent,
+                        Aspect = Aspect.AspectFit,
+                        //Scale = 0.75,
+                        WidthRequest = 20,
+                        HeightRequest = 20,
+                        MaximumWidthRequest = 20,
+                        Padding = new Thickness(17, 27, 0, 4),
+                        HorizontalOptions = LayoutOptions.Start,
+                        VerticalOptions = LayoutOptions.End,
+                    };
+
+                    if (skin.CoinPrice == 0) { 
+                        // make coin into gem
+                    }
+
+                    Grid.SetColumn(coin, col);
+                    Grid.SetRow(coin, row);
+                    playerImageGrid.Add(coin);
                 }
-
-                Grid.SetColumn(priceLabel, col);
-                Grid.SetRow(priceLabel, row);
-                playerImageGrid.Add(priceLabel);
 
                 ImageButton lock_icon = new ImageButton
                 {
@@ -108,19 +143,19 @@ public partial class EquipPage : ContentPage
                 int skin_number = num;
                 lock_icon.Clicked += async (s, e) =>
                 {
-                    await OnClick_Locked(skin_number, imageButton, priceLabel, lock_icon);
+                    await OnClick_Locked(skin, imageButton, priceLabel, lock_icon);
                 };
                 Grid.SetColumn(lock_icon, col);
                 Grid.SetRow(lock_icon, row);
 
                 imageButton.Clicked += async (s, e) =>
                 {
-                    await OnClick_Locked(skin_number, imageButton, priceLabel, lock_icon);
+                    await OnClick_Locked(skin, imageButton, priceLabel, lock_icon);
                 };
                 Grid.SetColumn(imageButton, col);
                 Grid.SetRow(imageButton, row);
                 playerImageGrid.Add(imageButton);
-                
+
                 playerImageGrid.Add(lock_icon);
 
 
@@ -130,28 +165,30 @@ public partial class EquipPage : ContentPage
 
     }
 
-    public async Task Equip(string name, ImageButton imageButton)
+    public async Task Equip(SkinModel skin, ImageButton imageButton)
     {
-        App.PlayerData.PlayerImageName = name+".png";
-        characterImage.Source = $"{name}_icon.png";
+        App.PlayerData.PlayerCurrentSkin = skin;
+        characterImage.Source = $"{skin.ImageUrl}_icon.png";
         App.PlayerData.Save();
 
         await imageButton.FadeTo(0.8, 200);
         await imageButton.FadeTo(1, 200);
     }
 
-    public async Task OnClick_Locked(int num, ImageButton imageButton, Label label, ImageButton lock_icon)
+    public async Task OnClick_Locked(SkinModel skin, ImageButton imageButton, Label label, ImageButton lock_icon)
     {
 
-        var result = await this.ShowPopupAsync(new ComfrimPurchasePage(num, imageButton, label, lock_icon), CancellationToken.None);
+        var result = await this.ShowPopupAsync(new ComfrimPurchasePage(skin, imageButton, label, lock_icon), CancellationToken.None);
         CoinCountLabel.Text = App.PlayerData.CoinCount.ToString();
 
         if (result == "Purchased")
         {
-            string name = $"player_image{num}";
-            App.PlayerData.PlayerImageName = name + ".png";
+            string name = skin.ImageUrl;
+            App.PlayerData.PlayerCurrentSkin = skin;
             characterImage.Source = $"{name}_icon.png";
             await Navigation.PushAsync(new EquipPage());
+            Navigation.RemovePage(Navigation.NavigationStack[Navigation.NavigationStack.Count - 2]);
+
         }
         else if (result == "Close")
         {

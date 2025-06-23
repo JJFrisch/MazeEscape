@@ -21,7 +21,7 @@ public partial class World2CampaignPage : ContentPage
     {
         InitializeComponent();
 
-        World = App.PlayerData.Worlds[0];
+        World = App.PlayerData.Worlds[1];
 
         campaignMazeBackgroundAbsoluteLayout.HeightRequest = 0.7 * App.PlayerData.WindowHeight;
     }
@@ -438,7 +438,7 @@ public partial class World2CampaignPage : ContentPage
 
     private async void BackButton_Clicked(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new MainPage());
+        await Navigation.PushAsync(new WorldsPage());
     }
 
     public async void OnShopButtonClicked(object sender, EventArgs e)

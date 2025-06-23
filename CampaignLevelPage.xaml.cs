@@ -27,12 +27,19 @@ public partial class CampaignLevelPage : ContentPage
     public double MazeWindowHeight = Application.Current.MainPage.Height * 0.8;
 
     MazeModel Maze = new MazeModel();
+    double cell_width;
+    double cell_height;
 
     PlayerDrawable drawer;
     SimpleReactiveGlobalHook? hook = null;
 
-    //private DateTime timeStarted;
-    public int numberOfMoves = -1;
+    Image PlayerImage = new Image();
+
+    private const int MoveQueueLengthMax = 2;
+    public delegate Task MoveDelegate();
+    Queue<MoveDelegate> MoveQueue = new Queue<MoveDelegate>();
+
+    public int numberOfMoves = 0;
     private bool running;
     TimeSpan TotalTime;
 
@@ -63,7 +70,7 @@ public partial class CampaignLevelPage : ContentPage
         }
 
         TimeSpan timePassed = DateTime.Now - timeStarted;
-        Dispatcher.Dispatch(new Action(() =>
+        Dispatcher.Dispatch(new Action(async () =>
         {
             labelTimer.Text = $"{Math.Round(timePassed.TotalSeconds, 1).ToString("N1")} / {Level.ThreeStarTime.ToString()}"; 
             moveNumberText.Text = $"{numberOfMoves.ToString()} / {Level.TwoStarMoves.ToString()}";
@@ -71,7 +78,13 @@ public partial class CampaignLevelPage : ContentPage
             if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
             {
                 TotalTime = DateTime.Now - timeStarted;
+                await FinishAnimation();
                 CompletedMaze();
+            }
+            if (MoveQueue.Count > 0)
+            {
+                MoveDelegate move = MoveQueue.Dequeue();
+                await move();
             }
         }));
     }
@@ -93,15 +106,16 @@ public partial class CampaignLevelPage : ContentPage
 
         InitializeReactiveKeyboard();
 
-        drawer = new PlayerDrawable();
-        mazeGraphicsView.Drawable = drawer;
-        drawer.Initialize();
+        //drawer = new PlayerDrawable();
+        //mazeGraphicsView.Drawable = drawer;
+        //drawer.Initialize();
 
         InitializeMaze();
 
         DrawMaze("line");
 
-        UpdatePlayerDrawerPosition();
+        DrawPlayer();
+        //UpdatePlayerDrawerPosition();
 
         AddSwipeGestures();
 
@@ -111,7 +125,6 @@ public partial class CampaignLevelPage : ContentPage
 
     public void StartPlay()
     {
-        //var list = App.PlayerData.world1_LevelDatabase.GetItemsAsync().Result;
         stateContainerModel.CurrentState = "Success";
         int time_to_wait = Level.Width * Level.Height * 5;
         Task.Delay(time_to_wait).ContinueWith(t => StartTimer());
@@ -149,6 +162,28 @@ public partial class CampaignLevelPage : ContentPage
 
     }
 
+    public void DrawPlayer()
+    {
+        var x_pos = (float)(Maze.Player.X * cell_width);
+        var y_pos = (float)(Maze.Player.Y * cell_height);
+        var scale = Math.Min(cell_width, cell_height) * 0.95;
+        var xPadding = (cell_width - scale) / 2;
+        var yPadding = (cell_height - scale) / 2;
+
+        PlayerImage = new Image
+        {
+            Source = App.PlayerData.PlayerCurrentSkin.ImageUrl + "_icon.png",
+            WidthRequest = scale,
+            HeightRequest = scale,
+
+        };
+
+        main_absolute_layout.Add(PlayerImage, new Rect(0,0, scale, scale));
+
+        PlayerImage.TranslateTo(x_pos + xPadding, y_pos + yPadding, 10);
+
+    }
+
     public void DrawMaze(string wall_type = "line")
     {
         Dictionary<int, Color> dict_int_to_color = new Dictionary<int, Color>();
@@ -164,13 +199,12 @@ public partial class CampaignLevelPage : ContentPage
         dict_str_to_color.Add("s", Colors.Green);
         dict_str_to_color.Add("F", Colors.Red);
 
-        double cell_width = MazeWindowWidth / Maze.Width;
-        double cell_height = MazeWindowHeight / Maze.Height;
-
         int line_thickness = 4;
 
 
         // Color in the Start and Finish Squares before drawing lines
+        (Maze.Player.X, Maze.Player.Y) = Maze.Start;
+
         (int w, int h) = Maze.Start;
         //main_absolute_layout.Add(new BoxView
         //{
@@ -268,11 +302,14 @@ public partial class CampaignLevelPage : ContentPage
             Level.ThreeStarTime = Maze.PathLength / (int)Math.Max(1.5 + (Maze.PathLength / 100), 2);
         }
 
-        drawer.WindowWidth = MazeWindowWidth;
-        drawer.WindowHeight = MazeWindowHeight;
 
-        drawer.MazeHeight = Maze.Height;
-        drawer.MazeWidth = Maze.Width;
+        cell_width = MazeWindowWidth / Maze.Width;
+        cell_height = MazeWindowHeight / Maze.Height;
+        //drawer.WindowWidth = MazeWindowWidth;
+        //drawer.WindowHeight = MazeWindowHeight;
+
+        //drawer.MazeHeight = Maze.Height;
+        //drawer.MazeWidth = Maze.Width;
     }
 
     public async void InitializeReactiveKeyboard()
@@ -314,45 +351,76 @@ public partial class CampaignLevelPage : ContentPage
         mazeGraphicsView.Invalidate();
     }
 
+    public async Task UpdatePlayer()
+    {
+        var x_pos = (float)(Maze.Player.X * cell_width);
+        var y_pos = (float)(Maze.Player.Y * cell_height);
+        var scale = Math.Min(cell_width, cell_height) * 0.95;
+        var xPadding = (cell_width - scale) / 2;
+        var yPadding = (cell_height - scale) / 2;
 
-    public void MoveLeft()
+        await PlayerImage.TranslateTo(x_pos + xPadding, y_pos + yPadding, 100);
+
+        numberOfMoves++;
+    }
+
+    public async Task MoveLeft()
     {
         if (Maze.Player.X > 0 && !Maze.Cells[Maze.Player.Y][Maze.Player.X - 1].East)
         {
-
             Maze.Player.X--;
-            UpdatePlayerDrawerPosition();
-            RedrawPlayer();
+
+            // Await animation for moving
+            await UpdatePlayer();
+
+            //var x_pos = (float)(Maze.Player.X * cell_width);
+            //var y_pos = (float)(Maze.Player.Y * cell_height);
+            //var scale = Math.Min(cell_width, cell_height) * 0.95;
+            //var xPadding = (cell_width - scale) / 2;
+            //var yPadding = (cell_height - scale) / 2;
+
+            //await PlayerImage.TranslateTo(x_pos + xPadding, y_pos + yPadding);
+
+
+            //UpdatePlayerDrawerPosition();
+            //RedrawPlayer();
         }
     }
-    public void MoveRight()
+    public async Task MoveRight()
     {
         if (Maze.Player.X < Maze.Width - 1 && !Maze.Cells[Maze.Player.Y][Maze.Player.X].East)
         {
 
             Maze.Player.X++;
-            UpdatePlayerDrawerPosition();
-            RedrawPlayer();
+            //await PlayerImage.TranslateTo(PlayerImage.X + cell_width, PlayerImage.Y);
+            await UpdatePlayer();
+            //UpdatePlayerDrawerPosition();
+            //RedrawPlayer();
         }
     }
-    public void MoveUp()
+    public async Task MoveUp()
     {
         if (Maze.Player.Y > 0 && !Maze.Cells[Maze.Player.Y][Maze.Player.X].North)
         {
 
             Maze.Player.Y--;
-            UpdatePlayerDrawerPosition();
-            RedrawPlayer();
+            await UpdatePlayer();
+            //await PlayerImage.TranslateTo(PlayerImage.X, PlayerImage.Y - cell_height);
+
+            //UpdatePlayerDrawerPosition();
+            //RedrawPlayer();
         }
     }
-    public void MoveDown()
+    public async Task MoveDown()
     {
         if (Maze.Player.Y < Maze.Height - 1 && !Maze.Cells[Maze.Player.Y + 1][Maze.Player.X].North)
         {
 
             Maze.Player.Y++;
-            UpdatePlayerDrawerPosition();
-            RedrawPlayer();
+            //await PlayerImage.TranslateTo(PlayerImage.X, PlayerImage.Y + cell_height);
+            await UpdatePlayer();
+            //UpdatePlayerDrawerPosition();
+            //RedrawPlayer();
         }
     }
 
@@ -375,19 +443,35 @@ public partial class CampaignLevelPage : ContentPage
 
     public void OnUpArrowKeyPressed(KeyboardHookEventArgs args)
     {
-        MoveUp();
+        //MoveUp();
+        if (MoveQueue.Count < MoveQueueLengthMax)
+        {
+            MoveQueue.Enqueue(new MoveDelegate(MoveUp));
+        }
     }
     public void OnDownArrowKeyPressed(KeyboardHookEventArgs args)
     {
-        MoveDown();
+        //MoveDown();
+        if (MoveQueue.Count < MoveQueueLengthMax)
+        {
+            MoveQueue.Enqueue(new MoveDelegate(MoveDown));
+        }
     }
     public void OnLeftArrowKeyPressed(KeyboardHookEventArgs args)
     {
-        MoveLeft();
+        //MoveLeft();
+        if (MoveQueue.Count < MoveQueueLengthMax)
+        {
+            MoveQueue.Enqueue(new MoveDelegate(MoveLeft));
+        }
     }
     public void OnRightArrowKeyPressed(KeyboardHookEventArgs args)
     {
-        MoveRight();
+        //MoveRight();
+        if (MoveQueue.Count < MoveQueueLengthMax)
+        {
+            MoveQueue.Enqueue(new MoveDelegate(MoveRight));
+        }
     }
 
 
@@ -402,6 +486,13 @@ public partial class CampaignLevelPage : ContentPage
         //{
         //    CompletedMaze();
         //}
+    }
+
+    public async Task FinishAnimation()
+    {
+        await PlayerImage.ScaleTo(0.7, 200);
+        await PlayerImage.ScaleTo(1.2, 400);
+        await PlayerImage.ScaleTo(1, 300);
     }
 
     public async void CompletedMaze()
@@ -555,9 +646,6 @@ public partial class CampaignLevelPage : ContentPage
             hintPowerUpLabel.Text = App.PlayerData.HintsOwned.ToString();
             var path = Maze.FindPathFrom();
             //path = path[:3];   
-
-            double cell_width = MazeWindowWidth / Maze.Width;
-            double cell_height = MazeWindowHeight / Maze.Height;
 
             int line_thickness = 4;
             List<BoxView> pathBoxViews = new List<BoxView>();

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MazeEscape"
              x:Class="MazeEscape.WorldsPage"
              Title=""
             Shell.NavBarIsVisible="False"
@@ -9,39 +10,58 @@
 
     <ContentPage.Resources>
         <DataTemplate x:Key="UnlockedWorldTemplate">
-            <AbsoluteLayout x:Name="absoluteDataTemplate"
-                Padding="0,10"
-                WidthRequest="{Binding Width}"
-                HeightRequest="{Binding Height}"
+
+            <Frame Padding="0,0"
+                    WidthRequest="{Binding Width}"
+                    HeightRequest="{Binding Height}"
+                    CornerRadius="0"
+                    BackgroundColor="Transparent">
+                
+                <AbsoluteLayout x:Name="absoluteDataTemplate"
                 Background="Transparent">
 
 
-                <Image AbsoluteLayout.LayoutBounds="0.5,1,1,0.95"
+                <Image AbsoluteLayout.LayoutBounds="0.5,0.5,1,1.15" 
            AbsoluteLayout.LayoutFlags="All"
    Source="{Binding ImageUrl}"
-   Aspect="AspectFill" />
+   Aspect="AspectFill" Opacity="0.9" />
 
                 <BoxView BackgroundColor="Black"
-             AbsoluteLayout.LayoutBounds="0.5,0.15,300,40"
-           AbsoluteLayout.LayoutFlags="PositionProportional"
+             AbsoluteLayout.LayoutBounds="0.5,130,300,40"
+           AbsoluteLayout.LayoutFlags="XProportional"
              Opacity="0.5"/>
 
-                <Label AbsoluteLayout.LayoutBounds="0.5,0.15,300,40"
-           AbsoluteLayout.LayoutFlags="PositionProportional"
+                <Label AbsoluteLayout.LayoutBounds="0.5,130,300,40"
+           AbsoluteLayout.LayoutFlags="XProportional"
    Text="{Binding WorldName}"
    FontAttributes="Bold" FontSize="20"
            VerticalTextAlignment="Center"
            HorizontalTextAlignment="Center"/>
 
-                <BoxView BackgroundColor="Black"
-             AbsoluteLayout.LayoutBounds="1,1,80,40"
-           AbsoluteLayout.LayoutFlags="PositionProportional"
-             Opacity="0.5"/>
 
-                <Label AbsoluteLayout.LayoutBounds="1,1,80,40"
-           AbsoluteLayout.LayoutFlags="PositionProportional"
-           FontAttributes="Bold" FontSize="12"
-           VerticalTextAlignment="Center"
+                    <Grid AbsoluteLayout.LayoutBounds="0.5,0.5,250,300"
+                          AbsoluteLayout.LayoutFlags="PositionProportional"
+                          BackgroundColor="Transparent"
+                          RowDefinitions="55,3,55,40,3,50,*"
+                          ColumnDefinitions="30,*,20,*,30">
+
+                        <BoxView BackgroundColor="Black" Grid.RowSpan="99" Grid.ColumnSpan="100" 
+                                 Opacity="0.0"
+                                 CornerRadius="20"/>
+                        
+                        <Image Source="grid_background.png" Grid.RowSpan="3" Grid.ColumnSpan="100" 
+                                 Opacity="1.0" Aspect="AspectFit"/>
+
+                        <Label Grid.Row="0" Grid.Column="1" Text="Levels Beaten" TextColor="Orange"  Opacity="0"
+                               HorizontalTextAlignment="Center" VerticalTextAlignment="End" Padding="0,0,0,7"/>
+
+                        <BoxView BackgroundColor="Black" Grid.Row="1" Grid.Column="1" Opacity="0" WidthRequest="100"
+                                 CornerRadius="2"/>
+
+
+                        <Label Grid.Row="2" Grid.Column="1"
+           FontAttributes="Bold" FontSize="12" TextColor="Black"
+           VerticalTextAlignment="Start" Padding="0,8,0,0"
            HorizontalTextAlignment="Center">
 
                     <Label.Text>
@@ -50,46 +70,115 @@
                             <Binding Path="NumberOfLevels" />
                         </MultiBinding>
                     </Label.Text>
+                </Label>
+                        
+                        <Label Grid.Row="0" Grid.Column="3" Text="Stars Earned" TextColor="Orange" Opacity="0"
+                               HorizontalTextAlignment="Center" VerticalTextAlignment="End" Padding="0,0,0,7"/>
 
+                        <BoxView BackgroundColor="Black" Grid.Row="1" Grid.Column="3" Opacity="0" WidthRequest="100"
+                                 CornerRadius="2"/>
+
+
+                        <Label Grid.Row="2" Grid.Column="3"
+           FontAttributes="Bold" FontSize="12" TextColor="Black"
+           VerticalTextAlignment="Start" Padding="20,8,0,0"
+           HorizontalTextAlignment="Center">
+
+                    <Label.Text>
+                        <MultiBinding StringFormat="{}{0} Stars">
+                                    <Binding Path="StarCount" />
+                                    <Binding Path="NumberOfLevels" />
+                                </MultiBinding>
+                    </Label.Text>
                 </Label>
 
+                    </Grid>
 
-            </AbsoluteLayout>
+
+                    <Image Source="play_world_button.png" x:Name="playWorldButton"
+                     Aspect="AspectFit" 
+            AbsoluteLayout.LayoutBounds="0.5,0.8,230,75"
+                     HorizontalOptions="End"
+                     VerticalOptions="Center"
+            AbsoluteLayout.LayoutFlags="PositionProportional">
+
+
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroupList>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal">
+                                        <VisualState.Setters>
+                                            <Setter Property="Scale"
+Value="1" /> 
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="Tapped">
+                                        <VisualState.Setters>
+
+                                            <Setter Property="Opacity"
+    Value="0.6" />
+                                            <Setter Property="Scale"
+    Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                    <VisualState x:Name="PointerOver">
+                                        <VisualState.Setters>
+                                            <Setter Property="Opacity"
+    Value="0.9" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateGroupList>
+                        </VisualStateManager.VisualStateGroups>
+                    </Image>
+
+
+
+                </AbsoluteLayout>
+                
+                </Frame>
+            
         </DataTemplate>
 
         <DataTemplate x:Key="LockedWorldTemplate">
 
-            <AbsoluteLayout x:Name="absoluteDataTemplate"
-             Padding="0,10"
-             WidthRequest="{Binding Width}"
-             HeightRequest="{Binding Height}"
+            <Frame Padding="0,10"
+                    WidthRequest="{Binding Width}"
+                    HeightRequest="{Binding Height}"
+                    CornerRadius="50"
+                    BackgroundColor="Transparent">
+
+                <AbsoluteLayout x:Name="absoluteDataTemplate"
+            
              Background="Transparent">
 
 
-                <Image AbsoluteLayout.LayoutBounds="0.5,1,1,0.95"
+                <Image AbsoluteLayout.LayoutBounds="0.5,0.5,1,1.1"
                         AbsoluteLayout.LayoutFlags="All"
                         Source="{Binding ImageUrl}"
                         Aspect="AspectFill" 
-                       Opacity="0.5"/>
+                       Opacity="1"/>
 
-                <BoxView BackgroundColor="Black"
-          AbsoluteLayout.LayoutBounds="0,0.05,120,40"
-        AbsoluteLayout.LayoutFlags="PositionProportional"
-          Opacity="0.5"/>
+                    <BoxView BackgroundColor="Black"
+                          AbsoluteLayout.LayoutBounds="0.5,0.5,1,1.2"
+                        AbsoluteLayout.LayoutFlags="All"
+                          Opacity="0.3"/>
 
-                <Label AbsoluteLayout.LayoutBounds="0,0.05,120,40"
-        AbsoluteLayout.LayoutFlags="PositionProportional"
-Text="{Binding WorldName}"
-FontAttributes="Bold" FontSize="14"
-        VerticalTextAlignment="Center"
-        HorizontalTextAlignment="Center"/>
+                    <BoxView BackgroundColor="Black"
+             AbsoluteLayout.LayoutBounds="0.5,130,300,40"
+           AbsoluteLayout.LayoutFlags="XProportional"
+             Opacity="0.5"/>
 
-                <BoxView BackgroundColor="Black"
-          AbsoluteLayout.LayoutBounds="1,1,80,40"
-        AbsoluteLayout.LayoutFlags="PositionProportional"
-          Opacity="0.5"/>
+                    <Label AbsoluteLayout.LayoutBounds="0.5,130,300,40"
+           AbsoluteLayout.LayoutFlags="XProportional"
+   Text="{Binding WorldName}"
+   FontAttributes="Bold" FontSize="20"
+           VerticalTextAlignment="Center"
+           HorizontalTextAlignment="Center"/>
 
-                <Label AbsoluteLayout.LayoutBounds="1,1,80,40"
+
+
+                    <!--     <Label AbsoluteLayout.LayoutBounds="1,1,80,40"
         AbsoluteLayout.LayoutFlags="PositionProportional"
         FontAttributes="Bold" FontSize="12"
         VerticalTextAlignment="Center"
@@ -102,17 +191,19 @@ FontAttributes="Bold" FontSize="14"
                         </MultiBinding>
                     </Label.Text>
 
-                </Label>
+                </Label> -->
 
 
                 <Image Source="lock.png"
-                       AbsoluteLayout.LayoutBounds="0.5, 0.5, 0.2, 0.7"
+                       AbsoluteLayout.LayoutBounds="0.5, 0.6, 0.3, 0.7"
                        AbsoluteLayout.LayoutFlags="All"
                        IsVisible="{Binding Locked}"
                        Aspect="AspectFit"/>
 
 
             </AbsoluteLayout>
+
+            </Frame>
 
         </DataTemplate>
 
@@ -121,77 +212,99 @@ FontAttributes="Bold" FontSize="14"
                                              LockedWorld="{StaticResource LockedWorldTemplate}" />
     </ContentPage.Resources>
 
-    <AbsoluteLayout Margin="0,-80,0,0" Background="Black">
+    <AbsoluteLayout Margin="0,-80,0,0" Background="WhiteSmoke">
 
-        <Image Source="background14.png"
+        <BoxView Background="Black"
                AbsoluteLayout.LayoutBounds="0,0,1,1"
+               AbsoluteLayout.LayoutFlags="All"
+               Opacity="1"/>
+        
+        <Image Source="maze_escape_background2.png"
+               AbsoluteLayout.LayoutBounds="0.5,0.5,1,1.05"
                AbsoluteLayout.LayoutFlags="All"
                Aspect="AspectFill" Opacity="0"/>
 
-        <CollectionView x:Name="worldsCollectionView" Margin="0,-80,0,0"
-                    AbsoluteLayout.LayoutBounds="0.5,0.5,300,600"
+        <CollectionView x:Name="worldsCollectionView" 
+                    AbsoluteLayout.LayoutBounds="0.5,0.5,600,700"
                     AbsoluteLayout.LayoutFlags="PositionProportional"
                     Background="Transparent"
                     SelectionMode="Single"
                     SelectionChanged="worldsCollectionView_SelectionChanged"
-                    ItemTemplate="{StaticResource WorldsUnlockedSelector}">
-            <CollectionView.Header>
-            <AbsoluteLayout Background="Transparent"
-                            HeightRequest="80">
+                    ItemTemplate="{StaticResource WorldsUnlockedSelector}"
+                    HorizontalScrollBarVisibility="Never"
+                    Scrolled="worldsCollectionView_Scrolled" >
 
-                    <BoxView BackgroundColor="Black" Opacity="0.95"
-                         AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
-                         AbsoluteLayout.LayoutFlags="All" />
+                <CollectionView.ItemsLayout>
+                <GridItemsLayout Orientation="Horizontal"
+                           HorizontalItemSpacing="20"
+                           SnapPointsType="MandatorySingle"
+                           SnapPointsAlignment="Start"/>
+                </CollectionView.ItemsLayout>
 
 
-                    <ImageButton Source="back_button_normal.png"
-                             Background="Transparent"
-                             AbsoluteLayout.LayoutBounds="10,0.5,100,100"
-                             AbsoluteLayout.LayoutFlags="YProportional"
-                             Clicked="BackButton_Clicked"
-                             CornerRadius="50">
+            </CollectionView>
 
-                    <VisualStateManager.VisualStateGroups>
-                        <VisualStateGroupList>
-                            <VisualStateGroup x:Name="CommonStates">
-                                <VisualState x:Name="Normal">
-                                    <VisualState.Setters>
-                                        <Setter Property="Scale"
-                Value="1" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState x:Name="Pressed">
-                                    <VisualState.Setters>
-                                        <Setter Property="Source"
-                    Value="back_button_clicked.png" />
-                                        <Setter Property="Opacity"
-                    Value="0.6" />
-                                        <Setter Property="Scale"
-                    Value="0.9" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                                <VisualState x:Name="PointerOver">
-                                    <VisualState.Setters>
-                                        <Setter Property="Opacity"
-                    Value="0.7" />
-                                    </VisualState.Setters>
-                                </VisualState>
-                            </VisualStateGroup>
-                        </VisualStateGroupList>
-                    </VisualStateManager.VisualStateGroups>
-                </ImageButton>
 
-                <Label Text="" 
-                       AbsoluteLayout.LayoutBounds="0.5,0.5,150,50"
-                       AbsoluteLayout.LayoutFlags="PositionProportional"
-                        TextColor="White" 
-                        FontSize="24"
-                        HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
+        <Label x:Name="worldLabel" Text="Maze Escape"
+                     AbsoluteLayout.LayoutBounds="0.5,20,250,50"
+                     AbsoluteLayout.LayoutFlags="XProportional"
+                     HorizontalTextAlignment="Center"
+               FontSize="Large" TextColor="WhiteSmoke"/>
 
-            </AbsoluteLayout>
-            </CollectionView.Header>
+        <Label x:Name="worldTitleLabel" Text="Worlds"
+                     AbsoluteLayout.LayoutBounds="0.5,65,200,50"
+                     AbsoluteLayout.LayoutFlags="XProportional"
+                     HorizontalTextAlignment="Center"
+               FontSize="Medium" TextColor="LightBlue"/>
 
-        </CollectionView>
+        <ImageButton Source="arrow.png" x:Name="PreviousWorldArrow"
+                     AbsoluteLayout.LayoutBounds="0,0.5,50,50"
+                     AbsoluteLayout.LayoutFlags="YProportional"
+                     Background="Transparent" Clicked="PreviousWorldArrow_Clicked"/>
+
+        <ImageButton Source="arrow.png" x:Name="NextWorldArrow"
+                     AbsoluteLayout.LayoutBounds="1,0.5,50,50"
+                     AbsoluteLayout.LayoutFlags="PositionProportional"
+                     Background="Transparent" Rotation="180" Clicked="NextWorldArrow_Clicked"/>
+
+        <ImageButton Source="home_button_icon.png"
+             Background="Transparent"
+             AbsoluteLayout.LayoutBounds="0.5,0.95,400,55"
+             AbsoluteLayout.LayoutFlags="PositionProportional"
+             Clicked="BackButton_Clicked" 
+                     HorizontalOptions="Center"
+                     WidthRequest="200"
+                     Aspect="AspectFit"
+             CornerRadius="0">
+
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroupList>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="Normal">
+                            <VisualState.Setters>
+                                <Setter Property="Scale"
+Value="1" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState x:Name="Pressed">
+                            <VisualState.Setters>
+
+                                <Setter Property="Opacity"
+    Value="0.6" />
+                                <Setter Property="Scale"
+    Value="0.9" />
+                            </VisualState.Setters>
+                        </VisualState>
+                        <VisualState x:Name="PointerOver">
+                            <VisualState.Setters>
+                                <Setter Property="Opacity"
+    Value="0.7" />
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateGroupList>
+            </VisualStateManager.VisualStateGroups>
+        </ImageButton>
 
 
     </AbsoluteLayout>

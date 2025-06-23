@@ -41,11 +41,23 @@ public partial class CampaignPage : ContentPage
         InitializeLevelButtons();
 
         InitializeGates();
+
+        if(World.UnlockedMazesNumbers.Contains("p1_1") && World.UnlockedMazesNumbers.Contains("k1") && !World.UnlockedMazesNumbers.Contains("p1"))
+        {
+            World.UnlockedMazesNumbers.Add("p1");
+        }
+
         InitializeChests();
 
         CoinCountLabel.Text = App.PlayerData.CoinCount.ToString();
         starCountLabel.Text = World.StarCount.ToString();
 
+        await ReadAnimationQueue();
+    }
+
+
+    public async Task ReadAnimationQueue()
+    {
         if (AnimationQueue.Count == 0)
         {
             await Task.Delay(10).ContinueWith(t => ScrollTo(campaignScrollView, World.distanceScrolled, false));
@@ -284,29 +296,30 @@ public partial class CampaignPage : ContentPage
     }
 
 
-    public void InitializeGates()
+    public async Task InitializeGates()
     {
-        List<(ImageButton, Label, string)> Gates = new List<(ImageButton, Label, string)>() //gate image, number of stars required label, number of level to unlock
+        List<(ImageButton, View, List<string>)> Gates = new List<(ImageButton, View, List<string>)>() //gate image, number of stars required label, number of level to unlock
         {
-            (gateImage1, gateLabel1, "1b"),
-            (gateImage2, gateLabel2, "4b"),
-            (gateImage3, gateLabel3, "15"),
-            (gateImage4, gateLabel4, "5b"),
-            (gateImage5, gateLabel5, "29"),
-            (gateImage6, gateLabel6, "8b"),
-            (gateImage7, gateLabel7, "44"),
-            (gateImage8, gateLabel8, "10b"),
-            (gateImage9, gateLabel9, "56"),
-            (gateImage10, gateLabel10, "21b"),
-            (gateImage11, gateLabel11, "22b"),
-            (gateImage12, gateLabel12, "68"),
+            (gateImage1, gateLabel1, ["1b"]),
+            (gateImage2, gateLabel2, ["4b"]),
+            (gateImage3, gateLabel3, ["15"]),
+            (gateImage4, gateLabel4, ["5b"]),
+            (gateImage5, gateLabel5, ["29"]),
+            (gateImage6, gateLabel6, ["8b"]),
+            (gateImage7, gateLabel7, ["44"]),
+            (gateImage8, gateLabel8, ["10b"]),
+            (gateImage9, gateLabel9, ["56"]),
+            (gateImage10, gateLabel10, ["21b"]),
+            (gateImage11, gateLabel11, ["22b"]),
+            (gateImage12, gateLabel12, ["p1_1", "k1"]),
 
         };
 
         for (int i = 0; i < Gates.Count; i++)
         {
-            (ImageButton gateImage, Label gateLabel, string prev_level) = Gates[i];
-            bool open = World.StarCount >= World.gateStarRequired[i] && World.UnlockedMazesNumbers.Contains(prev_level);
+            (ImageButton gateImage, View gateLabel, List<string> prev_level) = Gates[i];
+            bool open = World.StarCount >= World.gateStarRequired[i] && prev_level.Intersect(World.UnlockedMazesNumbers).Count() == prev_level.Count();
+            //bool open = World.StarCount >= World.gateStarRequired[i] && World.UnlockedMazesNumbers.ContainsEach(prev_level);
 
             if (open && !World.UnlockedGatesNumbers.Contains(i))
             {
@@ -323,7 +336,15 @@ public partial class CampaignPage : ContentPage
             else
             {
                 gateLabel.IsVisible = true;
-                gateLabel.Text = World.gateStarRequired[i].ToString();
+                try
+                {
+                    Label x = (Label)gateLabel;
+                    x.Text = World.gateStarRequired[i].ToString();
+                }
+                catch
+                {
+
+                }
             }
 
         }
@@ -344,6 +365,22 @@ public partial class CampaignPage : ContentPage
     {
         foreach (IReward chest in World.ChestModels)
         {
+
+            if (chest is KeyModel && !chest.Opened)
+            {
+                chest.ButtonCommand = new Command(
+                            execute: async () =>
+                            {
+                                await InitializeGates();
+                                await ReadAnimationQueue();
+                            },
+                            canExecute: () =>
+                            {
+                                return !loading;
+                            });
+            }
+
+
             chest.Draw(campaignLevelGrid, campaignMazeBackgroundAbsoluteLayout, CoinCountLabel);
 
             chest.Animation();
@@ -436,7 +473,7 @@ public partial class CampaignPage : ContentPage
 
     private async void BackButton_Clicked(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new MainPage());
+        await Navigation.PushAsync(new WorldsPage());
     }
 
     public async void OnShopButtonClicked(object sender, EventArgs e)
@@ -524,6 +561,18 @@ public partial class CampaignPage : ContentPage
 		var timer = new Timer((object? obj) => {
 				MainThread.BeginInvokeOnMainThread(async () => await scrollView.ScrollToAsync(pos, 0, animate));
 		}, null, 900, Timeout.Infinite);
+    }
+
+    override protected void OnDisappearing()
+    {
+        base.OnDisappearing();
+        loading = false;
+        App.PlayerData.Save();
+
+        foreach (IReward chest in World.ChestModels)
+        {
+            chest.CancelAnimation();
+        }
     }
 
 }

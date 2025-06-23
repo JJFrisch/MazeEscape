@@ -21,7 +21,7 @@
 		<Nullable>enable</Nullable>
 
 		<!-- Display name -->
-		<ApplicationTitle>MazeEscape</ApplicationTitle>
+		<ApplicationTitle>Maze Escape</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.Mazeescape</ApplicationId>
@@ -79,11 +79,23 @@
 	  <MauiImage Remove="Resources\Images\player_image.png" />
 	  <MauiImage Remove="Resources\Images\player_image0.png" />
 	  <MauiImage Remove="Resources\Images\player_image1.png" />
+	  <MauiImage Remove="Resources\Images\player_image10.png" />
+	  <MauiImage Remove="Resources\Images\player_image11.png" />
+	  <MauiImage Remove="Resources\Images\player_image12.png" />
+	  <MauiImage Remove="Resources\Images\player_image13.png" />
+	  <MauiImage Remove="Resources\Images\player_image14.png" />
+	  <MauiImage Remove="Resources\Images\player_image15.png" />
+	  <MauiImage Remove="Resources\Images\player_image16.png" />
+	  <MauiImage Remove="Resources\Images\player_image17.png" />
+	  <MauiImage Remove="Resources\Images\player_image18_icon.png" />
 	  <MauiImage Remove="Resources\Images\player_image2.png" />
 	  <MauiImage Remove="Resources\Images\player_image3.png" />
 	  <MauiImage Remove="Resources\Images\player_image4.png" />
 	  <MauiImage Remove="Resources\Images\player_image5.png" />
 	  <MauiImage Remove="Resources\Images\player_image6.png" />
+	  <MauiImage Remove="Resources\Images\player_image7.png" />
+	  <MauiImage Remove="Resources\Images\player_image8.png" />
+	  <MauiImage Remove="Resources\Images\player_image9.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -112,11 +124,23 @@
 	  <EmbeddedResource Include="Resources\Images\character_ball.png" />
 	  <EmbeddedResource Include="Resources\Images\player_image0.png" />
 	  <EmbeddedResource Include="Resources\Images\player_image1.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image10.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image11.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image12.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image13.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image14.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image15.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image16.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image17.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image18_icon.png" />
 	  <EmbeddedResource Include="Resources\Images\player_image2.png" />
 	  <EmbeddedResource Include="Resources\Images\player_image3.png" />
 	  <EmbeddedResource Include="Resources\Images\player_image4.png" />
 	  <EmbeddedResource Include="Resources\Images\player_image5.png" />
 	  <EmbeddedResource Include="Resources\Images\player_image6.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image7.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image8.png" />
+	  <EmbeddedResource Include="Resources\Images\player_image9.png" />
 	</ItemGroup>
 
 	<ItemGroup>

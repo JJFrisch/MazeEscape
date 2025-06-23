@@ -8,7 +8,7 @@ namespace MazeEscape
     public partial class MainPage : ContentPage
     {
 
-        private string toRestart = "YES";
+        private string toRestart = "NO"; // Set to YES
 
         public bool running = false;
 
@@ -22,20 +22,45 @@ namespace MazeEscape
             base.OnAppearing();
 
 
-            if (App.PlayerData.PlayerName == "") // If the player is starting an account
+            toRestart = Preferences.Get("toRestart", "YES");
+
+
+            if (App.PlayerData.PlayerName == "")
             {
-                await InitializePlayer();
+                // Uncomment these out to restart all progress
+                if (toRestart != "YES")
+                {
+                    _ = InitializePlayer();
 
-                App.PlayerData.Save();
+                    running = true;
 
-                await infoButton.ScaleTo(2, 500);
-                await Navigation.PushAsync(new InfoPage());
-                infoButton.Scale = 1.2;
+                    await App.PlayerData.InitializeWorlds();
+
+                    App.PlayerData.Save();
+
+                    Preferences.Default.Set("toRestart", "NO");
+
+                    while (running == true)
+                    {
+                        await Task.Delay(100);
+                    }
+
+                    await infoButton.ScaleTo(2, 500);
+                    await Navigation.PushAsync(new InfoPage());
+                    infoButton.Scale = 1.2;
+                }   
+                else if (toRestart != "YES") 
+                {
+					App.PlayerData.Load();
+                    usernameLabel.Text = "" + App.PlayerData.PlayerName + "";
+                }
             }
-            else // returning player
+            else
             {
                 usernameLabel.Text = "" + App.PlayerData.PlayerName + "";
             }
+
+            Preferences.Default.Set("toRestart", "NO");
 
             var level = await App.PlayerData.World1_LevelDatabase.GetItemAsync("10");
             if (level.Star1)
@@ -56,6 +81,7 @@ namespace MazeEscape
 
             App.PlayerData.PlayerName = result;
             usernameLabel.Text = "" + result + "";
+            running = false;
         }
 
         public async void OnCampaignMazesClicked(object sender, EventArgs e)

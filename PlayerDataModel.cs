@@ -8,7 +8,6 @@ using System.Text.Json;
 using MazeEscape.Models;
 using Microsoft.Maui.Storage;
 using PropertyChanged;
-using SQLitePCL;
 
 
 namespace MazeEscape
@@ -19,97 +18,106 @@ namespace MazeEscape
     {
         private string FilePathName = "PlayerData";
 
-        public List<CampaignWorld> Worlds { get; set; }
+        public List<CampaignWorld> Worlds = [];
+
         public LevelDatabase World1_LevelDatabase = new LevelDatabase("1");
         public LevelDatabase World2_LevelDatabase = new LevelDatabase("2");
         public LevelDatabase World3_LevelDatabase = new LevelDatabase("3");
 
-        public DailyMazeDatabase dailyMazeDatabase { get; set; }
+        public int CurrentWorldIndex { get; set; } = 0;
 
-        public string PlayerName { get; set; }
-        public string PlayerImageName { get; set; }
-        public int PlayerId { get; set; }
-        public int CoinCount { get; set; }
-        public int HintsOwned { get; set; }
-        public int ExtraTimesOwned { get; set; }
-        public int ExtraMovesOwned { get; set; }
+        public DailyMazeDatabase dailyMazeDatabase = new DailyMazeDatabase();
+
+        public string PlayerName = "";
+
+        public SkinModel PlayerCurrentSkin { get; set; }
+
+        public int PlayerId = 0;
+
+        public int CoinCount { get; set; } = 100000;
+
+        public int HintsOwned = 0;
+
+        public int ExtraTimesOwned = 0;
+
+        public int ExtraMovesOwned = 0;
 
         public int WindowWidth = 400;
         public int WindowHeight = 670;
-        public bool MonthPrize1_achieved { get; set; }
-        public bool MonthPrize2_achieved { get; set; }
-        public List<int> UnlockedSkins { get; set; }
-        public string MostRecentMonth { get; set; }
-        public Color WallColor { get; set; }
+
+
+        public bool MonthPrize1_achieved { get; set; } = false;
+        public bool MonthPrize2_achieved { get; set; } = false;
+
+        public List<SkinModel> UnlockedSkins = new List<SkinModel> { };
+
+        public string MostRecentMonth = "";
+
+        public Color WallColor = Colors.Black;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public PlayerDataModel()
         {
-            string toRestart = Preferences.Get("toRestart", "YES");
+            //string toRestart = Preferences.Get("toRestart", "YES");
 
-            if (toRestart == "YES") // set to == normally. only use != for testing
-            {
-                //InitializePlayer();
-                func();
-                
+            //if (toRestart != "YES")
+            //{
+            //    _ = InitializeWorlds();
+            //    _ = InitializePlayer();
+            //    Save();
 
-                Preferences.Default.Set("toRestart", "NO");
-            }
-            else
-            {
-                Load();
-            }
+            //    Preferences.Default.Set("toRestart", "NO");
+            //}
+            //else
+            //{
+            //    Load();
+            //}
 
-            Preferences.Default.Set("toRestart", "YES");
+            //Preferences.Default.Set("toRestart", "NO");
         }
 
-        public async void func()
-        {
-            await InitializePlayer();
-            await InitializeWorlds();
-            Save();
-        }
 
-        public async Task InitializePlayer()
-        {
-            PlayerName = "";
-            PlayerImageName = "player_image0.png";
-            CoinCount = 100000;
-            HintsOwned = 0;
-            ExtraTimesOwned = 0;
-            ExtraMovesOwned = 0;
-            PlayerId = 0;
-            MonthPrize1_achieved = false;
-            MonthPrize2_achieved = false;
-            MostRecentMonth = "";
-            WallColor = Colors.Black;
-            UnlockedSkins = new List<int> { 0 };
-            Worlds = new List<CampaignWorld>();
-            //World1_LevelDatabase = new LevelDatabase("1");
-            //World2_LevelDatabase = new LevelDatabase("2");
-            //World3_LevelDatabase = new LevelDatabase("3");
-            dailyMazeDatabase = new DailyMazeDatabase();
-            //_ = InitializeWorlds();
-        }
+        //public void InitializePlayer()
+        //{
+        //    PlayerName = "Player";
+        //    PlayerImageName = "player_image0.png";
+        //    CoinCount = 100000;
+        //    HintsOwned = 0;
+        //    ExtraTimesOwned = 0;
+        //    ExtraMovesOwned = 0;
+        //    PlayerId = 0;
+        //    MonthPrize1_achieved = false;
+        //    MonthPrize2_achieved = false;
+        //    MostRecentMonth = "";
+        //    WallColor = Colors.Black;
+        //    UnlockedSkins = new List<int> { 0 };
+        //    Worlds = new List<CampaignWorld>();
+        //    World1_LevelDatabase = new LevelDatabase("1");
+        //    World2_LevelDatabase = new LevelDatabase("2");
+        //    World3_LevelDatabase = new LevelDatabase("3");
+        //    dailyMazeDatabase = new DailyMazeDatabase();
+        //}
 
         public async Task InitializeWorlds()
         {
+            InitializeSkins();
+
             Worlds.Add(new CampaignWorld()
             {
                 WorldID = 1,
                 WorldName = "Cybernetic Labyrinths",  // Quantum Quests, Gridscape, Labyrinthia Prime, Circuitoria, hyperplex, Mazeverse, Cyber Labyrinths
-                ImageUrl = "background_blue_3.png",
+                ImageUrl = "background_maze_3.png",
                 NumberOfLevels = 67,
                 HighestBeatenLevel = 0,
                 Completed = false,
                 Locked = false,
-                StarCount = 2000,
-                UnlockedMazesNumbers = ["1", "7", "10", "20", "14", "28", "43", "55", "p1"],
+                StarCount = 0,
+                UnlockedMazesNumbers = ["1", "20b", "67"],
                 UnlockedGatesNumbers = [],
                 ChestModels = [],
                 LevelConnectsToDictionary = [],
-                HighestAreaUnlocked = 5,
+                HighestAreaUnlocked = 1,
                 distanceScrolled = 0,
                 gateStarRequired = [20, 45, 30, 60, 80, 100, 120, 150, 200, 230, 240, 250]
             });
@@ -125,8 +133,8 @@ namespace MazeEscape
                 HighestBeatenLevel = 0,
                 Completed = false,
                 Locked = false,
-                StarCount = 19,
-                UnlockedMazesNumbers = ["1", "2b", "6", "p1", "c3"],
+                StarCount = 0,
+                UnlockedMazesNumbers = ["1"],
                 UnlockedGatesNumbers = [],
                 ChestModels = [],
                 LevelConnectsToDictionary = [],
@@ -163,6 +171,7 @@ namespace MazeEscape
 
         public async Task InitializeWorld2Levels()
         {
+
             LevelDatabase database = World2_LevelDatabase;
 
             await database.DeleteAllLevelsAsync();
@@ -170,7 +179,7 @@ namespace MazeEscape
             // LevelNumber, TwoStarMoves, ThreeStarTime, LevelType
 
             // area 1 Level Buttons
-            await database.AddNewLevelAsync(new CampaignLevel("1", 18, 18, "GenerateHuntAndKill", new List<string> { "1b" }));
+            await database.AddNewLevelAsync(new CampaignLevel("1", 4, 4, "GenerateHuntAndKill", new List<string> { "1b" }));
             await database.AddNewLevelAsync(new CampaignLevel("2", 18, 18, "GenerateKruskals"));
             await database.AddNewLevelAsync(new CampaignLevel("3", 19, 19, "GeneratePrims"));
             await database.AddNewLevelAsync(new CampaignLevel("4", 19, 19, "GenerateGrowingTree_50_0"));
@@ -276,7 +285,7 @@ namespace MazeEscape
             Worlds[1].ChestModels.Add(new ChestModel(2, 14, 3, "c9"));
             Worlds[1].ChestModels.Add(new ChestModel(2, 13, 2, "c10"));
             Worlds[1].ChestModels.Add(new ChestModel(2, 11, 3, "c11"));
-            Worlds[1].ChestModels.Add(new ChestModel(2, 9, 2, "c12"));
+            Worlds[1].ChestModels.Add(new SkinUnlockModel(2, 9, 2, "c12", "Space Maze"));
             Worlds[1].ChestModels.Add(new ChestModel(2, 12, 0, "c13"));
 
 
@@ -390,7 +399,7 @@ namespace MazeEscape
             Worlds[1].ChestModels.Add(new ChestModel(2, 31, 0, "c22"));
             Worlds[1].ChestModels.Add(new ChestModel(2, 27, 2, "c23"));
             Worlds[1].ChestModels.Add(new ChestModel(2, 30, 2, "c24"));
-            Worlds[1].ChestModels.Add(new ChestModel(2, 29, 5, "c25"));
+            Worlds[1].ChestModels.Add(new SkinUnlockModel(2, 29, 5, "c25", "Chucky"));
 
 
 
@@ -437,7 +446,7 @@ namespace MazeEscape
             await database.AddNewLevelAsync(new CampaignLevel("93b", 24, 25, "GenerateGrowingTree_75_25", new List<string> { "94b" }));
             await database.AddNewLevelAsync(new CampaignLevel("94b", 28, 22, "GenerateKruskals", new List<string> { "95b", "97b" }));
             await database.AddNewLevelAsync(new CampaignLevel("95b", 25, 22, "GenerateGrowingTree_50_0", new List<string> { "96b" }));
-            await database.AddNewLevelAsync(new CampaignLevel("96b", 25, 25, "GenerateBacktracking", new List<string> { "c28" }));
+            await database.AddNewLevelAsync(new CampaignLevel("96b", 5, 5, "GenerateBacktracking", new List<string> { "c28" }));
             await database.AddNewLevelAsync(new CampaignLevel("97b", 24, 25, "GenerateGrowingTree_75_25", new List<string> { "98b" }));
             await database.AddNewLevelAsync(new CampaignLevel("98b", 24, 25, "GenerateGrowingTree_75_25", new List<string> { "99b" }));
             await database.AddNewLevelAsync(new CampaignLevel("99b", 24, 25, "GenerateGrowingTree_75_25", new List<string> { "c29" }));
@@ -446,7 +455,7 @@ namespace MazeEscape
             // area 5 Chests
             Worlds[1].ChestModels.Add(new ChestModel(2, 33, 2, "c26")); // area, x, y, name
             Worlds[1].ChestModels.Add(new ChestModel(2, 34, 4, "c27"));
-            Worlds[1].ChestModels.Add(new ChestModel(2, 36, 3, "c28"));
+            Worlds[1].ChestModels.Add(new SkinUnlockModel(2, 36, 3, "c28", "Da Butler"));
             Worlds[1].ChestModels.Add(new ChestModel(2, 38, 4, "c29"));
             Worlds[1].ChestModels.Add(new ChestModel(2, 35, 1, "c30"));
 
@@ -461,7 +470,7 @@ namespace MazeEscape
             // LevelNumber, TwoStarMoves, ThreeStarTime, LevelType
 
             // area 1 Level Buttons
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("1", 30, 5, "GenerateHuntAndKill", new List<string>{ "2" }));
+            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("1", 5, 5, "GenerateHuntAndKill", new List<string>{ "2" }));
             await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("2", 6, 6, "GenerateKruskals", new List<string> { "3" }));
             await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("3", 6, 6, "GeneratePrims", new List<string> { "4" }));
             await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("4", 8, 8, "GenerateGrowingTree_50_0", new List<string> { "5" }));
@@ -559,16 +568,16 @@ namespace MazeEscape
             await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("13b", 25, 25, "GeneratePrims", new List<string> { "14b" }));
             await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("14b", 20, 25, "GenerateGrowingTree_25_75", new List<string> { "15b" }));
             await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("15b", 26, 26, "GenerateKruskals", new List<string> { "16b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("16b", 27, 24, "GenerateBacktracking", new List<string> { "17b" }));
+            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("16b", 27, 24, "GenerateBacktracking", new List<string> { "17b", "c7" }));
             await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("17b", 22, 27, "GenerateHuntAndKill", new List<string> { "18b" }));
             await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("18b", 23, 25, "GenerateGrowingTree_50_50", new List<string> { "19b" }));
             await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("19b", 25, 27, "GeneratePrims", new List<string> { "20b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("20b", 26, 28, "GenerateHuntAndKill", new List<string> { }));
+            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("20b", 4, 4, "GenerateHuntAndKill", new List<string> { "c8" }));
 
 
             // area 4 Chests
             Worlds[0].ChestModels.Add(new ChestModel(1, 10, 2, "c7"));
-            Worlds[0].ChestModels.Add(new ChestModel(1, 15, 3, "c8"));
+            Worlds[0].ChestModels.Add(new KeyModel(1, 15, 3, "c8", "k1", "key6"));
 
 
             // area 5 Level Buttons
@@ -583,7 +592,7 @@ namespace MazeEscape
             await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("64", 33, 31, "GenerateGrowingTree_50_50", new List<string> { "65" }));
             await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("65", 32, 33, "GeneratePrims", new List<string> { "66", "21b" }));
             await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("66", 33, 33, "GenerateKruskals", new List<string> { "67", "22b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("67", 34, 34, "GenerateHuntAndKill", new List<string> { "p1" }));
+            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("67", 4, 4, "GenerateHuntAndKill", new List<string> { "p1_1" }));
             //await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("68", 35, 35, "GenerateGrowingTree_50_50", new List<string> {  }, Worlds[0].gateStarRequired[11]));
 
 
@@ -598,9 +607,38 @@ namespace MazeEscape
 
             Worlds[0].ChestModels.Add(new PortalModel(1, 19, 0, "p1", 250));
 
+        }
+
+        public void InitializeSkins()
+        {
+            UnlockedSkins.Add(new SkinModel(0, "Maze Solver", "player_image0", 0) { IsUnlocked = true});
+
+            PlayerCurrentSkin = UnlockedSkins[0];
+
+            UnlockedSkins.Add(new SkinModel(1, "Cool Lion", "player_image1", 500));
+            UnlockedSkins.Add(new SkinModel(2, "Sunset Swirl", "player_image2", 1000));
+            UnlockedSkins.Add(new SkinModel(3, "Pink Sunset", "player_image3", 2000));
+            UnlockedSkins.Add(new SkinModel(4, "Diskes", "player_image4", 5000));
+            UnlockedSkins.Add(new SkinModel(5, "Fireball", "player_image5", 22000));
+            UnlockedSkins.Add(new SkinModel(6, "Galaxy Ball", "player_image6", 50000));
+            UnlockedSkins.Add(new SkinModel(7, "Elemental Mixer", "player_image7", 6500));
+            UnlockedSkins.Add(new SkinModel(8, "Ivy Eye", "player_image8", 3400));
+            UnlockedSkins.Add(new SkinModel(9, "Ruffles", "player_image9", 7120));
+            UnlockedSkins.Add(new SkinModel(10, "Rocco", "player_image10", 3000));
+            UnlockedSkins.Add(new SkinModel(11, "Pugsley", "player_image11", 4375));
+            UnlockedSkins.Add(new SkinModel(12, "Kowalski", "player_image12", 9000));
+            UnlockedSkins.Add(new SkinModel(14, "Brain", "player_image14", 19000));
+            UnlockedSkins.Add(new SkinModel(16, "Fire Elemental", "player_image16", 8500));
+            //UnlockedSkins.Add(new SkinModel(18, "Water Elemental", "player_image18", 8500));
+
+            UnlockedSkins.Add(new SkinModel(13, "Space Maze", "player_image13", 0, 0, true));
+            UnlockedSkins.Add(new SkinModel(15, "Chucky", "player_image15", 0, 0, true));
+            UnlockedSkins.Add(new SkinModel(17, "Da Butler", "player_image17", 0, 0, true));
 
 
         }
+
+
 
         public void Save() 
         {
@@ -609,24 +647,18 @@ namespace MazeEscape
             SaveableData data = new SaveableData()
             {
                 PlayerName = PlayerName,
-                //StarCount = StarCount,
                 Worlds = Worlds,
                 CoinCount = CoinCount,
                 HintsOwned = HintsOwned,
                 ExtraMovesOwned = ExtraMovesOwned,
                 ExtraTimesOwned = ExtraTimesOwned,
                 WallColor = WallColor,
-                //UnlockedMazesNumbers = UnlockedMazesNumbers,
-                //LevelConnectsToDictionary = LevelConnectsToDictionary,
-                //UnlockedGatesNumbers = UnlockedGatesNumbers,
-                //ChestModels = ChestModels,
-                //HighestAreaUnlocked = HighestAreaUnlocked,
-                //distanceScrolled = distanceScrolled,
-                PlayerImageName = PlayerImageName,
+                PlayerCurrentSkin = PlayerCurrentSkin,
                 MonthPrize1_achieved = MonthPrize1_achieved,
                 MonthPrize2_achieved = MonthPrize2_achieved,
                 MostRecentMonth = MostRecentMonth,
                 UnlockedSkins = UnlockedSkins,
+                CurrentWorldIndex = CurrentWorldIndex,
             };
 
             var serializedData = JsonSerializer.Serialize(data);
@@ -642,23 +674,17 @@ namespace MazeEscape
             SaveableData? data = JsonSerializer.Deserialize<SaveableData>(rawData);
             PlayerName = data.PlayerName;
             Worlds = data.Worlds;
-            //StarCount = data.StarCount;
             CoinCount = data.CoinCount;
             HintsOwned = data.HintsOwned;
             ExtraMovesOwned = data.ExtraMovesOwned;
             ExtraTimesOwned = data.ExtraTimesOwned;
-            //UnlockedMazesNumbers = data.UnlockedMazesNumbers;
-            //LevelConnectsToDictionary = data.LevelConnectsToDictionary;
-            //ChestModels = data.ChestModels;
-            //HighestAreaUnlocked = data.HighestAreaUnlocked;
-            //distanceScrolled = data.distanceScrolled;
-            PlayerImageName = data.PlayerImageName;
+            PlayerCurrentSkin = data.PlayerCurrentSkin;
             MonthPrize1_achieved = data.MonthPrize1_achieved;
             MonthPrize2_achieved = data.MonthPrize2_achieved;
             MostRecentMonth = data.MostRecentMonth;
             UnlockedSkins = data.UnlockedSkins;
+            CurrentWorldIndex = data.CurrentWorldIndex;
             WallColor = data.WallColor;
-            //UnlockedGatesNumbers = data.UnlockedGatesNumbers;
 
         }
 
@@ -709,7 +735,8 @@ namespace MazeEscape
         public string? PlayerName {  get; set; }
 
         public List<CampaignWorld>? Worlds { get; set; }
-        //public int StarCount { get; set; }
+
+        public int CurrentWorldIndex { get; set; }
 
         public int CoinCount { get; set; }
 
@@ -719,27 +746,14 @@ namespace MazeEscape
 
         public int ExtraMovesOwned { get; set; }
 
-
-        //public List<string>? UnlockedMazesNumbers { get; set; }
-
-        //public List<int>? UnlockedGatesNumbers { get; set; }
-
-        //public List<ChestModel>? ChestModels { get; set; }
-
-        //public Dictionary<string, List<string>>? LevelConnectsToDictionary { get; set; }
-
-        //public int HighestAreaUnlocked { get; set; }
-
-        //public double distanceScrolled { get; set; }
-
-        public string? PlayerImageName { get; set; }
+        public SkinModel PlayerCurrentSkin { get; set; }
 
         public bool MonthPrize1_achieved { get; set; }
         public bool MonthPrize2_achieved { get; set; }
 
         public string? MostRecentMonth { get; set; }
 
-        public List<int>? UnlockedSkins { get; set; }
+        public List<SkinModel>? UnlockedSkins { get; set; }
 
         public Color WallColor { get; set; }
 

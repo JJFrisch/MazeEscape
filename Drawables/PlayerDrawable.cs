@@ -37,7 +37,7 @@ namespace MazeEscape.Drawables
         public void Initialize()
         {
             Assembly assembly = GetType().GetTypeInfo().Assembly;
-            using (Stream stream = assembly.GetManifestResourceStream($"MazeEscape.Resources.Images.{App.PlayerData.PlayerImageName}"))
+            using (Stream stream = assembly.GetManifestResourceStream($"MazeEscape.Resources.Images.{App.PlayerData.PlayerCurrentSkin.ImageUrl}.png"))
             {
                 image = PlatformImage.FromStream(stream);
             }
@@ -53,15 +53,15 @@ namespace MazeEscape.Drawables
 
             if (image.Width > cell_width || image.Height > cell_height)
             {
-                scale = Math.Min(cell_width / image.Width, cell_height / image.Height);
+                scale = (float)(Math.Min(cell_width / image.Width, cell_height / image.Height) * 0.95);
             }
 
             var xPadding = (cell_width - (image.Width * scale)) / 2;
             var yPadding = (cell_height - (image.Height * scale)) / 2;
 
-            canvas.FontColor = Colors.Blue;
-            canvas.FontSize = 18;
-            canvas.DrawString(Moves.ToString(), 2000, 20, 50, 50, HorizontalAlignment.Right, VerticalAlignment.Top);
+            //canvas.FontColor = Colors.Blue;
+            //canvas.FontSize = 18;
+            //canvas.DrawString(Moves.ToString(), 2000, 20, 50, 50, HorizontalAlignment.Right, VerticalAlignment.Top);
 
             if (image != null)
             {

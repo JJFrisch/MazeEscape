@@ -57,7 +57,7 @@
 
         <Label x:Name="CoinCountLabel"  
                FontSize="25"
-               Text="{Binding Name, Source={Static local:App.PlayerData}}"
+               Text="{Binding CoinCount, Source={Static local:App.PlayerData}}"
                TextColor="White"
                VerticalTextAlignment="Center"
                HorizontalTextAlignment="Start"
@@ -255,14 +255,22 @@
         Clicked="OnLockedGateImageButtonClicked"
                                  Background="Transparent"/>
 
-                <Label x:Name="gateLabel12"
+              <!--  <Label x:Name="gateLabel12" IsVisible="False"
            AbsoluteLayout.LayoutBounds="1604.7,40.5,20,20"
            AbsoluteLayout.LayoutFlags="None"
            Text="80"
            FontSize="8"
            TextColor="Gold"
            FontAttributes="Bold"
-           Rotation="0"/>
+           Rotation="0"/> -->
+
+                <Image x:Name="gateLabel12"
+                       AbsoluteLayout.LayoutBounds="1603.4,38.5,20,20"
+                       AbsoluteLayout.LayoutFlags="None"
+                       Source="key6.png"
+                       Rotation="0"/>       
+
+
 
 
                 <!-- Fog Images -->

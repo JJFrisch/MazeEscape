@@ -47,6 +47,12 @@
 		<HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks> <!-- Set to 0 to disable update checks -->
 	</PropertyGroup>
 
+	<PropertyGroup Condition="'$(TargetFramework)'=='net8.0-ios'">
+	  <ProvisioningType>manual</ProvisioningType>
+	  <CodesignKey>iPhone Distribution</CodesignKey>
+	  <CodesignProvision></CodesignProvision>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appiconrainbow.png" ForegroundFile="Resources\AppIcon\appiconrainbow.png" Color="#512BD4" />

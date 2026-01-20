@@ -137,29 +137,31 @@ public partial class CampaignPage : ContentPage
         campaignLevelGrid.Children.Clear();
 
         all_button_positions = area_1_LevelButtonPositions.Concat(area_1_BonusLevelButtonPositions).ToList();
-        if (World.HighestAreaUnlocked >= -1) // 2
+        if (World.HighestAreaUnlocked >= 2)
         {
             all_button_positions.AddRange(area_2_LevelButtonPositions);
             all_button_positions.AddRange(area_2_BonusLevelButtonPositions);
         }
-        if (World.HighestAreaUnlocked >= -1) //3
+        if (World.HighestAreaUnlocked >= 3)
         {
             all_button_positions.AddRange(area_3_LevelButtonPositions);
             all_button_positions.AddRange(area_3_BonusLevelButtonPositions);
         }
-        if (World.HighestAreaUnlocked >= -1) //4
+        if (World.HighestAreaUnlocked >= 4)
         {
             all_button_positions.AddRange(area_4_LevelButtonPositions);
             all_button_positions.AddRange(area_4_BonusLevelButtonPositions);
         }
-        if (World.HighestAreaUnlocked >= -1) //5
+        if (World.HighestAreaUnlocked >= 5)
         {
             all_button_positions.AddRange(area_5_LevelButtonPositions);
             all_button_positions.AddRange(area_5_BonusLevelButtonPositions);
         }
 
+        // Use the minimum count to prevent index out of range
+        int maxIterations = Math.Min(all_button_positions.Count, campaignLevels.Count);
 
-        for (int i = 0; i < all_button_positions.Count; i++) {
+        for (int i = 0; i < maxIterations; i++) {
 
             (int x, int y) = all_button_positions[i];
             CampaignLevel level = campaignLevels[i];

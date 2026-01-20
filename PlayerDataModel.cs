@@ -34,7 +34,7 @@ namespace MazeEscape
 
         public int PlayerId = 0;
 
-        public int CoinCount { get; set; } = 100000;
+        public int CoinCount { get; set; } = 0;
 
         public int HintsOwned = 0;
 
@@ -75,6 +75,20 @@ namespace MazeEscape
             //}
 
             //Preferences.Default.Set("toRestart", "NO");
+
+            string toRestart = Preferences.Get("toRestart", "YES");
+
+            if (toRestart == "YES")
+            {
+                _ = InitializeWorlds();
+                Save();
+                Preferences.Default.Set("toRestart", "NO");
+            }
+            else
+            {
+                Load();
+            }
+
         }
 
 
@@ -109,15 +123,15 @@ namespace MazeEscape
                 WorldName = "Cybernetic Labyrinths",  // Quantum Quests, Gridscape, Labyrinthia Prime, Circuitoria, hyperplex, Mazeverse, Cyber Labyrinths
                 ImageUrl = "background_maze_3.png",
                 NumberOfLevels = 67,
-                HighestBeatenLevel = 0,
+                HighestBeatenLevel = 54,
                 Completed = false,
                 Locked = false,
-                StarCount = 0,
-                UnlockedMazesNumbers = ["1", "20b", "67"],
+                StarCount = 250,
+                UnlockedMazesNumbers = ["1", "54"],
                 UnlockedGatesNumbers = [],
                 ChestModels = [],
                 LevelConnectsToDictionary = [],
-                HighestAreaUnlocked = 1,
+                HighestAreaUnlocked = 4,
                 distanceScrolled = 0,
                 gateStarRequired = [20, 45, 30, 60, 80, 100, 120, 150, 200, 230, 240, 250]
             });

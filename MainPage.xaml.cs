@@ -12,76 +12,101 @@ namespace MazeEscape
 
         public bool running = false;
 
+        private bool _isInitializing;
+
         public MainPage()
         {
             InitializeComponent();
+
+#if IOS
+            Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page.SetUseSafeArea(this, true);
+#endif
 
         }
         protected override async void OnAppearing()
         {
             base.OnAppearing();
 
-
-            toRestart = Preferences.Get("toRestart", "YES");
-
-
-            if (App.PlayerData.PlayerName == "")
+            if (_isInitializing)
             {
-                // Uncomment these out to restart all progress
-                if (toRestart != "YES")
-                {
-                    _ = InitializePlayer();
+                return;
+            }
+            _isInitializing = true;
 
+            try
+            {
+                toRestart = Preferences.Get("toRestart", "YES");
+
+                if (toRestart == "YES")
+                {
                     running = true;
 
+                    await EnsurePlayerNameAsync();
                     await App.PlayerData.InitializeWorlds();
-
                     App.PlayerData.Save();
 
                     Preferences.Default.Set("toRestart", "NO");
 
-                    while (running == true)
-                    {
-                        await Task.Delay(100);
-                    }
-
                     await infoButton.ScaleTo(2, 500);
                     await Navigation.PushAsync(new InfoPage());
                     infoButton.Scale = 1.2;
-                }   
-                else if (toRestart != "YES") 
+                }
+                else
                 {
-					App.PlayerData.Load();
-                    usernameLabel.Text = "" + App.PlayerData.PlayerName + "";
+                    App.PlayerData.Load();
+                    if (string.IsNullOrWhiteSpace(App.PlayerData.PlayerName))
+                    {
+                        running = true;
+                        await EnsurePlayerNameAsync();
+                        App.PlayerData.Save();
+                    }
+                }
+
+                usernameLabel.Text = App.PlayerData.PlayerName;
+
+                // Unlock daily challenge if level 10 has been completed.
+                var level = await App.PlayerData.World1_LevelDatabase.GetItemAsync("10");
+                if (level != null && level.Star1)
+                {
+                    dailyChallengeButton.Source = "daily_mazes_button_background.png";
+                    dailyChallengeButton.IsEnabled = true;
                 }
             }
-            else
+            finally
             {
-                usernameLabel.Text = "" + App.PlayerData.PlayerName + "";
-            }
-
-            Preferences.Default.Set("toRestart", "NO");
-
-            var level = await App.PlayerData.World1_LevelDatabase.GetItemAsync("10");
-            if (level.Star1)
-            {
-                dailyChallengeButton.Source = "daily_mazes_button_background.png";
-                dailyChallengeButton.IsEnabled = true;
+                running = false;
+                _isInitializing = false;
+                Preferences.Default.Set("toRestart", "NO");
             }
         }
 
-
-        public async Task InitializePlayer()
+        private async Task EnsurePlayerNameAsync()
         {
-            string result = await DisplayPromptAsync("Hey there! Welcome to Maze Escape", "What do you want your name to be?","OK", "");
-            if (result == "")
+            while (true)
             {
-                await InitializePlayer();
-            }
+                string? result = await DisplayPromptAsync(
+                    "Hey there! Welcome to Maze Escape",
+                    "What do you want your name to be?",
+                    "OK",
+                    "Cancel",
+                    maxLength: 16);
 
-            App.PlayerData.PlayerName = result;
-            usernameLabel.Text = "" + result + "";
-            running = false;
+                if (result is null)
+                {
+                    // Treat cancel as "ask again" to avoid null data downstream.
+                    continue;
+                }
+
+                result = result.Trim();
+                if (result.Length == 0)
+                {
+                    continue;
+                }
+
+                App.PlayerData.PlayerName = result;
+                usernameLabel.Text = result;
+                return;
+            }
         }
 
         public async void OnCampaignMazesClicked(object sender, EventArgs e)

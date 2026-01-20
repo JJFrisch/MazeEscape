@@ -17,11 +17,13 @@
         {
             var window = base.CreateWindow(activationState);
 
+#if WINDOWS
             int newWidth = App.PlayerData.WindowWidth;
             int newHeight = App.PlayerData.WindowHeight;
 
             window.Width = newWidth;
             window.Height = newHeight;
+#endif
 
             return window;
         }

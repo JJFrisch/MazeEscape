@@ -16,13 +16,17 @@ public partial class CampaignPage : ContentPage
 
     CampaignWorld World;
 
+    private CancellationTokenSource? _pulseCts;
+
     public CampaignPage()
 	{
         World = App.PlayerData.Worlds[0];
 
         InitializeComponent();
 
-        campaignMazeBackgroundAbsoluteLayout.HeightRequest = 0.7 * App.PlayerData.WindowHeight;
+    #if IOS
+        Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page.SetUseSafeArea(this, true);
+    #endif
 
         //Task.Delay(100).ContinueWith(t => ScrollTo(campaignScrollView, App.PlayerData.distanceScrolled, false));
 
@@ -31,6 +35,14 @@ public partial class CampaignPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
+
+        _pulseCts?.Cancel();
+        _pulseCts = new CancellationTokenSource();
+
+        // Use actual device height (in DIPs) so iPhone screens size correctly.
+        var di = Microsoft.Maui.Devices.DeviceDisplay.Current.MainDisplayInfo;
+        var screenHeight = di.Height / di.Density;
+        campaignMazeBackgroundAbsoluteLayout.HeightRequest = 0.7 * screenHeight;
 
         await LoadLevelsFromDatabase();
 
@@ -55,19 +67,28 @@ public partial class CampaignPage : ContentPage
         await ReadAnimationQueue();
     }
 
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _pulseCts?.Cancel();
+    }
+
 
     public async Task ReadAnimationQueue()
     {
         if (AnimationQueue.Count == 0)
         {
-            await Task.Delay(10).ContinueWith(t => ScrollTo(campaignScrollView, World.distanceScrolled, false));
+			await Task.Delay(10);
+			await ScrollTo(campaignScrollView, World.distanceScrolled, false);
         }
         else
         {
             foreach ((string name, ImageButton e1, View? e2) in AnimationQueue)
             {
-                await Task.Delay(100).ContinueWith(t => ScrollTo(campaignScrollView, e1.X - 100, true));
-                await Task.Delay(100).ContinueWith(t => ExhibitAnimation(name, e1, e2));
+				await Task.Delay(100);
+				await ScrollTo(campaignScrollView, e1.X - 100, true);
+				await Task.Delay(100);
+				await ExhibitAnimation(name, e1, e2);
             }
             AnimationQueue.Clear();
         }
@@ -78,7 +99,8 @@ public partial class CampaignPage : ContentPage
     {
         if (name.Equals("fog")) // Fog changing animation
         {
-            await Task.Delay(100).ContinueWith(t => ScrollTo(campaignScrollView, e1.X-100, true));
+			await Task.Delay(100);
+			await ScrollTo(campaignScrollView, e1.X - 100, true);
             _ = e1.FadeTo(0, 4000);
             await e1.TranslateTo(1800, e1.Y, 10000);
             e1.IsVisible = false;
@@ -96,7 +118,8 @@ public partial class CampaignPage : ContentPage
         }
         else if (name.Equals("gate"))
         {
-            await Task.Delay(100).ContinueWith(t => ScrollTo(campaignScrollView, e1.X - 100, true));
+            await Task.Delay(100);
+            await ScrollTo(campaignScrollView, e1.X - 100, true);
 
             _ = e1.FadeTo(0.1, 1000);
             await e2.FadeTo(0, 1000);            
@@ -453,15 +476,23 @@ public partial class CampaignPage : ContentPage
 
     public async void Pulselevel(ImageButton levelButton)
     {
-        while (!loading) {
-            _ = levelButton.ScaleTo(1.1, 1000);
-            await levelButton.FadeTo(1, 1000);
+        var token = _pulseCts?.Token ?? CancellationToken.None;
+        try
+        {
+            while (!token.IsCancellationRequested && IsVisible)
+            {
+                _ = levelButton.ScaleTo(1.1, 800);
+                await levelButton.FadeTo(1, 800);
+                if (token.IsCancellationRequested || !IsVisible) break;
 
-            _ = levelButton.ScaleTo(1, 1000);
-            await levelButton.FadeTo(0.7, 1000);
-            
+                _ = levelButton.ScaleTo(1, 800);
+                await levelButton.FadeTo(0.7, 800);
+            }
         }
-
+        catch
+        {
+            // Best-effort animation; ignore failures during navigation/disposal.
+        }
     }
 
     public async Task LockedWallClicked(ImageButton imageButton)

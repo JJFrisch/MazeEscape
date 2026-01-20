@@ -40,8 +40,8 @@ public partial class DailyMazePage : ContentPage
     // For Play State
     public event EventHandler<CampaignLevel>? LevelSaved;
 
-    public double MazeWindowWidth = Application.Current.MainPage.Width * 0.95;
-    public double MazeWindowHeight = Application.Current.MainPage.Height * 0.83;
+    public double MazeWindowWidth;
+    public double MazeWindowHeight;
 
     MazeModel Maze = new MazeModel();
     MazeGraphicsView mazeGraphicsView;
@@ -59,9 +59,23 @@ public partial class DailyMazePage : ContentPage
 
     private bool RestartMonth = false;
 
+    private CancellationTokenSource? _playCts;
+
     public DailyMazePage()
 	{
 		InitializeComponent();
+
+#if IOS
+        Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page.SetUseSafeArea(this, true);
+#endif
+
+        _playCts = new CancellationTokenSource();
+
+        var di = Microsoft.Maui.Devices.DeviceDisplay.Current.MainDisplayInfo;
+        var screenWidth = di.Width / di.Density;
+        var screenHeight = di.Height / di.Density;
+        MazeWindowWidth = screenWidth * 0.95;
+        MazeWindowHeight = screenHeight * 0.83;
 
         stateContainerModel.CurrentState = "Loading";
 
@@ -77,6 +91,29 @@ public partial class DailyMazePage : ContentPage
         prizeLabel2.Text = ((int)days_in_this_month).ToString();
 
 
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+
+        _playCts?.Cancel();
+        running = false;
+
+        try
+        {
+            _timer?.Stop();
+        }
+        catch { }
+
+#if WINDOWS || MACCATALYST
+        try
+        {
+            hook?.Dispose();
+        }
+        catch { }
+        hook = null;
+#endif
     }
 
     protected override async void OnAppearing()
@@ -372,38 +409,38 @@ public partial class DailyMazePage : ContentPage
             "an unvisited cell that is connected to the previously visited cells. The process of hunting and killing continues until all cells in the grid have been visited and a " +
             "fully connected maze has been created." },
 
-        {"GenerateKruskals", "Kruskal’s algorithm generates a maze by constructing a minimum spanning tree (MST) over a grid graph. Each cell is a vertex, and walls between them " +
+        {"GenerateKruskals", "Kruskalï¿½s algorithm generates a maze by constructing a minimum spanning tree (MST) over a grid graph. Each cell is a vertex, and walls between them " +
             "represent weighted edges. Initially, each cell is its own disjoint set. The algorithm sorts all walls randomly and iterates through them, removing a wall if it connects " +
             "vertices from different sets. This is efficiently managed using the union-find data structure. The process continues until a spanning tree forms, ensuring connectivity " +
-            "without cycles. The resulting maze has uniform randomness, as edge selection is globally randomized rather than biased by a growing frontier, like Prim’s algorithm." },
+            "without cycles. The resulting maze has uniform randomness, as edge selection is globally randomized rather than biased by a growing frontier, like Primï¿½s algorithm." },
 
-        {"GeneratePrims", "Prim’s algorithm generates a maze using a growing tree approach, treating the grid as a graph where cells are vertices and walls are edges." +
-            " It begins with a random single cell and tracks its frontier—walls separating it from unvisited cells. At each step, a random frontier wall is removed, and the adjacent cell " +
-            "is added to the tree. This continues until all cells are connected. The algorithm’s selection method shapes the maze: purely random choices create sprawling, natural " +
+        {"GeneratePrims", "Primï¿½s algorithm generates a maze using a growing tree approach, treating the grid as a graph where cells are vertices and walls are edges." +
+            " It begins with a random single cell and tracks its frontierï¿½walls separating it from unvisited cells. At each step, a random frontier wall is removed, and the adjacent cell " +
+            "is added to the tree. This continues until all cells are connected. The algorithmï¿½s selection method shapes the maze: purely random choices create sprawling, natural " +
             "mazes, while always selecting the newest frontier cell results in long, winding corridors with fewer short loops." },
 
         {"GenerateGrowingTree_50_0", "The GrowingTree_50_0 algorithm generates a maze using a growing tree approach with edges selected 50% of the time by random and 0% the newest edges," +
-            " leaving the other 50% of edges chosen by being the oldest. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edges—walls separating " +
-            "the tree from unvisited cells—are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
-            " and the new cell added to the tree. This continues until all cells are connected. The maze’s structure depends on edge " +
+            " leaving the other 50% of edges chosen by being the oldest. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edgesï¿½walls separating " +
+            "the tree from unvisited cellsï¿½are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
+            " and the new cell added to the tree. This continues until all cells are connected. The mazeï¿½s structure depends on edge " +
             "selection: a purely random choice creates a Prim-like maze, while preferring the newest edges mimics recursive backtracking." },
 
         {"GenerateGrowingTree_25_75", "The GrowingTree_25_75 algorithm generates a maze using a growing tree approach with edges selected 75% of the time by random and 25% of the time the newest edge" +
-            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edges—walls separating " +
-            "the tree from unvisited cells—are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
-            " and the new cell added to the tree. This continues until all cells are connected. The maze’s structure depends on edge " +
+            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edgesï¿½walls separating " +
+            "the tree from unvisited cellsï¿½are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
+            " and the new cell added to the tree. This continues until all cells are connected. The mazeï¿½s structure depends on edge " +
             "selection: a purely random choice creates a Prim-like maze, while preferring the newest edges mimics recursive backtracking." },
 
         {"GenerateGrowingTree_75_25", "The GrowingTree_75_25 algorithm generates a maze using a growing tree approach with edges selected 25% of the time by random and 75% of the time the newest edge" +
-            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edges—walls separating " +
-            "the tree from unvisited cells—are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
-            " and the new cell added to the tree. This continues until all cells are connected. The maze’s structure depends on edge " +
+            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edgesï¿½walls separating " +
+            "the tree from unvisited cellsï¿½are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
+            " and the new cell added to the tree. This continues until all cells are connected. The mazeï¿½s structure depends on edge " +
             "selection: a purely random choice creates a Prim-like maze, while preferring the newest edges mimics recursive backtracking." },
 
         {"GenerateGrowingTree_50_50", "The GrowingTree_50_50 algorithm generates a maze using a growing tree approach with edges selected 50% of the time by random and 50% of the time the newest edge" +
-            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edges—walls separating " +
-            "the tree from unvisited cells—are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
-            " and the new cell added to the tree. This continues until all cells are connected. The maze’s structure depends on edge " +
+            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edgesï¿½walls separating " +
+            "the tree from unvisited cellsï¿½are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
+            " and the new cell added to the tree. This continues until all cells are connected. The mazeï¿½s structure depends on edge " +
             "selection: a purely random choice creates a Prim-like maze, while preferring the newest edges mimics recursive backtracking." },
 
         {"GenerateBacktracking", "The backtracking algorithm generates a maze using depth-first search, treating the grid as a graph where cells are vertices and walls are edges. " +
@@ -501,7 +538,20 @@ public partial class DailyMazePage : ContentPage
 
         InitializeReactiveKeyboard();
 
-        Task.Delay(1000).ContinueWith(t => StartPlay());
+        _ = StartPlaySequenceAsync(_playCts?.Token ?? CancellationToken.None);
+    }
+
+    private async Task StartPlaySequenceAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(1000, token);
+            if (token.IsCancellationRequested) return;
+            await Dispatcher.DispatchAsync(() => StartPlay());
+        }
+        catch (TaskCanceledException)
+        {
+        }
     }
 
     public void InitializeElements()
@@ -549,11 +599,25 @@ public partial class DailyMazePage : ContentPage
     {
         stateContainerModel.CurrentState = "Play";
         int time_to_wait = selected_dailyLevel.Width * selected_dailyLevel.Height * 5;
-        Task.Delay(time_to_wait).ContinueWith(t => StartTimer());
+
+        _ = StartTimerAfterDelayAsync(time_to_wait, _playCts?.Token ?? CancellationToken.None);
 
         if (selected_dailyLevel.Status != "Completed")
         {
             selected_dailyLevel.Status = "Attempted";
+        }
+    }
+
+    private async Task StartTimerAfterDelayAsync(int milliseconds, CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(milliseconds, token);
+            if (token.IsCancellationRequested) return;
+            await Dispatcher.DispatchAsync(() => StartTimer());
+        }
+        catch (TaskCanceledException)
+        {
         }
     }
 
@@ -739,6 +803,12 @@ public partial class DailyMazePage : ContentPage
 
     public async void InitializeReactiveKeyboard()
     {
+#if WINDOWS || MACCATALYST
+        if (hook != null)
+        {
+            return;
+        }
+
         hook = new SimpleReactiveGlobalHook(GlobalHookType.Keyboard, runAsyncOnBackgroundThread: true);
         hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcUp).Subscribe(OnUpArrowKeyPressed);
         hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcDown).Subscribe(OnDownArrowKeyPressed);
@@ -746,6 +816,7 @@ public partial class DailyMazePage : ContentPage
         hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcRight).Subscribe(OnRightArrowKeyPressed);
 
         await hook.RunAsync();
+#endif
     }
 
     public void RedrawPlayer()

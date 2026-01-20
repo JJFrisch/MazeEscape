@@ -14,8 +14,8 @@ using System.Threading.Tasks;
 
 public partial class BasicGridPage : ContentPage
 {
-    public double MazeWindowWidth = App.PlayerData.WindowWidth * 0.95;
-    public double MazeWindowHeight = App.PlayerData.WindowHeight * 0.8;
+    public double MazeWindowWidth;
+    public double MazeWindowHeight;
 
 
     MazeModel Maze = new MazeModel();
@@ -26,6 +26,16 @@ public partial class BasicGridPage : ContentPage
     public BasicGridPage()
     {
         InitializeComponent();
+
+    #if IOS
+        Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page.SetUseSafeArea(this, true);
+    #endif
+
+        var di = Microsoft.Maui.Devices.DeviceDisplay.Current.MainDisplayInfo;
+        var screenWidth = di.Width / di.Density;
+        var screenHeight = di.Height / di.Density;
+        MazeWindowWidth = screenWidth * 0.95;
+        MazeWindowHeight = screenHeight * 0.8;
 
         AbsoluteLayout.SetLayoutBounds(main_absolute_layout, new Rect(0.5, 0.5, MazeWindowWidth, MazeWindowHeight));
         AbsoluteLayout.SetLayoutFlags(main_absolute_layout, AbsoluteLayoutFlags.PositionProportional);
@@ -65,6 +75,16 @@ public partial class BasicGridPage : ContentPage
     {
         InitializeComponent();
 
+    #if IOS
+        Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page.SetUseSafeArea(this, true);
+    #endif
+
+        var di = Microsoft.Maui.Devices.DeviceDisplay.Current.MainDisplayInfo;
+        var screenWidth = di.Width / di.Density;
+        var screenHeight = di.Height / di.Density;
+        MazeWindowWidth = screenWidth * 0.95;
+        MazeWindowHeight = screenHeight * 0.8;
+
         AbsoluteLayout.SetLayoutBounds(main_absolute_layout, new Rect(0.5, 0.5, MazeWindowWidth, MazeWindowHeight));
         AbsoluteLayout.SetLayoutFlags(main_absolute_layout, AbsoluteLayoutFlags.PositionProportional);
 
@@ -98,8 +118,28 @@ public partial class BasicGridPage : ContentPage
         Title = title;
     }
 
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+
+#if WINDOWS || MACCATALYST
+        try
+        {
+            hook?.Dispose();
+        }
+        catch { }
+        hook = null;
+#endif
+    }
+
     public async void InitializeReactiveKeyboard()
     {
+#if WINDOWS || MACCATALYST
+        if (hook != null)
+        {
+            return;
+        }
+
         hook = new SimpleReactiveGlobalHook(GlobalHookType.Keyboard, runAsyncOnBackgroundThread: true);
         hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcUp).Subscribe(OnUpArrowKeyPressed);
         hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcDown).Subscribe(OnDownArrowKeyPressed);
@@ -107,6 +147,7 @@ public partial class BasicGridPage : ContentPage
         hook.KeyPressed.Where(e => e.Data.KeyCode == KeyCode.VcRight).Subscribe(OnRightArrowKeyPressed);
 
         await hook.RunAsync();
+#endif
     }
 
     public void InitializeMaze(int width, int height)

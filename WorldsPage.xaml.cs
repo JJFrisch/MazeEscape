@@ -9,15 +9,27 @@ public partial class WorldsPage : ContentPage
     bool choosen = false;
     bool running = false;
 
-    List<ContentPage> campaignPages = new List<ContentPage>() { new CampaignPage(), new World2CampaignPage()};
+    private readonly List<Func<ContentPage>> campaignPageFactories = new()
+    {
+        () => new CampaignPage(),
+        () => new World2CampaignPage(),
+    };
     public ICommand MyCommand { private set; get; }
 
     public WorldsPage(int? unlocked_num = null)
 	{
 		InitializeComponent();
 
-        double width = Math.Min(700, Application.Current.MainPage.Width);
-        double height = Math.Min(1000, Application.Current.MainPage.Height+100);
+#if IOS
+		Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page.SetUseSafeArea(this, true);
+#endif
+
+    var di = Microsoft.Maui.Devices.DeviceDisplay.Current.MainDisplayInfo;
+    var screenWidth = di.Width / di.Density;
+    var screenHeight = di.Height / di.Density;
+
+    double width = Math.Min(700, screenWidth);
+    double height = Math.Min(1000, screenHeight + 100);
         worldsCollectionView.WidthRequest = width;
         worldsCollectionView.HeightRequest = height;
 
@@ -82,7 +94,7 @@ public partial class WorldsPage : ContentPage
 
     private async void BackButton_Clicked(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new MainPage());
+		await Navigation.PopAsync();
     }
 
     private async void worldsCollectionView_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -103,7 +115,7 @@ public partial class WorldsPage : ContentPage
             choosen = true;
             try
             {
-                await Navigation.PushAsync(campaignPages[world.WorldID - 1]);
+				await Navigation.PushAsync(campaignPageFactories[world.WorldID - 1]());
             }
             catch (Exception ex)
             {

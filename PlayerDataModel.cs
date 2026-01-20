@@ -101,6 +101,8 @@ namespace MazeEscape
 
         public async Task InitializeWorlds()
         {
+            Worlds.Clear();
+            UnlockedSkins.Clear();
             InitializeSkins();
 
             Worlds.Add(new CampaignWorld()
@@ -611,6 +613,7 @@ namespace MazeEscape
 
         public void InitializeSkins()
         {
+            UnlockedSkins.Clear();
             UnlockedSkins.Add(new SkinModel(0, "Maze Solver", "player_image0", 0) { IsUnlocked = true});
 
             PlayerCurrentSkin = UnlockedSkins[0];
@@ -669,22 +672,50 @@ namespace MazeEscape
 
         public void Load() 
         {
-            string fileName = FileSystem.AppDataDirectory;
-            var rawData = File.ReadAllText(Path.Combine(fileName, FilePathName));
-            SaveableData? data = JsonSerializer.Deserialize<SaveableData>(rawData);
-            PlayerName = data.PlayerName;
-            Worlds = data.Worlds;
-            CoinCount = data.CoinCount;
-            HintsOwned = data.HintsOwned;
-            ExtraMovesOwned = data.ExtraMovesOwned;
-            ExtraTimesOwned = data.ExtraTimesOwned;
-            PlayerCurrentSkin = data.PlayerCurrentSkin;
-            MonthPrize1_achieved = data.MonthPrize1_achieved;
-            MonthPrize2_achieved = data.MonthPrize2_achieved;
-            MostRecentMonth = data.MostRecentMonth;
-            UnlockedSkins = data.UnlockedSkins;
-            CurrentWorldIndex = data.CurrentWorldIndex;
-            WallColor = data.WallColor;
+            string dir = FileSystem.AppDataDirectory;
+            string path = Path.Combine(dir, FilePathName);
+
+            if (!File.Exists(path))
+            {
+                return;
+            }
+
+            try
+            {
+                var rawData = File.ReadAllText(path);
+                SaveableData? data = JsonSerializer.Deserialize<SaveableData>(rawData);
+                if (data == null)
+                {
+                    return;
+                }
+
+                PlayerName = data.PlayerName ?? "";
+                Worlds = data.Worlds ?? new List<CampaignWorld>();
+                CoinCount = data.CoinCount;
+                HintsOwned = data.HintsOwned;
+                ExtraMovesOwned = data.ExtraMovesOwned;
+                ExtraTimesOwned = data.ExtraTimesOwned;
+                PlayerCurrentSkin = data.PlayerCurrentSkin;
+                MonthPrize1_achieved = data.MonthPrize1_achieved;
+                MonthPrize2_achieved = data.MonthPrize2_achieved;
+                MostRecentMonth = data.MostRecentMonth ?? "";
+                UnlockedSkins = data.UnlockedSkins ?? new List<SkinModel>();
+                CurrentWorldIndex = data.CurrentWorldIndex;
+                WallColor = data.WallColor;
+
+                if (UnlockedSkins.Count == 0)
+                {
+                    InitializeSkins();
+                }
+                else if (PlayerCurrentSkin == null)
+                {
+                    PlayerCurrentSkin = UnlockedSkins.FirstOrDefault(s => s.IsUnlocked) ?? UnlockedSkins[0];
+                }
+            }
+            catch
+            {
+                // Corrupt/partial save shouldn't crash the app; fall back to defaults.
+            }
 
         }
 

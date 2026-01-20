@@ -23,8 +23,8 @@ public partial class CampaignLevelPage : ContentPage
     public event EventHandler<CampaignLevel>? LevelSaved;
     CampaignLevel Level;
 
-    public double MazeWindowWidth = Application.Current.MainPage.Width * 0.9;
-    public double MazeWindowHeight = Application.Current.MainPage.Height * 0.8;
+    public double MazeWindowWidth;
+    public double MazeWindowHeight;
 
     MazeModel Maze = new MazeModel();
     double cell_width;
@@ -49,6 +49,8 @@ public partial class CampaignLevelPage : ContentPage
     private bool sent = false;
 
     CampaignWorld World;
+
+    private CancellationTokenSource? _lifecycleCts;
 
     public void StartTimer()
     {
@@ -96,6 +98,18 @@ public partial class CampaignLevelPage : ContentPage
 
         InitializeComponent();
 
+    #if IOS
+        Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.Page.SetUseSafeArea(this, true);
+    #endif
+
+        _lifecycleCts = new CancellationTokenSource();
+
+        var di = Microsoft.Maui.Devices.DeviceDisplay.Current.MainDisplayInfo;
+        var screenWidth = di.Width / di.Density;
+        var screenHeight = di.Height / di.Density;
+        MazeWindowWidth = screenWidth * 0.9;
+        MazeWindowHeight = screenHeight * 0.8;
+
         PageAbsoluteLayout.BindingContext = stateContainerModel;
         stateContainerModel.CurrentState = "Loading";
 
@@ -119,15 +133,53 @@ public partial class CampaignLevelPage : ContentPage
 
         AddSwipeGestures();
 
-        Task.Delay(1000).ContinueWith(t => StartPlay());
-        World = world;
+        _ = StartPlaySequenceAsync(_lifecycleCts.Token);
     }
 
-    public void StartPlay()
+    protected override void OnDisappearing()
     {
-        stateContainerModel.CurrentState = "Success";
-        int time_to_wait = Level.Width * Level.Height * 5;
-        Task.Delay(time_to_wait).ContinueWith(t => StartTimer());
+        base.OnDisappearing();
+
+        _lifecycleCts?.Cancel();
+        running = false;
+
+        try
+        {
+            _timer?.Stop();
+        }
+        catch { }
+
+#if WINDOWS || MACCATALYST
+        try
+        {
+            hook?.Dispose();
+        }
+        catch { }
+        hook = null;
+#endif
+    }
+
+    private async Task StartPlaySequenceAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(1000, token);
+            if (token.IsCancellationRequested) return;
+
+            await Dispatcher.DispatchAsync(() =>
+            {
+                stateContainerModel.CurrentState = "Success";
+            });
+
+            int time_to_wait = Level.Width * Level.Height * 5;
+            await Task.Delay(time_to_wait, token);
+            if (token.IsCancellationRequested) return;
+
+            await Dispatcher.DispatchAsync(() => StartTimer());
+        }
+        catch (TaskCanceledException)
+        {
+        }
     }
 
     protected override void OnAppearing()
@@ -313,7 +365,8 @@ public partial class CampaignLevelPage : ContentPage
     }
 
     public async void InitializeReactiveKeyboard()
-    {        
+    {
+#if WINDOWS || MACCATALYST
         if (hook == null)
         {
             hook = new SimpleReactiveGlobalHook(GlobalHookType.Keyboard, runAsyncOnBackgroundThread: true);
@@ -324,6 +377,7 @@ public partial class CampaignLevelPage : ContentPage
 
             await hook.RunAsync();
         }
+#endif
     }
 
     public void AddSwipeGestures()

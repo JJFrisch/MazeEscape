@@ -4,13 +4,13 @@
   Responsive to container size.
 -->
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, tick } from 'svelte';
 	import type { MazeData, Position } from '$lib/core/types';
 
 	let {
 		maze,
 		playerPos,
-		wallColor = '#000000',
+		wallColor = '#38bdf8',
 		hintPath = null,
 		skinEmoji = '🟣',
 		showVisited = false,
@@ -36,6 +36,7 @@
 	const WALL_WIDTH = 2;
 	const CELL_PADDING = 0.1;
 	const ANIMATION_SPEED = 0.15; // lerp factor
+	const FALLBACK_WALL_COLOR = '#38bdf8';
 
 	function lerp(a: number, b: number, t: number): number {
 		return a + (b - a) * t;
@@ -52,11 +53,15 @@
 		const displayWidth = rect.width;
 		const displayHeight = rect.height;
 
+		if (displayWidth <= 0 || displayHeight <= 0) {
+			return;
+		}
+
 		canvas.width = displayWidth * dpr;
 		canvas.height = displayHeight * dpr;
 		canvas.style.width = `${displayWidth}px`;
 		canvas.style.height = `${displayHeight}px`;
-		ctx.scale(dpr, dpr);
+		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
 		// Calculate cell size to fit the container
 		const padding = 8;
@@ -128,7 +133,7 @@
 		}
 
 		// Draw walls
-		ctx.strokeStyle = wallColor || '#e2e8f0';
+		ctx.strokeStyle = wallColor === '#000000' ? FALLBACK_WALL_COLOR : (wallColor || FALLBACK_WALL_COLOR);
 		ctx.lineWidth = WALL_WIDTH;
 		ctx.lineCap = 'round';
 
@@ -208,36 +213,45 @@
 	}
 
 	$effect(() => {
-		// Redraw whenever maze, playerPos, hintPath, or wallColor change
-		if (canvas && maze) {
+		// Redraw whenever the canvas, maze, or visual inputs change.
+		if (canvas && container && maze) {
+			maze; // track
 			targetPlayerX; // track
 			targetPlayerY; // track
 			hintPath; // track
 			wallColor; // track
+			showVisited; // track
+			visitedCells; // track
 			cancelAnimationFrame(animFrame);
 			animFrame = requestAnimationFrame(draw);
 		}
 	});
 
 	onMount(() => {
-		animatedPlayerX = targetPlayerX;
-		animatedPlayerY = targetPlayerY;
+		let observer: ResizeObserver | undefined;
 
-		if (!container) {
-			return () => {
+		const scheduleInitialDraw = async () => {
+			await tick();
+			animatedPlayerX = targetPlayerX;
+			animatedPlayerY = targetPlayerY;
+
+			if (!container) {
+				return;
+			}
+
+			observer = new ResizeObserver(() => {
 				cancelAnimationFrame(animFrame);
-			};
-		}
-
-		const observer = new ResizeObserver(() => {
+				animFrame = requestAnimationFrame(draw);
+			});
+			observer.observe(container);
 			cancelAnimationFrame(animFrame);
 			animFrame = requestAnimationFrame(draw);
-		});
-		observer.observe(container);
-		animFrame = requestAnimationFrame(draw);
+		};
+
+		void scheduleInitialDraw();
 
 		return () => {
-			observer.disconnect();
+			observer?.disconnect();
 			cancelAnimationFrame(animFrame);
 		};
 	});

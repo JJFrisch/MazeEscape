@@ -24,6 +24,7 @@ public partial class CampaignLevelPage : ContentPage
 {
     public event EventHandler<CampaignLevel>? LevelSaved;
     CampaignLevel Level;
+    private ISaveSynchronizer? _saveSynchronizer;
 
     public double MazeWindowWidth = Application.Current.MainPage.Width * 0.9;
     public double MazeWindowHeight = Application.Current.MainPage.Height * 0.8;
@@ -93,9 +94,10 @@ public partial class CampaignLevelPage : ContentPage
     }
 
     StateContainerViewModel stateContainerModel = new StateContainerViewModel();
-    public CampaignLevelPage(CampaignLevel level, CampaignWorld world)
+    public CampaignLevelPage(CampaignLevel level, CampaignWorld world, ISaveSynchronizer? saveSynchronizer = null)
     {
         World = world;
+        _saveSynchronizer = saveSynchronizer;
 
         InitializeComponent();
 
@@ -538,6 +540,12 @@ public partial class CampaignLevelPage : ContentPage
         App.PlayerData.CoinCount += coinsEarned;
 
         App.PlayerData.Save();
+
+        // Sync save to API
+        if (_saveSynchronizer != null)
+        {
+            _ = _saveSynchronizer.SaveCheckpointAsync(App.PlayerData, "level_completed");
+        }
 
         await main_absolute_layout.FadeTo(0.2, 1000);
         LevelSaved?.Invoke(this, Level);

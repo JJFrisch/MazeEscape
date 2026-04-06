@@ -1,14 +1,19 @@
 
 namespace MazeEscape;
 
+using MazeEscape.Services;
+
 public partial class ShopPage : ContentPage
 {
 	public List<string> NamesOfPowerUps = new List<string> { "Hint", "ExtraTime", "ExtraMoves" };
     Dictionary<string, int> CostsOfPowerUps = new Dictionary<string, int>();
     Dictionary<string, Label> NumberOwnedLabels = new Dictionary<string, Label>();
-    public ShopPage()
+    private ISaveSynchronizer? _saveSynchronizer;
+
+    public ShopPage(ISaveSynchronizer? saveSynchronizer = null)
 	{
 		InitializeComponent();
+		_saveSynchronizer = saveSynchronizer;
 
 
 
@@ -142,6 +147,12 @@ public partial class ShopPage : ContentPage
             App.PlayerData.CoinCount -= CostsOfPowerUps[name];
             App.PlayerData.AddPowerup(name);
             App.PlayerData.Save();
+
+            // Sync save to API
+            if (_saveSynchronizer != null)
+            {
+                _ = _saveSynchronizer.SaveCheckpointAsync(App.PlayerData, "item_purchased");
+            }
 
             _ = imageButton.FadeTo(0.5, 500);
             await imageButton.ScaleTo(0.8, 500);

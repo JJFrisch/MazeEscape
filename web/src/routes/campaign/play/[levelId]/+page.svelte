@@ -47,10 +47,11 @@
 	};
 
 	const introPhrases = $derived(INTRO_PHRASES[theme.motif]);
+	const ENABLE_LEVEL_INTRO = true;
 
 	let session = $state<GameSessionState | null>(null);
 	let elapsed = $state(0);
-	let timerInterval: ReturnType<typeof setInterval>;
+	let timerInterval: ReturnType<typeof setInterval> | undefined;
 	let showIntro = $state(false);
 	let showOutro = $state(false);
 	let victoryStars = $state({ star1: false, star2: false, star3: false, total: 0 });
@@ -80,10 +81,15 @@
 		visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
 		moveQueue = [];
 		clearInterval(timerInterval);
-		showIntro = true;
+		showIntro = ENABLE_LEVEL_INTRO;
+
+		if (!ENABLE_LEVEL_INTRO) {
+			startGameplay();
+		}
 	}
 
 	function startGameplay() {
+		if (!session) return;
 		showIntro = false;
 		clearInterval(timerInterval);
 		timerInterval = setInterval(() => {

@@ -1,7 +1,7 @@
 <!--
   MazeIntroOverlay: Full-screen animated intro overlay shown before gameplay begins.
-  Fades in with a large title + subtitle, cycles through loading phrases, then shows
-  "Done ✓" and waits for a click-anywhere dismissal before calling ondismiss.
+	Fades in with a large title + subtitle, cycles through loading phrases, then
+	auto-starts gameplay while still allowing an immediate explicit skip.
 -->
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
@@ -21,6 +21,8 @@
 	} = $props();
 
 	const PHRASE_INTERVAL_MS = 620;
+	const EXIT_ANIMATION_MS = 380;
+	const AUTO_DISMISS_DELAY_MS = 900;
 
 	let phraseIndex = $state(0);
 	let isDone = $state(false);
@@ -30,12 +32,34 @@
 	const currentPhrase = $derived(phrases[phraseIndex] ?? '');
 
 	let phraseTimer: ReturnType<typeof setInterval>;
+	let autoDismissTimer: ReturnType<typeof setTimeout> | undefined;
 
-	function dismiss() {
-		if (!isDone || dismissed) return;
+	function dismiss(force = false) {
+		if ((!isDone && !force) || dismissed) return;
+		clearInterval(phraseTimer);
+		if (autoDismissTimer) {
+			clearTimeout(autoDismissTimer);
+		}
 		dismissed = true;
 		isExiting = true;
-		setTimeout(() => ondismiss(), 380);
+		setTimeout(() => ondismiss(), EXIT_ANIMATION_MS);
+	}
+
+	function completeIntro() {
+		if (isDone || dismissed) return;
+		isDone = true;
+		autoDismissTimer = setTimeout(() => dismiss(true), AUTO_DISMISS_DELAY_MS);
+	}
+
+	function skipIntro() {
+		dismiss(true);
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Escape' || event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			skipIntro();
+		}
 	}
 
 	onMount(() => {
@@ -49,22 +73,28 @@
 				phraseIndex = step;
 			} else {
 				clearInterval(phraseTimer);
-				isDone = true;
+				completeIntro();
 			}
 		}, PHRASE_INTERVAL_MS);
 	});
 
 	onDestroy(() => {
 		clearInterval(phraseTimer);
+		if (autoDismissTimer) {
+			clearTimeout(autoDismissTimer);
+		}
 	});
 </script>
 
+<svelte:window onkeydown={handleKeydown} />
+
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
+
 <div
 	class="intro-overlay"
 	class:exiting={isExiting}
-	onclick={dismiss}
+	onclick={() => dismiss()}
 	style="--accent: {accentColor}"
 >
 	<div class="intro-inner">
@@ -86,8 +116,21 @@
 			{/if}
 		</div>
 
+		<div class="intro-actions">
+			<button
+				type="button"
+				class="intro-action intro-action-secondary"
+				onclick={(event) => {
+					event.stopPropagation();
+					skipIntro();
+				}}
+			>
+				{isDone ? 'Start now' : 'Skip intro'}
+			</button>
+		</div>
+
 		{#if isDone}
-			<p class="tap-hint">Tap anywhere to begin</p>
+			<p class="tap-hint">Starting automatically...</p>
 		{/if}
 	</div>
 </div>
@@ -132,7 +175,6 @@
 		padding: 2rem;
 		max-width: 640px;
 		width: 100%;
-		pointer-events: none; /* clicks pass to the overlay container */
 	}
 
 	.intro-subtitle {
@@ -198,6 +240,43 @@
 	}
 	.dot:nth-child(2) { animation-delay: 0.2s; }
 	.dot:nth-child(3) { animation-delay: 0.4s; }
+
+	.intro-actions {
+		display: flex;
+		justify-content: center;
+		animation: content-rise 400ms 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+	}
+
+	.intro-action {
+		appearance: none;
+		border: 1px solid color-mix(in srgb, var(--accent) 40%, rgba(255, 255, 255, 0.16));
+		border-radius: 999px;
+		padding: 0.7rem 1.1rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		cursor: pointer;
+		transition:
+			transform 140ms ease,
+			border-color 140ms ease,
+			background-color 140ms ease,
+			color 140ms ease;
+	}
+
+	.intro-action:hover {
+		transform: translateY(-1px);
+	}
+
+	.intro-action-secondary {
+		background: rgba(255, 255, 255, 0.05);
+		color: rgba(240, 246, 255, 0.92);
+	}
+
+	.intro-action-secondary:hover {
+		background: rgba(255, 255, 255, 0.1);
+		border-color: color-mix(in srgb, var(--accent) 70%, rgba(255, 255, 255, 0.18));
+	}
 
 	.tap-hint {
 		font-size: 0.75rem;

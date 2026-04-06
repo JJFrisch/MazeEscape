@@ -1,6 +1,7 @@
 using MazeEscape.Core.Persistence;
 using MazeEscape.Core.Sync;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace MazeEscape.Web.Services;
@@ -8,10 +9,12 @@ namespace MazeEscape.Web.Services;
 public sealed class NoOpCloudSyncService : ICloudSyncService
 {
     private readonly HttpClient _httpClient;
+    private readonly IAccessTokenProvider _tokenProvider;
 
-    public NoOpCloudSyncService(HttpClient httpClient)
+    public NoOpCloudSyncService(HttpClient httpClient, IAccessTokenProvider tokenProvider)
     {
         _httpClient = httpClient;
+        _tokenProvider = tokenProvider;
     }
 
     public Task<SaveDocument?> PullAsync(string playerId, CancellationToken cancellationToken = default)
@@ -28,7 +31,11 @@ public sealed class NoOpCloudSyncService : ICloudSyncService
     {
         try
         {
-            var response = await _httpClient.GetAsync($"api/saves/{Uri.EscapeDataString(playerId)}", cancellationToken);
+            var token = await _tokenProvider.GetAccessTokenAsync(cancellationToken);
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"api/saves/{Uri.EscapeDataString(playerId)}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
             if (response.StatusCode == HttpStatusCode.NotFound)
             {
                 return null;
@@ -48,10 +55,14 @@ public sealed class NoOpCloudSyncService : ICloudSyncService
     {
         try
         {
-            using var response = await _httpClient.PutAsJsonAsync(
-                $"api/saves/{Uri.EscapeDataString(document.PlayerId)}",
-                document,
-                cancellationToken);
+            var token = await _tokenProvider.GetAccessTokenAsync(cancellationToken);
+            using var request = new HttpRequestMessage(HttpMethod.Put, $"api/saves/{Uri.EscapeDataString(document.PlayerId)}")
+            {
+                Content = JsonContent.Create(document)
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
 
             if (response.StatusCode == HttpStatusCode.Conflict)
             {

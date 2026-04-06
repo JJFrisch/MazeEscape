@@ -365,8 +365,12 @@ public partial class CampaignPage : ContentPage
 
     public void InitializeChests()
     {
-        foreach (IReward chest in World.ChestModels)
+        foreach (var chestObj in World.ChestModels)
         {
+            if (chestObj is not IReward chest)
+            {
+                continue;
+            }
 
             if (chest is KeyModel && !chest.Opened)
             {
@@ -571,8 +575,12 @@ public partial class CampaignPage : ContentPage
         loading = false;
         App.PlayerData.Save();
 
-        foreach (IReward chest in World.ChestModels)
+        foreach (var chestObj in World.ChestModels)
         {
+            if (chestObj is not IReward chest)
+            {
+                continue;
+            }
             chest.CancelAnimation();
         }
     }

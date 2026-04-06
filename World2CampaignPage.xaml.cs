@@ -342,8 +342,12 @@ public partial class World2CampaignPage : ContentPage
 
     public void InitializeChests()
     {
-        foreach (IReward chest in World.ChestModels)
+        foreach (var chestObj in World.ChestModels)
         {
+            if (chestObj is not IReward chest)
+            {
+                continue;
+            }
             chest.Draw(campaignLevelGrid, campaignMazeBackgroundAbsoluteLayout, CoinCountLabel);
 
             chest.Animation();
@@ -492,8 +496,12 @@ public partial class World2CampaignPage : ContentPage
         loading = false;
         App.PlayerData.Save();
 
-        foreach (IReward chest in World.ChestModels)
+        foreach (var chestObj in World.ChestModels)
         {
+            if (chestObj is not IReward chest)
+            {
+                continue;
+            }
             chest.CancelAnimation();
         }
     }

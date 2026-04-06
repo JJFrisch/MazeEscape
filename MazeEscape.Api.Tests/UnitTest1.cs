@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using MazeEscape.Core.Persistence;
 using Microsoft.AspNetCore.Hosting;
@@ -8,9 +9,8 @@ namespace MazeEscape.Api.Tests;
 
 public class SaveApiIntegrationTests
 {
-    private const string ValidToken = "dev-player-001-token";
-    private const string InvalidToken = "invalid-token";
-    private const string PlayerId = "player-001";
+    private const string PlayerOneId = "player-001";
+    private const string PlayerTwoId = "player-002";
 
     [Fact]
     public async Task PutWithoutAuthToken_ReturnsUnauthorized()
@@ -18,8 +18,8 @@ public class SaveApiIntegrationTests
         using var fixture = new ApiFixture();
         using var client = fixture.CreateClient();
 
-        var document = NewDocument(PlayerId, "payload-v1", null);
-        var response = await client.PutAsJsonAsync($"/api/saves/{PlayerId}", document);
+        var document = NewDocument(PlayerOneId, "payload-v1", null);
+        var response = await client.PutAsJsonAsync($"/api/saves/{PlayerOneId}", document);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -28,11 +28,30 @@ public class SaveApiIntegrationTests
     public async Task PutWithMismatchedPlayer_ReturnsForbidden()
     {
         using var fixture = new ApiFixture();
-        using var client = fixture.CreateAuthorizedClient(ValidToken);
+        using var client = fixture.CreateClient();
+        await fixture.AuthorizeAsync(client, PlayerOneId);
 
-        var document = NewDocument("player-002", "payload-v1", null);
-        var response = await client.PutAsJsonAsync("/api/saves/player-002", document);
+        var document = NewDocument(PlayerTwoId, "payload-v1", null);
+        var response = await client.PutAsJsonAsync($"/api/saves/{PlayerTwoId}", document);
 
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetWithMismatchedPlayer_ReturnsForbidden()
+    {
+        using var fixture = new ApiFixture();
+        using var playerOneClient = fixture.CreateClient();
+        using var playerTwoClient = fixture.CreateClient();
+        await fixture.AuthorizeAsync(playerOneClient, PlayerOneId);
+        await fixture.AuthorizeAsync(playerTwoClient, PlayerTwoId);
+
+        var seed = await playerTwoClient.PutAsJsonAsync(
+            $"/api/saves/{PlayerTwoId}",
+            NewDocument(PlayerTwoId, "payload-player-two", null));
+        seed.EnsureSuccessStatusCode();
+
+        var response = await playerOneClient.GetAsync($"/api/saves/{PlayerTwoId}");
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
@@ -40,17 +59,18 @@ public class SaveApiIntegrationTests
     public async Task PutWithStaleConcurrencyToken_ReturnsConflictWithLatestDocument()
     {
         using var fixture = new ApiFixture();
-        using var client = fixture.CreateAuthorizedClient(ValidToken);
+        using var client = fixture.CreateClient();
+        await fixture.AuthorizeAsync(client, PlayerOneId);
 
-        var firstPut = await client.PutAsJsonAsync($"/api/saves/{PlayerId}", NewDocument(PlayerId, "payload-v1", null));
+        var firstPut = await client.PutAsJsonAsync($"/api/saves/{PlayerOneId}", NewDocument(PlayerOneId, "payload-v1", null));
         firstPut.EnsureSuccessStatusCode();
         var firstSaved = await firstPut.Content.ReadFromJsonAsync<SaveDocument>();
         Assert.NotNull(firstSaved);
         Assert.False(string.IsNullOrWhiteSpace(firstSaved!.ConcurrencyToken));
 
         var stalePut = await client.PutAsJsonAsync(
-            $"/api/saves/{PlayerId}",
-            NewDocument(PlayerId, "payload-v2", "stale-token"));
+            $"/api/saves/{PlayerOneId}",
+            NewDocument(PlayerOneId, "payload-v2", "stale-token"));
 
         Assert.Equal(HttpStatusCode.Conflict, stalePut.StatusCode);
 
@@ -63,16 +83,17 @@ public class SaveApiIntegrationTests
     public async Task PutWithCurrentConcurrencyToken_OverwritesSuccessfully()
     {
         using var fixture = new ApiFixture();
-        using var client = fixture.CreateAuthorizedClient(ValidToken);
+        using var client = fixture.CreateClient();
+        await fixture.AuthorizeAsync(client, PlayerOneId);
 
-        var firstPut = await client.PutAsJsonAsync($"/api/saves/{PlayerId}", NewDocument(PlayerId, "payload-v1", null));
+        var firstPut = await client.PutAsJsonAsync($"/api/saves/{PlayerOneId}", NewDocument(PlayerOneId, "payload-v1", null));
         firstPut.EnsureSuccessStatusCode();
         var firstSaved = await firstPut.Content.ReadFromJsonAsync<SaveDocument>();
         Assert.NotNull(firstSaved);
 
         var secondPut = await client.PutAsJsonAsync(
-            $"/api/saves/{PlayerId}",
-            NewDocument(PlayerId, "payload-v2", firstSaved!.ConcurrencyToken));
+            $"/api/saves/{PlayerOneId}",
+            NewDocument(PlayerOneId, "payload-v2", firstSaved!.ConcurrencyToken));
 
         secondPut.EnsureSuccessStatusCode();
         var secondSaved = await secondPut.Content.ReadFromJsonAsync<SaveDocument>();
@@ -82,12 +103,14 @@ public class SaveApiIntegrationTests
     }
 
     [Fact]
-    public async Task InvalidToken_ReturnsUnauthorized()
+    public async Task InvalidClientSecret_ReturnsUnauthorized()
     {
         using var fixture = new ApiFixture();
-        using var client = fixture.CreateAuthorizedClient(InvalidToken);
+        using var client = fixture.CreateClient();
 
-        var response = await client.GetAsync($"/api/saves/{PlayerId}");
+        var response = await client.PostAsJsonAsync(
+            "/api/auth/token",
+            new { playerId = PlayerOneId, clientSecret = "wrong-secret" });
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
@@ -115,11 +138,12 @@ public class SaveApiIntegrationTests
                 Path.Combine(_contentRoot, "appsettings.json"),
                 """
                 {
-                  "SyncAuth": {
-                    "Tokens": {
-                      "dev-player-001-token": "player-001",
-                      "dev-player-002-token": "player-002"
-                    }
+                                    "Jwt": {
+                                        "Issuer": "MazeEscape.Api.Tests",
+                                        "Audience": "MazeEscape.Client.Tests",
+                                        "SigningKey": "mazeescape-tests-signing-key-0123456789",
+                                        "AccessTokenLifetimeMinutes": 20,
+                                        "ClientSecret": "test-client-secret"
                   },
                   "Logging": {
                     "LogLevel": {
@@ -130,11 +154,18 @@ public class SaveApiIntegrationTests
                 """);
         }
 
-        public HttpClient CreateAuthorizedClient(string token)
+        public async Task AuthorizeAsync(HttpClient client, string playerId)
         {
-            var client = CreateClient();
-            client.DefaultRequestHeaders.Add("X-Player-Token", token);
-            return client;
+            var tokenResponse = await client.PostAsJsonAsync(
+                "/api/auth/token",
+                new { playerId, clientSecret = "test-client-secret" });
+            tokenResponse.EnsureSuccessStatusCode();
+
+            var token = await tokenResponse.Content.ReadFromJsonAsync<TokenResponseDto>();
+            Assert.NotNull(token);
+            Assert.False(string.IsNullOrWhiteSpace(token!.AccessToken));
+
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
         }
 
         protected override void Dispose(bool disposing)
@@ -145,5 +176,7 @@ public class SaveApiIntegrationTests
                 Directory.Delete(_contentRoot, recursive: true);
             }
         }
+
+        private sealed record TokenResponseDto(string AccessToken, DateTimeOffset ExpiresAtUtc);
     }
 }

@@ -21,6 +21,7 @@ namespace MazeEscape.Models
         public int StarCount { get; set; }
         public List<string> UnlockedMazesNumbers { get; set; }
         public List<int> UnlockedGatesNumbers { get; set; }
+        public List<object> ChestModels { get; set; }
         public Dictionary<string, List<string>> LevelConnectsToDictionary { get; set; }
         public int HighestAreaUnlocked { get; set; }
         public double distanceScrolled { get; set; }
@@ -39,6 +40,7 @@ namespace MazeEscape.Models
             StarCount = 0;
             UnlockedMazesNumbers = new List<string>();
             UnlockedGatesNumbers = new List<int>();
+            ChestModels = new List<object>();
             LevelConnectsToDictionary = new Dictionary<string, List<string>>();
             gateStarRequired = new List<int>();
         }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SQLite;
 using MazeEscape.Models;
+using MazeEscape.Persistence;
 
 namespace MazeEscape
 { 
@@ -20,30 +21,63 @@ namespace MazeEscape
             if (database == null)
             {
                 database = new SQLiteAsyncConnection(DatabasePath, Flags);
-                await database.CreateTableAsync<CampaignLevel>();
+                await database.CreateTableAsync<CampaignLevelRecord>();
             }
         }
 
         public async Task<List<CampaignLevel>> GetLevelsAsync()
         {
             await Init();
-            return await database.Table<CampaignLevel>().ToListAsync();
+            var records = await database.Table<CampaignLevelRecord>().ToListAsync();
+            return records.Select(r => r.ToModel()).ToList();
         }
 
         public async Task AddNewLevelAsync(CampaignLevel c)
         {
-            if (c.LevelID != 0)
-                return;
             await Init();
-            await database.InsertAsync(c);
+
+            var record = CampaignLevelRecord.FromModel(c);
+            record.LevelId = 0;
+            var existing = await database.Table<CampaignLevelRecord>()
+                .Where(i => i.LevelNumber == c.LevelNumber)
+                .FirstOrDefaultAsync();
+
+            if (existing is not null)
+            {
+                record.LevelId = existing.LevelId;
+                await database.UpdateAsync(record);
+                c.LevelID = record.LevelId;
+                return;
+            }
+
+            await database.InsertAsync(record);
+            c.LevelID = record.LevelId;
         }
 
         public async Task UpdateExistingLevelAsync(CampaignLevel c)
         {
-            if (c.LevelID == 0)
-                return;
             await Init();
-            await database.UpdateAsync(c);
+
+            var record = CampaignLevelRecord.FromModel(c);
+            if (record.LevelId != 0)
+            {
+                await database.UpdateAsync(record);
+                return;
+            }
+
+            var existing = await database.Table<CampaignLevelRecord>()
+                .Where(i => i.LevelNumber == c.LevelNumber)
+                .FirstOrDefaultAsync();
+            if (existing is null)
+            {
+                await database.InsertAsync(record);
+                c.LevelID = record.LevelId;
+                return;
+            }
+
+            record.LevelId = existing.LevelId;
+            await database.UpdateAsync(record);
+            c.LevelID = record.LevelId;
         }
 
         public async Task SaveLevelAsync(CampaignLevel c)
@@ -57,19 +91,32 @@ namespace MazeEscape
         public async Task DeleteLevelAsync(CampaignLevel c)
         {
             await Init();
-            await database.DeleteAsync(c);
+            if (c.LevelID != 0)
+            {
+                await database.DeleteAsync<CampaignLevelRecord>(c.LevelID);
+                return;
+            }
+
+            var existing = await database.Table<CampaignLevelRecord>()
+                .Where(i => i.LevelNumber == c.LevelNumber)
+                .FirstOrDefaultAsync();
+            if (existing is not null)
+            {
+                await database.DeleteAsync<CampaignLevelRecord>(existing.LevelId);
+            }
         }
 
         public async Task DeleteAllLevelsAsync()
         {
             await Init();
-            await database.DeleteAllAsync<CampaignLevel>();
+            await database.DeleteAllAsync<CampaignLevelRecord>();
         }
 
         public async Task<CampaignLevel> GetItemAsync(string name)
         {
             await Init();
-            return await database.Table<CampaignLevel>().Where(i => i.LevelNumber == name).FirstOrDefaultAsync();
+            var record = await database.Table<CampaignLevelRecord>().Where(i => i.LevelNumber == name).FirstOrDefaultAsync();
+            return record?.ToModel();
         }
 
         //public async Task<List<CampaignLevel>> GetItemsNotDoneAsync()

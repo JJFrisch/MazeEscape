@@ -55,8 +55,12 @@
 		<Compile Remove="MazeEscape.Web\**\*.cs" />
 		<Compile Remove="MazeEscape.Web/**/*.cs" />
 		<Compile Remove="MazeEscape.Web/**" />
+		<Compile Remove="MazeEscape.Api\**\*.cs" />
+		<Compile Remove="MazeEscape.Api/**/*.cs" />
+		<Compile Remove="MazeEscape.Api/**" />
 		<None Remove="MazeEscape.Core/**/*.cs" />
 		<None Remove="MazeEscape.Web/**/*.cs" />
+		<None Remove="MazeEscape.Api/**/*.cs" />
 		<ProjectReference Include="MazeEscape.Core\MazeEscape.Core.csproj" />
 	</ItemGroup>
 

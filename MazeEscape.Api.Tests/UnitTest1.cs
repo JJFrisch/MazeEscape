@@ -1,9 +1,13 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using MazeEscape.Core.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MazeEscape.Api.Tests;
 
@@ -114,6 +118,33 @@ public class SaveApiIntegrationTests
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact]
+    public async Task ExpiredToken_ReturnsUnauthorized_AndRefreshTokenSucceeds()
+    {
+        using var fixture = new ApiFixture();
+        using var client = fixture.CreateClient();
+
+        var expiredToken = fixture.CreateExpiredToken(PlayerOneId);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", expiredToken);
+
+        var unauthorized = await client.GetAsync($"/api/saves/{PlayerOneId}");
+        Assert.Equal(HttpStatusCode.Unauthorized, unauthorized.StatusCode);
+
+        await fixture.AuthorizeAsync(client, PlayerOneId);
+
+        var put = await client.PutAsJsonAsync(
+            $"/api/saves/{PlayerOneId}",
+            NewDocument(PlayerOneId, "payload-after-refresh", null));
+        put.EnsureSuccessStatusCode();
+
+        var get = await client.GetAsync($"/api/saves/{PlayerOneId}");
+        get.EnsureSuccessStatusCode();
+
+        var saved = await get.Content.ReadFromJsonAsync<SaveDocument>();
+        Assert.NotNull(saved);
+        Assert.Equal("payload-after-refresh", saved!.PayloadJson);
+    }
+
     private static SaveDocument NewDocument(string playerId, string payloadJson, string? concurrencyToken)
     {
         return new SaveDocument
@@ -129,6 +160,9 @@ public class SaveApiIntegrationTests
     private sealed class ApiFixture : WebApplicationFactory<Program>
     {
         private readonly string _contentRoot = Path.Combine(Path.GetTempPath(), "mazeescape-api-tests", Guid.NewGuid().ToString("N"));
+        private const string JwtIssuer = "MazeEscape.Api.Tests";
+        private const string JwtAudience = "MazeEscape.Client.Tests";
+        private const string JwtSigningKey = "mazeescape-tests-signing-key-0123456789";
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
@@ -166,6 +200,26 @@ public class SaveApiIntegrationTests
             Assert.False(string.IsNullOrWhiteSpace(token!.AccessToken));
 
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.AccessToken);
+        }
+
+        public string CreateExpiredToken(string playerId)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtSigningKey));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            var now = DateTime.UtcNow;
+
+            var token = new JwtSecurityToken(
+                issuer: JwtIssuer,
+                audience: JwtAudience,
+                claims: new[]
+                {
+                    new Claim("player_id", playerId)
+                },
+                notBefore: now.AddMinutes(-10),
+                expires: now.AddMinutes(-5),
+                signingCredentials: credentials);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         protected override void Dispose(bool disposing)

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MazeEscape API Deployment</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        main {
+            padding: 40px;
+        }
+        section {
+            margin-bottom: 40px;
+        }
+        h2 {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        h3 {
+            color: #764ba2;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .endpoint-card {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+        .endpoint-card code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .checklist {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .checklist ul {
+            list-style-position: inside;
+            margin-left: 20px;
+        }
+        .checklist li {
+            margin: 8px 0;
+        }
+        .status-good { color: #28a745; font-weight: bold; }
+        .status-warning { color: #ffc107; font-weight: bold; }
+        .status-critical { color: #dc3545; font-weight: bold; }
+        .curl-example {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+        .note {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        .danger {
+            background: #ffe7e7;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #667eea;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        footer {
+            background: #f8f9fa;
+            border-top: 1px solid #ddd;
+            padding: 20px 40px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .last-updated {
+            color: #999;
+            font-size: 0.85em;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 MazeEscape API</h1>
+            <p>Lightweight Health & Status Monitoring</p>
+        </header>
+        <main>
+            <section>
+                <h2>📋 Quick Links</h2>
+                <div class="endpoint-card">
+                    <strong>Health Check:</strong> <code>GET /api/health</code><br>
+                    No authentication required. Use this to verify the API is running.
+                </div>
+                <div class="endpoint-card">
+                    <strong>Root Status:</strong> <code>GET /</code><br>
+                    Basic service information endpoint.
+                </div>
+            </section>
+
+            <section>
+                <h2>🚀 Production Deployment</h2>
+                <div class="note">
+                    <strong>📌 Important:</strong> Replace <code>your-api-domain.com</code> with your actual production domain before going live.
+                </div>
+                <table>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Method</th>
+                        <th>URL</th>
+                        <th>Auth Required</th>
+                    </tr>
+                    <tr>
+                        <td>Health Check</td>
+                        <td>GET</td>
+                        <td><code>https://your-api-domain.com/api/health</code></td>
+                        <td>❌ No</td>
+                    </tr>
+                    <tr>
+                        <td>Root Status</td>
+                        <td>GET</td>
+                        <td><code>https://your-api-domain.com/</code></td>
+                        <td>❌ No</td>
+                    </tr>
+                    <tr>
+                        <td>Auth Token</td>
+                        <td>POST</td>
+                        <td><code>https://your-api-domain.com/api/auth/token</code></td>
+                        <td>❌ No</td>
+                    </tr>
+                    <tr>
+                        <td>Get Saves</td>
+                        <td>GET</td>
+                        <td><code>https://your-api-domain.com/api/saves/{playerId}</code></td>
+                        <td>✅ Yes</td>
+                    </tr>
+                    <tr>
+                        <td>Save Data</td>
+                        <td>PUT</td>
+                        <td><code>https://your-api-domain.com/api/saves/{playerId}</code></td>
+                        <td>✅ Yes</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section>
+                <h2>🔍 Health Check Examples</h2>
+                <h3>Test without authentication:</h3>
+                <div class="curl-example">curl -i https://your-api-domain.com/api/health</div>
+                <p>Expected response (HTTP 200):</p>
+                <div class="curl-example">
+{
+  "status": "healthy",
+  "service": "MazeEscape.Api",
+  "version": "1.0.0.0",
+  "timestamp": "2026-04-05T10:30:00Z",
+  "environment": "production"
+}</div>
+            </section>
+
+            <section>
+                <h2>✅ Deployment Checklist</h2>
+                <div class="checklist">
+                    <h3>Before Deploying:</h3>
+                    <ul>
+                        <li>All unit tests pass locally</li>
+                        <li>API builds without warnings</li>
+                        <li>JWT configuration updated</li>
+                        <li>Database migrations applied</li>
+                        <li>Environment variables configured</li>
+                    </ul>
+                </div>
+                <div class="checklist">
+                    <h3>After Deploying:</h3>
+                    <ul>
+                        <li>Test health endpoint: <code>/api/health</code></li>
+                        <li>Verify JWT tokens work</li>
+                        <li>Confirm save/load functionality</li>
+                        <li>Check CORS headers present</li>
+                        <li>Monitor error logs</li>
+                    </ul>
+                </div>
+                <p style="margin-top: 15px;">
+                    For detailed checklist: See <code>DEPLOYMENT_CHECKLIST.md</code> in the repository
+                </p>
+            </section>
+
+            <section>
+                <h2>📊 Monitoring</h2>
+                <p>To verify the API is healthy at any time, call the health endpoint:</p>
+                <div class="curl-example">
+# This can be used in monitoring scripts, cron jobs, or CI/CD pipelines
+curl -f https://your-api-domain.com/api/health && echo "✓ API is healthy" || echo "✗ API is down"
+                </div>
+                <div class="note">
+                    The <code>-f</code> flag makes curl report HTTP errors, useful for scripting.
+                </div>
+            </section>
+
+            <section>
+                <h2>🔐 Authentication</h2>
+                <h3>Getting a JWT Token:</h3>
+                <div class="curl-example">
+curl -X POST https://your-api-domain.com/api/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "playerId": "your-player-id",
+    "clientSecret": "your-client-secret"
+  }'
+                </div>
+                <h3>Using the Token:</h3>
+                <div class="curl-example">
+curl https://your-api-domain.com/api/saves/your-player-id \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN_HERE"
+                </div>
+            </section>
+
+            <section>
+                <h2>⚠️ Troubleshooting</h2>
+                <table>
+                    <tr>
+                        <th>Issue</th>
+                        <th>Solution</th>
+                    </tr>
+                    <tr>
+                        <td>/api/health returns 404</td>
+                        <td>API deployment may have failed. Check deployment logs.</td>
+                    </tr>
+                    <tr>
+                        <td>Auth returns 401 Unauthorized</td>
+                        <td>Verify JWT configuration and client secret in appsettings.json</td>
+                    </tr>
+                    <tr>
+                        <td>CORS errors in browser</td>
+                        <td>Check CORS policy in Program.cs matches your domain</td>
+                    </tr>
+                    <tr>
+                        <td>Timeout errors</td>
+                        <td>Check network connectivity and that API server is running</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section>
+                <h2>📚 Resources</h2>
+                <ul style="margin-left: 20px;">
+                    <li><a href="https://github.com/JJFrisch/MazeEscape" style="color: #667eea;">GitHub Repository</a></li>
+                    <li><a href="DEPLOYMENT_CHECKLIST.md" style="color: #667eea;">Full Deployment Checklist</a></li>
+                    <li><a href="https://learn.microsoft.com/en-us/aspnet/core/" style="color: #667eea;">ASP.NET Core Documentation</a></li>
+                </ul>
+            </section>
+        </main>
+        <footer>
+            <p>MazeEscape API Documentation</p>
+            <p class="last-updated">Last updated: April 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

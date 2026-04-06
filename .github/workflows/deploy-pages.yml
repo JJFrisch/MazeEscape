@@ -1,0 +1,64 @@
+name: Deploy MazeEscape Web to GitHub Pages
+
+on:
+  push:
+    branches: ["master"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore Web Dependencies
+        run: dotnet restore MazeEscape.Web/MazeEscape.Web.csproj
+
+      - name: Publish Web App
+        run: dotnet publish MazeEscape.Web/MazeEscape.Web.csproj -c Release -o artifacts/web
+
+      - name: Configure GitHub Pages Base Path
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          INDEX_FILE="artifacts/web/wwwroot/index.html"
+          sed -i.bak "s#<base href=\"/\" />#<base href=\"/${REPO_NAME}/\" />#g" "$INDEX_FILE"
+          rm -f "${INDEX_FILE}.bak"
+          cp "$INDEX_FILE" artifacts/web/wwwroot/404.html
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: artifacts/web/wwwroot
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

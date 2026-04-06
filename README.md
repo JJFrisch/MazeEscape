@@ -71,6 +71,12 @@ Documentation images are in the `Images` folder. Game assets live under `Resourc
 - If you encounter MAUI workload issues, run `dotnet workload install maui`.
 - Clear NuGet caches if builds fail with `dotnet nuget locals all --clear`.
 
+**Web Deployment (GitHub Pages)**
+
+- GitHub Pages deployment workflow: `.github/workflows/deploy-pages.yml`
+- Deployment checklist: `docs/deployment-checklist.md`
+- Default Pages URL for this repo: `https://jjfrisch.github.io/MazeEscape/`
+
 **License**
 
 This project does not include a license file. Add one if you plan to open-source it.

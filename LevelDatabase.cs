@@ -22,6 +22,36 @@ namespace MazeEscape
             {
                 database = new SQLiteAsyncConnection(DatabasePath, Flags);
                 await database.CreateTableAsync<CampaignLevelRecord>();
+                await MigrateLegacyCampaignLevelRowsAsync();
+            }
+        }
+
+        private async Task MigrateLegacyCampaignLevelRowsAsync()
+        {
+            var legacyTableExists = await database.ExecuteScalarAsync<int>(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?",
+                "CampaignLevel");
+
+            if (legacyTableExists == 0)
+            {
+                return;
+            }
+
+            var currentCount = await database.Table<CampaignLevelRecord>().CountAsync();
+            if (currentCount > 0)
+            {
+                return;
+            }
+
+            var legacyRows = await database.Table<LegacyCampaignLevelRecord>().ToListAsync();
+            if (legacyRows.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var legacy in legacyRows)
+            {
+                await database.InsertOrReplaceAsync(legacy.ToRecord());
             }
         }
 

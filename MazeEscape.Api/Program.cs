@@ -110,6 +110,17 @@ app.MapPut("/api/saves/{playerId}", async (
 	}
 }).RequireAuthorization();
 
+// Health and status endpoints
+app.MapGet("/api/health", (IHostEnvironment environment) =>
+	Results.Ok(new
+	{
+		status = "healthy",
+		service = "MazeEscape.Api",
+		version = typeof(Program).Assembly.GetName().Version?.ToString() ?? "unknown",
+		environment = environment.EnvironmentName,
+		timestamp = DateTimeOffset.UtcNow
+	}));
+
 app.MapGet("/", () => Results.Ok(new { service = "MazeEscape.Api", status = "ok" }));
 
 app.Run();

@@ -16,13 +16,11 @@
             PlayerData = _playerData;
             _gameInitializer = gameInitializer ?? throw new ArgumentNullException(nameof(gameInitializer));
             _saveSynchronizer = saveSynchronizer ?? throw new ArgumentNullException(nameof(saveSynchronizer));
-
-            MainPage = new NavigationPage(new LandingPage(gameInitializer));
         }
 
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            var window = base.CreateWindow(activationState);
+            var window = new Window(new NavigationPage(new LandingPage(_gameInitializer)));
 
             int newWidth = App.PlayerData.WindowWidth;
             int newHeight = App.PlayerData.WindowHeight;

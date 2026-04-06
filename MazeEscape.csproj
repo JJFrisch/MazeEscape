@@ -61,10 +61,14 @@
 		<Compile Remove="MazeEscape.Api.Tests\**\*.cs" />
 		<Compile Remove="MazeEscape.Api.Tests/**/*.cs" />
 		<Compile Remove="MazeEscape.Api.Tests/**" />
+		<Compile Remove="MazeEscape.Web.Tests\**\*.cs" />
+		<Compile Remove="MazeEscape.Web.Tests/**/*.cs" />
+		<Compile Remove="MazeEscape.Web.Tests/**" />
 		<None Remove="MazeEscape.Core/**/*.cs" />
 		<None Remove="MazeEscape.Web/**/*.cs" />
 		<None Remove="MazeEscape.Api/**/*.cs" />
 		<None Remove="MazeEscape.Api.Tests/**/*.cs" />
+		<None Remove="MazeEscape.Web.Tests/**/*.cs" />
 		<ProjectReference Include="MazeEscape.Core\MazeEscape.Core.csproj" />
 	</ItemGroup>
 

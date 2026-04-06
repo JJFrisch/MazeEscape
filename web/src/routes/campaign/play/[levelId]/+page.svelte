@@ -47,13 +47,15 @@
 	};
 
 	const introPhrases = $derived(INTRO_PHRASES[theme.motif]);
-	const ENABLE_LEVEL_INTRO = false; // set to false to skip the intro overlay and go straight to gameplay
+	const ENABLE_LEVEL_INTRO = false; // temporary fallback while debugging intro/browser behavior
 
 	let session = $state<GameSessionState | null>(null);
 	let elapsed = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | undefined;
 	let showIntro = $state(false);
 	let showOutro = $state(false);
+	let loadError = $state('');
+	let initializedLevelKey = $state('');
 	let victoryStars = $state({ star1: false, star2: false, star3: false, total: 0 });
 	let coinsEarned = $state(0);
 	let visitedCells = $state(new Set<string>());
@@ -61,30 +63,45 @@
 	const MOVE_QUEUE_MAX = 2;
 
 	function startGame() {
-		if (!levelDef) return;
+		if (!levelDef) {
+			loadError = `Level ${levelNumber} could not be loaded.`;
+			session = null;
+			showIntro = false;
+			clearInterval(timerInterval);
+			return;
+		}
 
-		const seed = worldId * 10000 + (parseInt(levelDef.levelNumber) || 0) * 100 +
-			(levelDef.levelNumber.includes('b') ? 50 : 0);
+		try {
+			const seed = worldId * 10000 + (parseInt(levelDef.levelNumber) || 0) * 100 +
+				(levelDef.levelNumber.includes('b') ? 50 : 0);
 
-		const config: GameSessionConfig = {
-			width: levelDef.width,
-			height: levelDef.height,
-			algorithm: levelDef.levelType,
-			seed,
-			twoStarMoves: levelDef.twoStarMoves,
-			threeStarTime: levelDef.threeStarTime
-		};
+			const config: GameSessionConfig = {
+				width: levelDef.width,
+				height: levelDef.height,
+				algorithm: levelDef.levelType,
+				seed,
+				twoStarMoves: levelDef.twoStarMoves,
+				threeStarTime: levelDef.threeStarTime
+			};
 
-		session = createGameSession(config);
-		elapsed = 0;
-		showOutro = false;
-		visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
-		moveQueue = [];
-		clearInterval(timerInterval);
-		showIntro = ENABLE_LEVEL_INTRO;
+			session = createGameSession(config);
+			loadError = '';
+			elapsed = 0;
+			showOutro = false;
+			visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
+			moveQueue = [];
+			clearInterval(timerInterval);
+			showIntro = ENABLE_LEVEL_INTRO;
 
-		if (!ENABLE_LEVEL_INTRO) {
-			startGameplay();
+			if (!ENABLE_LEVEL_INTRO) {
+				startGameplay();
+			}
+		} catch (error) {
+			console.error('Failed to start level', { levelKey, error });
+			loadError = 'This level failed to initialize.';
+			session = null;
+			showIntro = false;
+			clearInterval(timerInterval);
 		}
 	}
 
@@ -234,7 +251,8 @@
 	// Restart game when route changes (untrack so startGame's reactive reads
 	// don't become additional effect dependencies)
 	$effect(() => {
-		levelKey; // only track route changes
+		if (!levelKey || initializedLevelKey === levelKey) return;
+		initializedLevelKey = levelKey;
 		untrack(() => startGame());
 	});
 </script>
@@ -310,6 +328,13 @@
 				<button class="dpad-btn dpad-down" onclick={() => queueMove('down')} aria-label="Move down">▼</button>
 			</div>
 		</div>
+	</div>
+
+
+{:else if loadError}
+	<div class="loading">
+		<p>{loadError}</p>
+		<a href="{base}/campaign/worlds">← Back to worlds</a>
 	</div>
 
 {:else}

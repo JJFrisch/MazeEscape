@@ -5,8 +5,9 @@
 	import { onDestroy, untrack } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
-	import { createGameSession, tryMove, getHint, calculateStars } from '$lib/core/session';
+	import { createGameSession, getHint, calculateStars } from '$lib/core/session';
 	import type { GameSessionState, GameSessionConfig } from '$lib/core/session';
+	import { canMove, applyMove } from '$lib/core/maze';
 	import type { Direction } from '$lib/core/types';
 	import { getWorldTheme } from '$lib/worldThemes';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
@@ -119,16 +120,20 @@
 	function handleMove(direction: Direction) {
 		if (!session || session.isComplete || showIntro) return;
 
-		const result = tryMove(session, direction);
-		if (result.moved) {
-			visitedCells = new Set([...visitedCells, `${result.x},${result.y}`]);
+		if (!canMove(session.maze.cells, session.playerPos, direction, session.maze.width, session.maze.height)) {
+			return;
+		}
 
-			// Trigger reactivity
-			session = session;
+		const newPos = applyMove(session.playerPos, direction);
+		session.playerPos = newPos;
+		session.moves += 1;
+		session.hintPath = null;
 
-			if (session.isComplete) {
-				onLevelComplete();
-			}
+		visitedCells = new Set([...visitedCells, `${newPos.x},${newPos.y}`]);
+
+		if (newPos.x === session.maze.end.x && newPos.y === session.maze.end.y) {
+			session.isComplete = true;
+			onLevelComplete();
 		}
 	}
 
@@ -316,16 +321,38 @@
 		<div class="controls-bar">
 			<div class="powerups">
 				<button class="powerup-btn" onclick={useHint} disabled={gameStore.player.hintsOwned <= 0}>
-					💡 Hint ({gameStore.player.hintsOwned})
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true">
+						<circle cx="12" cy="12" r="10"/>
+						<path d="M12 8v4M12 16h.01"/>
+					</svg>
+					Hint
+					<span class="powerup-count">({gameStore.player.hintsOwned})</span>
 				</button>
 			</div>
 			<div class="dpad" role="group" aria-label="Movement controls">
-				<button class="dpad-btn dpad-up" onclick={() => queueMove('up')} aria-label="Move up">▲</button>
+				<button class="dpad-btn dpad-up" onclick={() => queueMove('up')} aria-label="Move up">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
+						<polyline points="18 15 12 9 6 15"/>
+					</svg>
+				</button>
 				<div class="dpad-middle">
-					<button class="dpad-btn dpad-left" onclick={() => queueMove('left')} aria-label="Move left">◀</button>
-					<button class="dpad-btn dpad-right" onclick={() => queueMove('right')} aria-label="Move right">▶</button>
+					<button class="dpad-btn dpad-left" onclick={() => queueMove('left')} aria-label="Move left">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
+							<polyline points="15 18 9 12 15 6"/>
+						</svg>
+					</button>
+					<div class="dpad-center" aria-hidden="true"></div>
+					<button class="dpad-btn dpad-right" onclick={() => queueMove('right')} aria-label="Move right">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
+							<polyline points="9 18 15 12 9 6"/>
+						</svg>
+					</button>
 				</div>
-				<button class="dpad-btn dpad-down" onclick={() => queueMove('down')} aria-label="Move down">▼</button>
+				<button class="dpad-btn dpad-down" onclick={() => queueMove('down')} aria-label="Move down">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
+						<polyline points="6 9 12 15 18 9"/>
+					</svg>
+				</button>
 			</div>
 		</div>
 	</div>
@@ -455,8 +482,13 @@
 	.maze-area {
 		flex: 1;
 		min-height: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		border-radius: var(--radius-lg);
-		border: 1px solid var(--color-border);
+		border: 1px solid rgba(56, 189, 248, 0.2);
+		box-shadow: 0 0 24px rgba(56, 189, 248, 0.08), inset 0 0 40px rgba(0, 0, 0, 0.4);
+		background: #080e1e;
 		overflow: hidden;
 	}
 
@@ -476,6 +508,9 @@
 	}
 
 	.powerup-btn {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
 		background: var(--color-bg-card);
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-md);
@@ -496,43 +531,72 @@
 		cursor: default;
 	}
 
+	.powerup-count {
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+	}
+
 	.dpad {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 2px;
+		gap: 3px;
 	}
 
 	.dpad-middle {
 		display: flex;
-		gap: 2px;
+		align-items: center;
+		gap: 3px;
 	}
 
-	.dpad-btn {
-		width: 44px;
-		height: 44px;
+	.dpad-center {
+		width: 48px;
+		height: 48px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: var(--color-bg-card);
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-md);
-		color: var(--color-text-primary);
-		font-size: var(--text-base);
+		pointer-events: none;
+	}
+
+	.dpad-center::after {
+		content: '';
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: rgba(56, 189, 248, 0.3);
+	}
+
+	.dpad-btn {
+		width: 48px;
+		height: 48px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+		border: 1px solid rgba(56, 189, 248, 0.25);
+		border-radius: 10px;
+		color: rgba(186, 230, 253, 0.9);
+		font-size: 18px;
 		cursor: pointer;
-		transition: all var(--transition-fast);
+		transition: all 120ms ease;
 		user-select: none;
 		-webkit-user-select: none;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 	}
 
 	.dpad-btn:hover {
-		background: var(--color-bg-card-hover);
-		border-color: var(--color-accent-primary);
+		background: linear-gradient(145deg, rgba(30, 58, 100, 0.95), rgba(15, 35, 72, 0.95));
+		border-color: rgba(56, 189, 248, 0.55);
+		color: #bae6fd;
+		box-shadow: 0 0 12px rgba(56, 189, 248, 0.2), 0 2px 8px rgba(0, 0, 0, 0.4);
 	}
 
 	.dpad-btn:active {
-		background: var(--color-accent-primary);
+		background: linear-gradient(145deg, rgba(56, 189, 248, 0.3), rgba(14, 116, 144, 0.4));
+		border-color: #38bdf8;
 		color: white;
+		box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+		transform: scale(0.93);
 	}
 
 	.loading {
@@ -550,7 +614,10 @@
 		.dpad-btn {
 			width: 52px;
 			height: 52px;
-			font-size: var(--text-lg);
+		}
+		.dpad-center {
+			width: 52px;
+			height: 52px;
 		}
 	}
 </style>

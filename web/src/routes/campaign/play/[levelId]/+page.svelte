@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, untrack } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
 	import { createGameSession, tryMove, getHint, calculateStars } from '$lib/core/session';
@@ -225,10 +225,11 @@
 		clearInterval(timerInterval);
 	});
 
-	// Restart game when route changes
+	// Restart game when route changes (untrack so startGame's reactive reads
+	// don't become additional effect dependencies)
 	$effect(() => {
-		levelKey; // track
-		startGame();
+		levelKey; // only track route changes
+		untrack(() => startGame());
 	});
 </script>
 
@@ -305,40 +306,41 @@
 		</div>
 	</div>
 
-	<!-- Level intro overlay -->
-	{#if showIntro}
-		<MazeIntroOverlay
-			title="Level {levelNumber}"
-			subtitle={worldDef?.worldName ?? ''}
-			phrases={introPhrases}
-			accentColor={theme.accentColor}
-			ondismiss={startGameplay}
-		/>
-	{/if}
-
-	<!-- Level complete overlay -->
-	{#if showOutro && session}
-		<MazeOutroOverlay
-			title="Level Complete!"
-			playerName={gameStore.player.playerName}
-			time={elapsed}
-			moves={session.moves}
-			stars={victoryStars.total}
-			twoStarMoves={levelDef.twoStarMoves}
-			threeStarTime={levelDef.threeStarTime}
-			coins={coinsEarned}
-			accentColor={theme.accentColor}
-			actions={[
-				{ label: 'Retry', onclick: () => { showOutro = false; startGame(); } },
-				{ label: levelDef.connectTo1 ? 'Next Level →' : 'Back to World', primary: true, onclick: goToNextLevel }
-			]}
-		/>
-	{/if}
 {:else}
 	<div class="loading">
 		<p>Loading level...</p>
 		<a href="{base}/campaign/worlds">← Back to worlds</a>
 	</div>
+{/if}
+
+<!-- Overlays live outside the session block so their lifecycle is solely
+     controlled by showIntro/showOutro, not by session reassignments -->
+{#if showIntro}
+	<MazeIntroOverlay
+		title="Level {levelNumber}"
+		subtitle={worldDef?.worldName ?? ''}
+		phrases={introPhrases}
+		accentColor={theme.accentColor}
+		ondismiss={startGameplay}
+	/>
+{/if}
+
+{#if showOutro && session && levelDef}
+	<MazeOutroOverlay
+		title="Level Complete!"
+		playerName={gameStore.player.playerName}
+		time={elapsed}
+		moves={session.moves}
+		stars={victoryStars.total}
+		twoStarMoves={levelDef.twoStarMoves}
+		threeStarTime={levelDef.threeStarTime}
+		coins={coinsEarned}
+		accentColor={theme.accentColor}
+		actions={[
+			{ label: 'Retry', onclick: () => { showOutro = false; startGame(); } },
+			{ label: levelDef.connectTo1 ? 'Next Level →' : 'Back to World', primary: true, onclick: goToNextLevel }
+		]}
+	/>
 {/if}
 
 <style>

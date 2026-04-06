@@ -292,36 +292,36 @@
 			</div>
 		</div>
 	</div>
+{/if}
 
-	<!-- Daily intro overlay -->
-	{#if showIntro}
-		<MazeIntroOverlay
-			title="Daily Maze"
-			subtitle={selectedDate ?? ''}
-			phrases={DAILY_PHRASES}
-			accentColor="#34d399"
-			ondismiss={startGameplay}
-		/>
-	{/if}
+<!-- Overlays live outside the session/playing block so their lifecycle is solely
+     controlled by showIntro/showOutro, not by session reassignments -->
+{#if showIntro}
+	<MazeIntroOverlay
+		title="Daily Maze"
+		subtitle={selectedDate ?? ''}
+		phrases={DAILY_PHRASES}
+		accentColor="#34d399"
+		ondismiss={startGameplay}
+	/>
+{/if}
 
-	<!-- Daily complete overlay -->
-	{#if showOutro && session && selectedDaily}
-		<MazeOutroOverlay
-			title="Daily Maze Complete!"
-			playerName={gameStore.player.playerName}
-			time={elapsed}
-			moves={session.moves}
-			stars={victoryStars.total}
-			twoStarMoves={selectedDaily.movesNeeded}
-			threeStarTime={selectedDaily.timeNeeded}
-			coins={coinsEarned}
-			accentColor="#34d399"
-			actions={[
-				{ label: 'Retry', onclick: () => { showOutro = false; if (selectedDate) startDailyMaze(selectedDate); } },
-				{ label: '← Calendar', primary: true, onclick: () => { showOutro = false; backToCalendar(); } }
-			]}
-		/>
-	{/if}
+{#if showOutro && session && selectedDaily}
+	<MazeOutroOverlay
+		title="Daily Maze Complete!"
+		playerName={gameStore.player.playerName}
+		time={elapsed}
+		moves={session.moves}
+		stars={victoryStars.total}
+		twoStarMoves={selectedDaily.movesNeeded}
+		threeStarTime={selectedDaily.timeNeeded}
+		coins={coinsEarned}
+		accentColor="#34d399"
+		actions={[
+			{ label: 'Retry', onclick: () => { showOutro = false; if (selectedDate) startDailyMaze(selectedDate); } },
+			{ label: '← Calendar', primary: true, onclick: () => { showOutro = false; backToCalendar(); } }
+		]}
+	/>
 {/if}
 
 <style>

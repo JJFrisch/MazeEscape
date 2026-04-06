@@ -47,7 +47,7 @@
 	};
 
 	const introPhrases = $derived(INTRO_PHRASES[theme.motif]);
-	const ENABLE_LEVEL_INTRO = true;
+	const ENABLE_LEVEL_INTRO = false; // set to false to skip the intro overlay and go straight to gameplay
 
 	let session = $state<GameSessionState | null>(null);
 	let elapsed = $state(0);

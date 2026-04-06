@@ -25,8 +25,8 @@
 		visitedCells?: Set<string>;
 	} = $props();
 
-	let canvas: HTMLCanvasElement;
-	let container: HTMLDivElement;
+	let canvas = $state<HTMLCanvasElement | undefined>(undefined);
+	let container = $state<HTMLDivElement | undefined>(undefined);
 	let animFrame: number;
 	let targetPlayerX = $derived(playerPos.x);
 	let targetPlayerY = $derived(playerPos.y);
@@ -42,7 +42,7 @@
 	}
 
 	function draw() {
-		if (!canvas || !maze) return;
+		if (!canvas || !container || !maze) return;
 
 		const ctx = canvas.getContext('2d');
 		if (!ctx) return;
@@ -223,11 +223,18 @@
 		animatedPlayerX = targetPlayerX;
 		animatedPlayerY = targetPlayerY;
 
+		if (!container) {
+			return () => {
+				cancelAnimationFrame(animFrame);
+			};
+		}
+
 		const observer = new ResizeObserver(() => {
 			cancelAnimationFrame(animFrame);
 			animFrame = requestAnimationFrame(draw);
 		});
 		observer.observe(container);
+		animFrame = requestAnimationFrame(draw);
 
 		return () => {
 			observer.disconnect();

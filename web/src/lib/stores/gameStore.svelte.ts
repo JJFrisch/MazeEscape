@@ -14,8 +14,16 @@ import { getSupabaseBrowserClient } from '$lib/supabase/client';
 const STORAGE_KEY = 'mazeescape_player';
 const LEVEL_STORAGE_KEY = 'mazeescape_levels';
 const DAILY_STORAGE_KEY = 'mazeescape_daily';
+const SYNC_METADATA_STORAGE_KEY = 'mazeescape_sync_metadata';
 
 type CloudSyncStatus = 'offline' | 'syncing' | 'synced' | 'error';
+
+interface SyncMetadata {
+	playerUpdatedAt: number;
+	levelUpdatedAt: Record<string, number>;
+	dailyUpdatedAt: Record<string, number>;
+	skinUpdatedAt: Record<string, number>;
+}
 
 interface ProfileRow {
 	id: string;
@@ -29,6 +37,7 @@ interface ProfileRow {
 	month_prize1_achieved: boolean;
 	month_prize2_achieved: boolean;
 	most_recent_month: string;
+	updated_at: string;
 }
 
 interface LevelProgressRow {
@@ -41,6 +50,7 @@ interface LevelProgressRow {
 	star3: boolean;
 	best_moves: number;
 	best_time_seconds: number;
+	updated_at: string;
 }
 
 interface DailyMazeResultRow {
@@ -50,11 +60,13 @@ interface DailyMazeResultRow {
 	status: DailyMazeLevel['status'];
 	completion_time: number;
 	completion_moves: number;
+	updated_at: string;
 }
 
 interface OwnedSkinRow {
 	user_id: string;
 	skin_id: number;
+	acquired_at: string;
 }
 
 interface WorldProgressRow {
@@ -118,69 +130,66 @@ function parseShortDate(shortDate: string): Date {
 	return new Date(year, month - 1, day);
 }
 
+function timestampFromIso(iso: string | null | undefined): number {
+	if (!iso) return 0;
+	const parsed = Date.parse(iso);
+	return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function createDefaultSyncMetadata(
+	playerData: PlayerData,
+	levels: Record<string, CampaignLevel>,
+	dailies: Record<string, DailyMazeLevel>
+): SyncMetadata {
+	const now = Date.now();
+	return {
+		playerUpdatedAt: now,
+		levelUpdatedAt: Object.fromEntries(Object.keys(levels).map((key) => [key, now])),
+		dailyUpdatedAt: Object.fromEntries(Object.keys(dailies).map((key) => [key, now])),
+		skinUpdatedAt: Object.fromEntries(playerData.unlockedSkinIds.map((skinId) => [String(skinId), now]))
+	};
+}
+
+function normalizeSyncMetadata(
+	metadata: SyncMetadata | null | undefined,
+	playerData: PlayerData,
+	levels: Record<string, CampaignLevel>,
+	dailies: Record<string, DailyMazeLevel>
+): SyncMetadata {
+	const fallback = createDefaultSyncMetadata(playerData, levels, dailies);
+	const nextMetadata: SyncMetadata = {
+		playerUpdatedAt: metadata?.playerUpdatedAt ?? fallback.playerUpdatedAt,
+		levelUpdatedAt: { ...(metadata?.levelUpdatedAt ?? {}) },
+		dailyUpdatedAt: { ...(metadata?.dailyUpdatedAt ?? {}) },
+		skinUpdatedAt: { ...(metadata?.skinUpdatedAt ?? {}) }
+	};
+
+	for (const key of Object.keys(levels)) {
+		if (!(key in nextMetadata.levelUpdatedAt)) {
+			nextMetadata.levelUpdatedAt[key] = fallback.levelUpdatedAt[key];
+		}
+	}
+
+	for (const key of Object.keys(dailies)) {
+		if (!(key in nextMetadata.dailyUpdatedAt)) {
+			nextMetadata.dailyUpdatedAt[key] = fallback.dailyUpdatedAt[key];
+		}
+	}
+
+	for (const skinId of playerData.unlockedSkinIds) {
+		const key = String(skinId);
+		if (!(key in nextMetadata.skinUpdatedAt)) {
+			nextMetadata.skinUpdatedAt[key] = fallback.skinUpdatedAt[key];
+		}
+	}
+
+	return nextMetadata;
+}
+
 function getLevelTemplate(worldId: number, levelNumber: string): CampaignLevel | undefined {
 	const world = getAllWorlds().find((entry) => entry.worldId === worldId);
 	if (!world) return undefined;
 	return getLevelByNumber(world, levelNumber);
-}
-
-function mergePlayerData(local: PlayerData, remote?: PlayerData): PlayerData {
-	if (!remote) return { ...local };
-
-	const unlockedSkinIds = Array.from(new Set([0, ...local.unlockedSkinIds, ...remote.unlockedSkinIds])).sort((a, b) => a - b);
-	const localName = local.playerName.trim();
-	const remoteName = remote.playerName.trim();
-	const playerName = remoteName !== 'Player' ? remoteName : localName || 'Player';
-	const currentSkinId = [remote.currentSkinId, local.currentSkinId, 0].find((skinId) => unlockedSkinIds.includes(skinId)) ?? 0;
-
-	return {
-		playerId: remote.playerId || local.playerId,
-		playerName,
-		coinCount: Math.max(local.coinCount, remote.coinCount),
-		hintsOwned: Math.max(local.hintsOwned, remote.hintsOwned),
-		extraTimesOwned: Math.max(local.extraTimesOwned, remote.extraTimesOwned),
-		extraMovesOwned: Math.max(local.extraMovesOwned, remote.extraMovesOwned),
-		currentWorldIndex: Math.max(local.currentWorldIndex, remote.currentWorldIndex),
-		currentSkinId,
-		unlockedSkinIds,
-		wallColor: remote.wallColor !== '#000000' ? remote.wallColor : local.wallColor,
-		monthPrize1Achieved: local.monthPrize1Achieved || remote.monthPrize1Achieved,
-		monthPrize2Achieved: local.monthPrize2Achieved || remote.monthPrize2Achieved,
-		mostRecentMonth: local.mostRecentMonth > remote.mostRecentMonth ? local.mostRecentMonth : remote.mostRecentMonth
-	};
-}
-
-function mergeCampaignLevel(local: CampaignLevel | undefined, remote: CampaignLevel | undefined, fallback: CampaignLevel): CampaignLevel {
-	const merged = { ...(local ?? remote ?? fallback) };
-	const localLevel = local ?? fallback;
-	const remoteLevel = remote ?? fallback;
-
-	merged.completed = localLevel.completed || remoteLevel.completed;
-	merged.star1 = localLevel.star1 || remoteLevel.star1;
-	merged.star2 = localLevel.star2 || remoteLevel.star2;
-	merged.star3 = localLevel.star3 || remoteLevel.star3;
-	merged.numberOfStars = (merged.star1 ? 1 : 0) + (merged.star2 ? 1 : 0) + (merged.star3 ? 1 : 0);
-	merged.bestMoves = [localLevel.bestMoves, remoteLevel.bestMoves].filter((value) => value > 0).sort((a, b) => a - b)[0] ?? 0;
-	merged.bestTime = [localLevel.bestTime, remoteLevel.bestTime].filter((value) => value > 0).sort((a, b) => a - b)[0] ?? 0;
-
-	return merged;
-}
-
-function mergeDailyLevel(local: DailyMazeLevel | undefined, remote: DailyMazeLevel): DailyMazeLevel {
-	if (!local) return { ...remote };
-
-	const mergedStatus = local.status === 'completed' || remote.status === 'completed'
-		? 'completed'
-		: local.status === 'completed_late' || remote.status === 'completed_late'
-			? 'completed_late'
-			: 'not_started';
-
-	return {
-		...remote,
-		status: mergedStatus,
-		completionTime: [local.completionTime, remote.completionTime].filter((value) => value > 0).sort((a, b) => a - b)[0] ?? 0,
-		completionMoves: [local.completionMoves, remote.completionMoves].filter((value) => value > 0).sort((a, b) => a - b)[0] ?? 0
-	};
 }
 
 function mapProfileRowToPlayerData(profile: ProfileRow | null, ownedSkins: OwnedSkinRow[]): PlayerData | undefined {
@@ -240,6 +249,7 @@ function createGameStore() {
 	let worlds = $state<WorldDefinition[]>(getAllWorlds());
 	let levelProgress = $state<Record<string, CampaignLevel>>({});
 	let dailyResults = $state<Record<string, DailyMazeLevel>>({});
+	let syncMetadata = $state<SyncMetadata>(createDefaultSyncMetadata(player, levelProgress, dailyResults));
 	let initialized = $state(false);
 	let cloudUserId = $state<string | null>(null);
 	let cloudSyncStatus = $state<CloudSyncStatus>('offline');
@@ -253,6 +263,7 @@ function createGameStore() {
 		player = loadFromStorage(STORAGE_KEY, defaultPlayerData());
 		levelProgress = loadFromStorage(LEVEL_STORAGE_KEY, {});
 		dailyResults = loadFromStorage(DAILY_STORAGE_KEY, {});
+		syncMetadata = normalizeSyncMetadata(loadFromStorage<SyncMetadata | null>(SYNC_METADATA_STORAGE_KEY, null), player, levelProgress, dailyResults);
 		worlds = getAllWorlds();
 		initialized = true;
 	}
@@ -261,7 +272,24 @@ function createGameStore() {
 		saveToStorage(STORAGE_KEY, player);
 		saveToStorage(LEVEL_STORAGE_KEY, levelProgress);
 		saveToStorage(DAILY_STORAGE_KEY, dailyResults);
+		saveToStorage(SYNC_METADATA_STORAGE_KEY, syncMetadata);
 		scheduleCloudPush();
+	}
+
+	function touchPlayer(timestamp = Date.now()) {
+		syncMetadata.playerUpdatedAt = timestamp;
+	}
+
+	function touchLevel(key: string, timestamp = Date.now()) {
+		syncMetadata.levelUpdatedAt[key] = timestamp;
+	}
+
+	function touchDaily(key: string, timestamp = Date.now()) {
+		syncMetadata.dailyUpdatedAt[key] = timestamp;
+	}
+
+	function touchSkin(skinId: number, timestamp = Date.now()) {
+		syncMetadata.skinUpdatedAt[String(skinId)] = timestamp;
 	}
 
 	function setCloudStatus(status: CloudSyncStatus, error = '') {
@@ -479,12 +507,14 @@ function createGameStore() {
 
 	function addCoins(amount: number) {
 		player.coinCount += amount;
+		touchPlayer();
 		save();
 	}
 
 	function spendCoins(amount: number): boolean {
 		if (player.coinCount < amount) return false;
 		player.coinCount -= amount;
+		touchPlayer();
 		save();
 		return true;
 	}
@@ -492,23 +522,28 @@ function createGameStore() {
 	function setPlayerName(name: string) {
 		if (!name.trim()) return;
 		player.playerName = name.trim();
+		touchPlayer();
 		save();
 	}
 
 	function setWallColor(color: string) {
 		player.wallColor = color;
+		touchPlayer();
 		save();
 	}
 
 	function equipSkin(skinId: number) {
 		if (!player.unlockedSkinIds.includes(skinId)) return;
 		player.currentSkinId = skinId;
+		touchPlayer();
 		save();
 	}
 
 	function unlockSkin(skinId: number) {
 		if (player.unlockedSkinIds.includes(skinId)) return;
 		player.unlockedSkinIds.push(skinId);
+		touchPlayer();
+		touchSkin(skinId);
 		save();
 	}
 
@@ -525,22 +560,26 @@ function createGameStore() {
 		if (name === 'hint') player.hintsOwned++;
 		else if (name === 'extraTime') player.extraTimesOwned++;
 		else if (name === 'extraMoves') player.extraMovesOwned++;
+		touchPlayer();
 		save();
 	}
 
 	function usePowerup(name: 'hint' | 'extraTime' | 'extraMoves'): boolean {
 		if (name === 'hint' && player.hintsOwned > 0) {
 			player.hintsOwned--;
+			touchPlayer();
 			save();
 			return true;
 		}
 		if (name === 'extraTime' && player.extraTimesOwned > 0) {
 			player.extraTimesOwned--;
+			touchPlayer();
 			save();
 			return true;
 		}
 		if (name === 'extraMoves' && player.extraMovesOwned > 0) {
 			player.extraMovesOwned--;
+			touchPlayer();
 			save();
 			return true;
 		}
@@ -569,6 +608,7 @@ function createGameStore() {
 		}
 
 		levelProgress[key] = { ...level };
+		touchLevel(key);
 		save();
 	}
 
@@ -590,6 +630,7 @@ function createGameStore() {
 
 	function saveDailyResult(result: DailyMazeLevel) {
 		dailyResults[result.shortDate] = { ...result };
+		touchDaily(result.shortDate);
 		save();
 	}
 

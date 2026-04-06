@@ -3,6 +3,8 @@
 
 MazeEscape is a cross-platform puzzle game built with .NET MAUI. Navigate mazes, collect chests, and unlock new skins and levels across multiple worlds.
 
+Players can also play MazeEscape directly in the browser through the SvelteKit web app and GitHub Pages deployment.
+
 **Key Features**
 
 - Polished maze gameplay with collectible chests and skins.
@@ -14,6 +16,29 @@ MazeEscape is a cross-platform puzzle game built with .NET MAUI. Navigate mazes,
 **Screenshots**
 
 ![Sample Maze Screen](Images/screenshot1.svg)
+
+## Play In Browser
+
+Users can play MazeEscape in their browser in two ways:
+
+- Production: open [https://jjfrisch.github.io/MazeEscape/](https://jjfrisch.github.io/MazeEscape/)
+- Local development:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Then open the local URL shown by Vite.
+
+Browser controls:
+
+- Keyboard: arrow keys or `W A S D`
+- Touch: swipe in the maze area
+- On-screen controls: use the D-pad buttons
+
+Players can sign in from the Account screen to sync coins, skins, campaign progress, and daily maze results with Supabase.
 
 ## 🚀 Quick Start
 

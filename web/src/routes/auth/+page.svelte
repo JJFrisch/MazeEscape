@@ -1,41 +1,87 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
+	import { onMount } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { authStore } from '$lib/supabase/authStore.svelte';
 
-	let mode = $state<'sign-in' | 'sign-up'>('sign-in');
+	type AuthMode = 'sign-in' | 'sign-up' | 'reset-request' | 'recovery';
+
+	let mode = $state<AuthMode>('sign-in');
 	let email = $state('');
 	let password = $state('');
 	let confirmPassword = $state('');
 	let localError = $state('');
 
+	function applyUrlState() {
+		if (typeof window === 'undefined') return;
+
+		const search = new URLSearchParams(window.location.search);
+		const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+		const type = hash.get('type') ?? search.get('type');
+		const errorDescription = hash.get('error_description') ?? search.get('error_description');
+
+		if (errorDescription) {
+			localError = decodeURIComponent(errorDescription.replace(/\+/g, ' '));
+		}
+
+		if (type === 'recovery') {
+			mode = 'recovery';
+			authStore.setRecoveryMode(true);
+			authStore.setNotice('Reset your password below.');
+		}
+
+		if (type === 'signup') {
+			authStore.setNotice(authStore.isAuthenticated ? 'Email confirmed. You are now signed in.' : 'Email confirmed. You can sign in now.');
+		}
+	}
+
+	onMount(() => {
+		applyUrlState();
+	});
+
 	async function submit() {
 		localError = '';
 		authStore.clearMessages();
+
+		if (mode === 'reset-request') {
+			if (!email.trim()) {
+				localError = 'Email is required.';
+				return;
+			}
+
+			const redirectTo = `${window.location.origin}${base}/auth`;
+			await authStore.requestPasswordReset(email.trim(), redirectTo);
+			return;
+		}
 
 		if (!email.trim() || !password.trim()) {
 			localError = 'Email and password are required.';
 			return;
 		}
 
-		if (mode === 'sign-up' && password !== confirmPassword) {
+		if ((mode === 'sign-up' || mode === 'recovery') && password !== confirmPassword) {
 			localError = 'Passwords do not match.';
 			return;
 		}
 
 		const success = mode === 'sign-in'
 			? await authStore.signIn(email.trim(), password)
-			: await authStore.signUp(email.trim(), password);
+			: mode === 'sign-up'
+				? await authStore.signUp(email.trim(), password)
+				: await authStore.updatePassword(password);
 
 		if (success && authStore.isAuthenticated) {
 			await goto(`${base}/settings`);
+		} else if (success && mode === 'recovery') {
+			mode = 'sign-in';
 		}
 	}
 
 	async function signOut() {
 		const success = await authStore.signOut();
 		if (success) {
+			mode = 'sign-in';
 			email = '';
 			password = '';
 			confirmPassword = '';
@@ -49,10 +95,26 @@
 
 <section class="auth-page">
 	<div class="auth-card">
-		<h1>{authStore.isAuthenticated ? 'Account' : mode === 'sign-in' ? 'Sign In' : 'Create Account'}</h1>
+		<h1>
+			{#if authStore.isAuthenticated}
+				Account
+			{:else if mode === 'sign-up'}
+				Create Account
+			{:else if mode === 'reset-request'}
+				Reset Password
+			{:else if mode === 'recovery'}
+				Choose a New Password
+			{:else}
+				Sign In
+			{/if}
+		</h1>
 		<p class="subtitle">
 			{#if authStore.isAuthenticated}
 				Signed in and syncing progress to Supabase.
+			{:else if mode === 'reset-request'}
+				We will email you a link to reset your password.
+			{:else if mode === 'recovery'}
+				Set a new password for your MazeEscape account.
 			{:else}
 				Sign in to sync progress, skins, coins, and daily results across devices.
 			{/if}
@@ -82,25 +144,44 @@
 			</div>
 		{:else}
 			<div class="mode-toggle" role="tablist" aria-label="Authentication mode">
-				<button class:active={mode === 'sign-in'} onclick={() => mode = 'sign-in'}>Sign In</button>
-				<button class:active={mode === 'sign-up'} onclick={() => mode = 'sign-up'}>Sign Up</button>
+				<button class:active={mode === 'sign-in'} onclick={() => { mode = 'sign-in'; authStore.setRecoveryMode(false); }}>Sign In</button>
+				<button class:active={mode === 'sign-up'} onclick={() => { mode = 'sign-up'; authStore.setRecoveryMode(false); }}>Sign Up</button>
+				<button class:active={mode === 'reset-request'} onclick={() => { mode = 'reset-request'; authStore.setRecoveryMode(false); }}>Reset</button>
 			</div>
 
 			<form class="auth-form" onsubmit={(event) => { event.preventDefault(); void submit(); }}>
 				<label for="auth-email">Email</label>
-				<input id="auth-email" type="email" bind:value={email} autocomplete="email" />
+				<input id="auth-email" type="email" bind:value={email} autocomplete="email" disabled={mode === 'recovery'} />
 
-				<label for="auth-password">Password</label>
-				<input id="auth-password" type="password" bind:value={password} autocomplete={mode === 'sign-in' ? 'current-password' : 'new-password'} />
+				{#if mode !== 'reset-request'}
+					<label for="auth-password">Password</label>
+					<input id="auth-password" type="password" bind:value={password} autocomplete={mode === 'sign-in' ? 'current-password' : 'new-password'} />
+				{/if}
 
-				{#if mode === 'sign-up'}
+				{#if mode === 'sign-up' || mode === 'recovery'}
 					<label for="auth-confirm-password">Confirm Password</label>
 					<input id="auth-confirm-password" type="password" bind:value={confirmPassword} autocomplete="new-password" />
 				{/if}
 
 				<button class="primary-btn" type="submit" disabled={authStore.loading}>
-					{authStore.loading ? 'Working...' : mode === 'sign-in' ? 'Sign In' : 'Create Account'}
+					{#if authStore.loading}
+						Working...
+					{:else if mode === 'sign-in'}
+						Sign In
+					{:else if mode === 'sign-up'}
+						Create Account
+					{:else if mode === 'reset-request'}
+						Send Reset Email
+					{:else}
+						Update Password
+					{/if}
 				</button>
+
+				{#if mode === 'sign-in'}
+					<button class="secondary-btn" type="button" onclick={() => mode = 'reset-request'}>
+						Forgot your password?
+					</button>
+				{/if}
 			</form>
 		{/if}
 	</div>
@@ -151,13 +232,14 @@
 
 	.mode-toggle {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: repeat(3, 1fr);
 		gap: var(--space-2);
 		margin-bottom: var(--space-4);
 	}
 
 	.mode-toggle button,
-	.primary-btn {
+	.primary-btn,
+	.secondary-btn {
 		padding: var(--space-3) var(--space-4);
 		border-radius: var(--radius-md);
 		font-weight: 600;
@@ -206,6 +288,12 @@
 	.primary-btn:disabled {
 		opacity: 0.6;
 		cursor: default;
+	}
+
+	.secondary-btn {
+		background: transparent;
+		border: 1px solid var(--color-border);
+		color: var(--color-text-primary);
 	}
 
 	.account-summary {

@@ -2,6 +2,7 @@
 	import '$lib/styles/global.css';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { initializeSupabaseAuth } from '$lib/supabase/auth';
+	import { authStore } from '$lib/supabase/authStore.svelte';
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
 
@@ -9,7 +10,14 @@
 
 	onMount(() => {
 		gameStore.init();
-		const cleanupSupabaseAuth = initializeSupabaseAuth();
+		const cleanupSupabaseAuth = initializeSupabaseAuth({
+			onSignedIn: async (userId) => {
+				await gameStore.handleAuthStateChanged(userId);
+			},
+			onSignedOut: () => {
+				gameStore.handleAuthStateChanged(null);
+			}
+		});
 
 		return () => {
 			cleanupSupabaseAuth();
@@ -34,8 +42,15 @@
 			<a href="{base}/shop" class="nav-link">Shop</a>
 			<a href="{base}/equip" class="nav-link">Equip</a>
 			<a href="{base}/settings" class="nav-link">Settings</a>
+			<a href="{base}/auth" class="nav-link">{authStore.isAuthenticated ? 'Account' : 'Sign In'}</a>
 		</nav>
 		<div class="header-stats">
+			{#if authStore.user}
+				<span class="stat auth-stat" aria-label="Signed in account">
+					<span class="stat-icon">☁️</span>
+					<span class="stat-value auth-email">{authStore.user.email}</span>
+				</span>
+			{/if}
 			<span class="stat coin-stat" aria-label="Coins">
 				<span class="stat-icon">🪙</span>
 				<span class="stat-value">{gameStore.player.coinCount.toLocaleString()}</span>
@@ -116,6 +131,13 @@
 		align-items: center;
 		gap: var(--space-3);
 		flex-shrink: 0;
+	}
+
+	.auth-email {
+		max-width: 180px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.stat {

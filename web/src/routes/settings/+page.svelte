@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { gameStore } from '$lib/stores/gameStore.svelte';
+	import { authStore } from '$lib/supabase/authStore.svelte';
 
 	let nameInput = $state(gameStore.player.playerName);
 	let wallColor = $state(gameStore.player.wallColor || '#6366f1');
@@ -20,6 +21,14 @@
 	function flash() {
 		saved = true;
 		setTimeout(() => saved = false, 1500);
+	}
+
+	async function syncNow() {
+		await gameStore.syncNow();
+	}
+
+	async function signOut() {
+		await authStore.signOut();
 	}
 
 	const presetColors = ['#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#ffffff'];
@@ -52,7 +61,7 @@
 	</section>
 
 	<section class="setting-group">
-		<label class="setting-label">Wall Color</label>
+		<div class="setting-label">Wall Color</div>
 		<div class="color-presets">
 			{#each presetColors as color}
 				<button
@@ -79,10 +88,33 @@
 
 	<section class="setting-group">
 		<h3 class="setting-label">Data</h3>
-		<p class="setting-desc">Your progress is saved locally in your browser.</p>
+		<p class="setting-desc">
+			{#if authStore.isAuthenticated}
+				Cloud sync is enabled for {authStore.user?.email}.
+			{:else}
+				Your progress is currently stored locally in your browser.
+			{/if}
+		</p>
 		<div class="data-stats">
 			<span>Coins: {gameStore.player.coinCount}</span>
 			<span>Skins: {gameStore.player.unlockedSkinIds.length}</span>
+		</div>
+		<div class="data-stats sync-row">
+			<span>Status: {gameStore.cloudSyncStatusLabel}</span>
+			{#if gameStore.lastSyncedAtLabel}
+				<span>Last sync: {gameStore.lastSyncedAtLabel}</span>
+			{/if}
+		</div>
+		{#if gameStore.cloudSyncError}
+			<p class="sync-error">{gameStore.cloudSyncError}</p>
+		{/if}
+		<div class="sync-actions">
+			{#if authStore.isAuthenticated}
+				<button class="save-btn" onclick={syncNow} disabled={gameStore.cloudSyncBusy}>Sync Now</button>
+				<button class="secondary-btn" onclick={signOut} disabled={authStore.loading}>Sign Out</button>
+			{:else}
+				<a class="auth-link" href="/MazeEscape/auth">Sign in to enable sync</a>
+			{/if}
 		</div>
 	</section>
 </div>
@@ -210,5 +242,34 @@
 		gap: var(--space-4);
 		font-size: var(--text-sm);
 		color: var(--color-text-secondary);
+	}
+
+	.sync-row {
+		margin-top: var(--space-3);
+		flex-wrap: wrap;
+	}
+
+	.sync-actions {
+		display: flex;
+		gap: var(--space-2);
+		align-items: center;
+		margin-top: var(--space-4);
+	}
+
+	.secondary-btn,
+	.auth-link {
+		padding: var(--space-2) var(--space-4);
+		border-radius: var(--radius-md);
+		border: 1px solid var(--color-border);
+		background: var(--color-bg-card);
+		color: var(--color-text-primary);
+		font-weight: 600;
+		text-decoration: none;
+	}
+
+	.sync-error {
+		margin-top: var(--space-3);
+		color: var(--color-accent-red);
+		font-size: var(--text-sm);
 	}
 </style>

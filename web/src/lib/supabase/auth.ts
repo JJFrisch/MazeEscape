@@ -1,15 +1,33 @@
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimeChannel, Session } from '@supabase/supabase-js';
 import { getSupabaseBrowserClient } from './client';
+import { authStore } from './authStore.svelte';
 
-export function initializeSupabaseAuth(): () => void {
+interface InitializeSupabaseAuthOptions {
+	onSignedIn?: (userId: string) => Promise<void> | void;
+	onSignedOut?: () => Promise<void> | void;
+}
+
+export function initializeSupabaseAuth(options: InitializeSupabaseAuthOptions = {}): () => void {
 	const supabase = getSupabaseBrowserClient();
+
+	const handleSession = (session: Session | null) => {
+		authStore.setSession(session);
+		if (session?.user?.id) {
+			void options.onSignedIn?.(session.user.id);
+		} else {
+			void options.onSignedOut?.();
+		}
+	};
+
 	const {
 		data: { subscription }
-	} = supabase.auth.onAuthStateChange(() => {
-		// Keep the singleton warm so browser-side session persistence and refresh stay active.
+	} = supabase.auth.onAuthStateChange((_event, session) => {
+		handleSession(session);
 	});
 
-	void supabase.auth.getSession();
+	void supabase.auth.getSession().then(({ data }) => {
+		handleSession(data.session ?? null);
+	});
 
 	return () => {
 		subscription.unsubscribe();

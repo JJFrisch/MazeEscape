@@ -3,8 +3,9 @@
 	import { onDestroy } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getDailyMazeForDate, getDailyMazesForMonth, getDailyMazeSeed } from '$lib/core/daily';
-	import { createGameSession, tryMove, getHint, calculateStars } from '$lib/core/session';
+	import { createGameSession, getHint, calculateStars } from '$lib/core/session';
 	import type { GameSessionState } from '$lib/core/session';
+	import { canMove, applyMove } from '$lib/core/maze';
 	import type { Direction, DailyMazeLevel } from '$lib/core/types';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
 	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
@@ -113,12 +114,24 @@
 
 	function handleMove(direction: Direction) {
 		if (!session || session.isComplete || showIntro) return;
-		const result = tryMove(session, direction);
-		if (result.moved) {
-			visitedCells = new Set([...visitedCells, `${result.x},${result.y}`]);
-			session = session;
-			if (session.isComplete) onComplete();
-		}
+
+		const { maze, playerPos, moves } = session;
+		if (!canMove(maze.cells, playerPos, direction, maze.width, maze.height)) return;
+
+		const newPos = applyMove(playerPos, direction);
+		const isComplete = newPos.x === maze.end.x && newPos.y === maze.end.y;
+
+		session = {
+			maze,
+			playerPos: newPos,
+			moves: moves + 1,
+			elapsed: session.elapsed,
+			isComplete,
+			hintPath: null
+		};
+
+		visitedCells = new Set([...visitedCells, `${newPos.x},${newPos.y}`]);
+		if (isComplete) onComplete();
 	}
 
 	function onComplete() {
@@ -145,8 +158,8 @@
 	function useHint() {
 		if (!session || session.isComplete || showIntro) return;
 		if (gameStore.usePowerup('hint')) {
-			getHint(session);
-			session = session;
+			const hintPath = getHint(session);
+			session = { ...session, hintPath };
 		}
 	}
 

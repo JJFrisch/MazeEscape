@@ -41,6 +41,7 @@ export interface CampaignLevel {
 	width: number;
 	height: number;
 	levelType: MazeAlgorithm;
+	mazeShape: MazeShape;
 	twoStarMoves: number;
 	threeStarTime: number;
 	numberOfStars: number;
@@ -137,6 +138,82 @@ export type MazeAlgorithm =
 	| 'growingTree_75_25'
 	| 'growingTree_25_75'
 	| 'growingTree_50_0';
+
+/** Shape of the maze grid topology */
+export type MazeShape = 'rectangular' | 'hexagonal' | 'circular' | 'triangular';
+
+// ---------------------------------------------------------------------------
+// Hexagonal maze types (flat-top hex grid, offset coordinates)
+// ---------------------------------------------------------------------------
+
+/** A hex cell has 6 walls: NE, E, SE, SW, W, NW (clockwise from top-right) */
+export interface HexCell {
+	col: number;
+	row: number;
+	/** 0=empty, 2=start, 3=end */
+	value: number;
+	/** Walls — true = wall present */
+	walls: [boolean, boolean, boolean, boolean, boolean, boolean]; // NE, E, SE, SW, W, NW
+}
+
+export type HexDirection = 'ne' | 'e' | 'se' | 'sw' | 'w' | 'nw';
+
+export interface HexMazeData {
+	shape: 'hexagonal';
+	cells: Map<string, HexCell>; // key = "col,row"
+	cols: number;
+	rows: number;
+	start: { col: number; row: number };
+	end: { col: number; row: number };
+}
+
+// ---------------------------------------------------------------------------
+// Circular / polar maze types (concentric rings)
+// ---------------------------------------------------------------------------
+
+/** A ring cell in a circular maze */
+export interface RingCell {
+	ring: number;   // 0 = center
+	sector: number; // sector index within the ring
+	value: number;  // 0=empty, 2=start, 3=end
+	/** Walls: [clockwise, outward] — true = wall present */
+	wallCW: boolean;   // wall to next sector clockwise
+	wallOut: boolean;  // wall to next ring outward
+}
+
+export interface CircularMazeData {
+	shape: 'circular';
+	rings: RingCell[][]; // rings[ring][sector]
+	numRings: number;
+	start: { ring: number; sector: number };
+	end: { ring: number; sector: number };
+}
+
+// ---------------------------------------------------------------------------
+// Triangular maze types (up/down triangle grid)
+// ---------------------------------------------------------------------------
+
+/** A triangle cell — alternates up/down orientation */
+export interface TriCell {
+	col: number;
+	row: number;
+	pointsUp: boolean;
+	value: number;
+	/** Walls for up-pointing: [left, right, base(bottom)]
+	 *  Walls for down-pointing: [left, right, base(top)] */
+	wallLeft: boolean;
+	wallRight: boolean;
+	wallBase: boolean;
+}
+
+export interface TriMazeData {
+	shape: 'triangular';
+	cells: TriCell[][];  // [row][col]
+	cols: number;
+	rows: number;
+	start: { col: number; row: number };
+	end: { col: number; row: number };
+}
 
 export interface PowerupCost {
 	name: string;

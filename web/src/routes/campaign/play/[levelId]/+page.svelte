@@ -120,19 +120,28 @@
 	function handleMove(direction: Direction) {
 		if (!session || session.isComplete || showIntro) return;
 
-		if (!canMove(session.maze.cells, session.playerPos, direction, session.maze.width, session.maze.height)) {
+		// Destructure proxy to get plain values for canMove
+		const { maze, playerPos, moves } = session;
+		if (!canMove(maze.cells, playerPos, direction, maze.width, maze.height)) {
 			return;
 		}
 
-		const newPos = applyMove(session.playerPos, direction);
-		session.playerPos = newPos;
-		session.moves += 1;
-		session.hintPath = null;
+		const newPos = applyMove(playerPos, direction);
+		const isComplete = newPos.x === maze.end.x && newPos.y === maze.end.y;
+
+		// Create a fresh object so Svelte 5 detects the change
+		session = {
+			maze,
+			playerPos: newPos,
+			moves: moves + 1,
+			elapsed: session.elapsed,
+			isComplete,
+			hintPath: null
+		};
 
 		visitedCells = new Set([...visitedCells, `${newPos.x},${newPos.y}`]);
 
-		if (newPos.x === session.maze.end.x && newPos.y === session.maze.end.y) {
-			session.isComplete = true;
+		if (isComplete) {
 			onLevelComplete();
 		}
 	}
@@ -189,8 +198,8 @@
 	function useHint() {
 		if (!session || session.isComplete || showIntro) return;
 		if (gameStore.usePowerup('hint')) {
-			getHint(session);
-			session = session; // trigger reactivity
+			const hintPath = getHint(session);
+			session = { ...session, hintPath };
 		}
 	}
 

@@ -1,4 +1,5 @@
 ﻿using MazeEscape.Models;
+using MazeEscape.Services;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using static SQLite.SQLite3;
@@ -9,57 +10,45 @@ namespace MazeEscape
     {
 
         private string toRestart = "NO"; // Set to YES
+        private readonly IGameInitializer _gameInitializer;
 
         public bool running = false;
 
-        public MainPage()
+        public MainPage(IGameInitializer gameInitializer)
         {
             InitializeComponent();
-
+            _gameInitializer = gameInitializer ?? throw new ArgumentNullException(nameof(gameInitializer));
         }
+
         protected override async void OnAppearing()
         {
             base.OnAppearing();
 
+            // Initialize/load game state from API
+            System.Diagnostics.Debug.WriteLine("[MainPage] Initializing game state...");
+            var initResult = await _gameInitializer.InitializeOrLoadAsync(App.PlayerData);
 
-            toRestart = Preferences.Get("toRestart", "YES");
-
-
-            if (App.PlayerData.PlayerName == "")
+            if (initResult.Exception != null)
             {
-                // Uncomment these out to restart all progress
-                if (toRestart != "YES")
-                {
-                    _ = InitializePlayer();
+                System.Diagnostics.Debug.WriteLine($"[MainPage] Initialization warning: {initResult.ErrorMessage}");
+                // Continue anyway (offline mode fallback)
+            }
 
-                    running = true;
-
-                    await App.PlayerData.InitializeWorlds();
-
-                    App.PlayerData.Save();
-
-                    Preferences.Default.Set("toRestart", "NO");
-
-                    while (running == true)
-                    {
-                        await Task.Delay(100);
-                    }
-
-                    await infoButton.ScaleTo(2, 500);
-                    await Navigation.PushAsync(new InfoPage());
-                    infoButton.Scale = 1.2;
-                }   
-                else if (toRestart != "YES") 
-                {
-					App.PlayerData.Load();
-                    usernameLabel.Text = "" + App.PlayerData.PlayerName + "";
-                }
+            if (initResult.IsFirstTime)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainPage] First-time player detected");
+                // Show name prompt for new player
+                await PromptForPlayerName();
             }
             else
             {
-                usernameLabel.Text = "" + App.PlayerData.PlayerName + "";
+                System.Diagnostics.Debug.WriteLine("[MainPage] Existing player loaded");
             }
 
+            // Update UI with player name
+            usernameLabel.Text = App.PlayerData.PlayerName;
+
+            // Check if daily maze unlocked
             Preferences.Default.Set("toRestart", "NO");
 
             var level = await App.PlayerData.World1_LevelDatabase.GetItemAsync("10");
@@ -70,18 +59,27 @@ namespace MazeEscape
             }
         }
 
-
-        public async Task InitializePlayer()
+        private async Task PromptForPlayerName()
         {
-            string result = await DisplayPromptAsync("Hey there! Welcome to Maze Escape", "What do you want your name to be?","OK", "");
-            if (result == "")
+            if (string.IsNullOrEmpty(App.PlayerData.PlayerName) || App.PlayerData.PlayerName == "Player")
             {
-                await InitializePlayer();
-            }
+                string result = await DisplayPromptAsync(
+                    "Hey there! Welcome to Maze Escape",
+                    "What do you want your name to be?",
+                    "OK",
+                    ""
+                );
 
-            App.PlayerData.PlayerName = result;
-            usernameLabel.Text = "" + result + "";
-            running = false;
+                if (result == "")
+                {
+                    await PromptForPlayerName();
+                }
+                else
+                {
+                    App.PlayerData.PlayerName = result;
+                    usernameLabel.Text = result;
+                }
+            }
         }
 
         public async void OnCampaignMazesClicked(object sender, EventArgs e)

@@ -28,18 +28,14 @@
 	let canvas: HTMLCanvasElement;
 	let container: HTMLDivElement;
 	let animFrame: number;
-	let animatedPlayerX = $state(playerPos.x);
-	let animatedPlayerY = $state(playerPos.y);
+	let targetPlayerX = $derived(playerPos.x);
+	let targetPlayerY = $derived(playerPos.y);
+	let animatedPlayerX = $state(0);
+	let animatedPlayerY = $state(0);
 
 	const WALL_WIDTH = 2;
 	const CELL_PADDING = 0.1;
 	const ANIMATION_SPEED = 0.15; // lerp factor
-
-	$effect(() => {
-		// Trigger animation towards new position
-		animatedPlayerX = animatedPlayerX; // keep reactivity
-		animatedPlayerY = animatedPlayerY;
-	});
 
 	function lerp(a: number, b: number, t: number): number {
 		return a + (b - a) * t;
@@ -177,8 +173,8 @@
 		}
 
 		// Draw player (animated position)
-		animatedPlayerX = lerp(animatedPlayerX, playerPos.x, ANIMATION_SPEED);
-		animatedPlayerY = lerp(animatedPlayerY, playerPos.y, ANIMATION_SPEED);
+		animatedPlayerX = lerp(animatedPlayerX, targetPlayerX, ANIMATION_SPEED);
+		animatedPlayerY = lerp(animatedPlayerY, targetPlayerY, ANIMATION_SPEED);
 
 		const px = offsetX + animatedPlayerX * cellSize + cellSize / 2;
 		const py = offsetY + animatedPlayerY * cellSize + cellSize / 2;
@@ -204,8 +200,8 @@
 		ctx.fillText(skinEmoji, px, py + 1);
 
 		// Check if animation needs to continue
-		const dx = Math.abs(animatedPlayerX - playerPos.x);
-		const dy = Math.abs(animatedPlayerY - playerPos.y);
+		const dx = Math.abs(animatedPlayerX - targetPlayerX);
+		const dy = Math.abs(animatedPlayerY - targetPlayerY);
 		if (dx > 0.01 || dy > 0.01) {
 			animFrame = requestAnimationFrame(draw);
 		}
@@ -214,7 +210,8 @@
 	$effect(() => {
 		// Redraw whenever maze, playerPos, hintPath, or wallColor change
 		if (canvas && maze) {
-			playerPos; // track
+			targetPlayerX; // track
+			targetPlayerY; // track
 			hintPath; // track
 			wallColor; // track
 			cancelAnimationFrame(animFrame);
@@ -223,8 +220,8 @@
 	});
 
 	onMount(() => {
-		animatedPlayerX = playerPos.x;
-		animatedPlayerY = playerPos.y;
+		animatedPlayerX = targetPlayerX;
+		animatedPlayerY = targetPlayerY;
 
 		const observer = new ResizeObserver(() => {
 			cancelAnimationFrame(animFrame);

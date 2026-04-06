@@ -27,7 +27,14 @@
 
 {#if open}
 	<div class="modal-backdrop" onclick={handleBackdrop} role="presentation">
-		<div class="modal-content" onclick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+		<div
+			class="modal-content"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+			role="dialog"
+			aria-modal="true"
+			tabindex="-1"
+		>
 			{#if children}
 				{@render children()}
 			{/if}

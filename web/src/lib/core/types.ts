@@ -153,10 +153,10 @@ export interface HexCell {
 	/** 0=empty, 2=start, 3=end */
 	value: number;
 	/** Walls — true = wall present */
-	walls: [boolean, boolean, boolean, boolean, boolean, boolean]; // NE, E, SE, SW, W, NW
+	walls: [boolean, boolean, boolean, boolean, boolean, boolean]; // N, NE, SE, S, SW, NW
 }
 
-export type HexDirection = 'ne' | 'e' | 'se' | 'sw' | 'w' | 'nw';
+export type HexDirection = 'n' | 'ne' | 'se' | 's' | 'sw' | 'nw';
 
 export interface HexMazeData {
 	shape: 'hexagonal';

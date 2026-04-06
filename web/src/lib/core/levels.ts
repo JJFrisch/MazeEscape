@@ -10,7 +10,7 @@
  * - Minimum stars required to unlock
  */
 
-import type { CampaignLevel, MazeAlgorithm } from './types';
+import type { CampaignLevel, MazeAlgorithm, MazeShape } from './types';
 
 interface LevelDef {
 	num: string;
@@ -21,6 +21,7 @@ interface LevelDef {
 	threeStar: number;
 	connects?: string[];
 	minStars?: number;
+	shape?: MazeShape;
 }
 
 function buildLevel(def: LevelDef, id: number): CampaignLevel {
@@ -36,6 +37,7 @@ function buildLevel(def: LevelDef, id: number): CampaignLevel {
 		width: def.w,
 		height: def.h,
 		levelType: def.type,
+		mazeShape: def.shape ?? 'rectangular',
 		twoStarMoves: def.twoStar,
 		threeStarTime: def.threeStar,
 		numberOfStars: 0,
@@ -174,6 +176,11 @@ const world2Defs: LevelDef[] = [
 	{ num: '23', w: 11, h: 10, type: 'backtracking', twoStar: 115, threeStar: 50, minStars: 30 },
 	{ num: '24', w: 11, h: 11, type: 'huntAndKill', twoStar: 125, threeStar: 52 },
 	{ num: '25', w: 11, h: 11, type: 'kruskals', twoStar: 128, threeStar: 52 },
+	// Hex & circular levels introduce new maze shapes
+	{ num: '26', w: 7, h: 6, type: 'backtracking', twoStar: 50, threeStar: 30, shape: 'hexagonal' },
+	{ num: '27', w: 5, h: 5, type: 'backtracking', twoStar: 30, threeStar: 25, shape: 'circular' },
+	{ num: '28', w: 8, h: 6, type: 'backtracking', twoStar: 55, threeStar: 32, shape: 'triangular' },
+	{ num: '29', w: 9, h: 7, type: 'backtracking', twoStar: 65, threeStar: 38, shape: 'hexagonal' },
 	{ num: '30', w: 13, h: 12, type: 'backtracking', twoStar: 155, threeStar: 60, minStars: 50 },
 	{ num: '40', w: 16, h: 16, type: 'growingTree_50_50', twoStar: 245, threeStar: 78, minStars: 60 },
 	{ num: '50', w: 19, h: 19, type: 'kruskals', twoStar: 338, threeStar: 92, minStars: 80 },

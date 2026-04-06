@@ -1,23 +1,23 @@
 /**
  * Hexagonal maze generator.
  * Uses flat-top hex grid with offset (odd-q) coordinates.
- * Each hex cell has 6 walls: NE(0), E(1), SE(2), SW(3), W(4), NW(5).
+ * Each hex cell has 6 walls: N(0), NE(1), SE(2), S(3), SW(4), NW(5).
  */
 
 import type { HexCell, HexMazeData, HexDirection } from './types';
 import { SeededRandom } from './random';
 
-const DIRECTIONS: HexDirection[] = ['ne', 'e', 'se', 'sw', 'w', 'nw'];
+const DIRECTIONS: HexDirection[] = ['n', 'ne', 'se', 's', 'sw', 'nw'];
 const OPPOSITE: Record<HexDirection, HexDirection> = {
+	n: 's',
 	ne: 'sw',
-	e: 'w',
 	se: 'nw',
+	s: 'n',
 	sw: 'ne',
-	w: 'e',
 	nw: 'se'
 };
 const DIR_INDEX: Record<HexDirection, number> = {
-	ne: 0, e: 1, se: 2, sw: 3, w: 4, nw: 5
+	n: 0, ne: 1, se: 2, s: 3, sw: 4, nw: 5
 };
 
 function cellKey(col: number, row: number): string {
@@ -30,11 +30,11 @@ function cellKey(col: number, row: number): string {
 function getNeighbor(col: number, row: number, dir: HexDirection): { col: number; row: number } {
 	const isOdd = col & 1;
 	switch (dir) {
+		case 'n':  return { col, row: row - 1 };
 		case 'ne': return { col: col + 1, row: isOdd ? row : row - 1 };
-		case 'e':  return { col: col + 2, row };
 		case 'se': return { col: col + 1, row: isOdd ? row + 1 : row };
+		case 's':  return { col, row: row + 1 };
 		case 'sw': return { col: col - 1, row: isOdd ? row + 1 : row };
-		case 'w':  return { col: col - 2, row };
 		case 'nw': return { col: col - 1, row: isOdd ? row : row - 1 };
 	}
 }
@@ -148,9 +148,9 @@ export function applyMoveHex(
 /** Map keyboard directions to hex directions based on position */
 export function keyToHexDir(key: 'up' | 'down' | 'left' | 'right'): HexDirection[] {
 	switch (key) {
-		case 'up':    return ['nw', 'ne'];
-		case 'down':  return ['sw', 'se'];
-		case 'left':  return ['w', 'nw', 'sw'];
-		case 'right': return ['e', 'ne', 'se'];
+		case 'up':    return ['n', 'nw', 'ne'];
+		case 'down':  return ['s', 'sw', 'se'];
+		case 'left':  return ['nw', 'sw'];
+		case 'right': return ['ne', 'se'];
 	}
 }

@@ -131,6 +131,7 @@
 	aria-label="Maze grid"
 	style:max-width="{maxDisplayWidth}px"
 	style:max-height="{maxDisplayHeight}px"
+	style:background={bgColor}
 >
 	<svg
 		class="maze-svg"
@@ -315,7 +316,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: #080e1e;
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 	}

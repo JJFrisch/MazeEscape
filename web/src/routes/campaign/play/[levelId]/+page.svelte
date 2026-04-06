@@ -8,9 +8,15 @@
 	import { createGameSession, getHint, calculateStars } from '$lib/core/session';
 	import type { GameSessionState, GameSessionConfig } from '$lib/core/session';
 	import { canMove, applyMove } from '$lib/core/maze';
-	import type { Direction } from '$lib/core/types';
+	import type { Direction, HexMazeData, CircularMazeData, TriMazeData } from '$lib/core/types';
+	import { generateHexMaze, canMoveHex, applyMoveHex, keyToHexDir } from '$lib/core/hexMaze';
+	import { generateCircularMaze, canMoveCircular, keyToCircularDir } from '$lib/core/circularMaze';
+	import { generateTriMaze, canMoveTri, applyMoveTri, keyToTriDir } from '$lib/core/triMaze';
 	import { getWorldTheme } from '$lib/worldThemes';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
+	import HexMazeRenderer from '$lib/components/HexMazeRenderer.svelte';
+	import CircularMazeRenderer from '$lib/components/CircularMazeRenderer.svelte';
+	import TriMazeRenderer from '$lib/components/TriMazeRenderer.svelte';
 	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
 	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
 
@@ -51,6 +57,29 @@
 	const ENABLE_LEVEL_INTRO = false; // temporary fallback while debugging intro/browser behavior
 
 	let session = $state<GameSessionState | null>(null);
+	// Non-rectangular maze state
+	let hexState = $state<{ maze: HexMazeData; pos: { col: number; row: number }; moves: number; isComplete: boolean } | null>(null);
+	let circState = $state<{ maze: CircularMazeData; pos: { ring: number; sector: number }; moves: number; isComplete: boolean } | null>(null);
+	let triState = $state<{ maze: TriMazeData; pos: { col: number; row: number }; moves: number; isComplete: boolean } | null>(null);
+	const activeShape = $derived(levelDef?.mazeShape ?? 'rectangular' as const);
+	const currentMoves = $derived(
+		activeShape === 'hexagonal' ? (hexState?.moves ?? 0) :
+		activeShape === 'circular' ? (circState?.moves ?? 0) :
+		activeShape === 'triangular' ? (triState?.moves ?? 0) :
+		(session?.moves ?? 0)
+	);
+	const currentIsComplete = $derived(
+		activeShape === 'hexagonal' ? (hexState?.isComplete ?? false) :
+		activeShape === 'circular' ? (circState?.isComplete ?? false) :
+		activeShape === 'triangular' ? (triState?.isComplete ?? false) :
+		(session?.isComplete ?? false)
+	);
+	const gameIsActive = $derived(
+		activeShape === 'hexagonal' ? hexState !== null :
+		activeShape === 'circular' ? circState !== null :
+		activeShape === 'triangular' ? triState !== null :
+		session !== null
+	);
 	let elapsed = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | undefined;
 	let showIntro = $state(false);
@@ -67,6 +96,9 @@
 		if (!levelDef) {
 			loadError = `Level ${levelNumber} could not be loaded.`;
 			session = null;
+			hexState = null;
+			circState = null;
+			triState = null;
 			showIntro = false;
 			clearInterval(timerInterval);
 			return;
@@ -75,21 +107,42 @@
 		try {
 			const seed = worldId * 10000 + (parseInt(levelDef.levelNumber) || 0) * 100 +
 				(levelDef.levelNumber.includes('b') ? 50 : 0);
+			const shape = levelDef.mazeShape ?? 'rectangular';
 
-			const config: GameSessionConfig = {
-				width: levelDef.width,
-				height: levelDef.height,
-				algorithm: levelDef.levelType,
-				seed,
-				twoStarMoves: levelDef.twoStarMoves,
-				threeStarTime: levelDef.threeStarTime
-			};
+			// Reset all shape states
+			session = null;
+			hexState = null;
+			circState = null;
+			triState = null;
 
-			session = createGameSession(config);
+			if (shape === 'hexagonal') {
+				const maze = generateHexMaze(levelDef.width, levelDef.height, seed);
+				hexState = { maze, pos: { col: maze.start.col, row: maze.start.row }, moves: 0, isComplete: false };
+				visitedCells = new Set([`${maze.start.col},${maze.start.row}`]);
+			} else if (shape === 'circular') {
+				const maze = generateCircularMaze(levelDef.width, seed); // width = numRings
+				circState = { maze, pos: { ring: maze.start.ring, sector: maze.start.sector }, moves: 0, isComplete: false };
+				visitedCells = new Set([`${maze.start.ring},${maze.start.sector}`]);
+			} else if (shape === 'triangular') {
+				const maze = generateTriMaze(levelDef.width, levelDef.height, seed);
+				triState = { maze, pos: { col: maze.start.col, row: maze.start.row }, moves: 0, isComplete: false };
+				visitedCells = new Set([`${maze.start.col},${maze.start.row}`]);
+			} else {
+				const config: GameSessionConfig = {
+					width: levelDef.width,
+					height: levelDef.height,
+					algorithm: levelDef.levelType,
+					seed,
+					twoStarMoves: levelDef.twoStarMoves,
+					threeStarTime: levelDef.threeStarTime
+				};
+				session = createGameSession(config);
+				visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
+			}
+
 			loadError = '';
 			elapsed = 0;
 			showOutro = false;
-			visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
 			moveQueue = [];
 			clearInterval(timerInterval);
 			showIntro = ENABLE_LEVEL_INTRO;
@@ -101,53 +154,85 @@
 			console.error('Failed to start level', { levelKey, error });
 			loadError = 'This level failed to initialize.';
 			session = null;
+			hexState = null;
+			circState = null;
+			triState = null;
 			showIntro = false;
 			clearInterval(timerInterval);
 		}
 	}
 
 	function startGameplay() {
-		if (!session) return;
+		if (!gameIsActive) return;
 		showIntro = false;
 		clearInterval(timerInterval);
 		timerInterval = setInterval(() => {
-			if (session && !session.isComplete) {
+			if (gameIsActive && !currentIsComplete) {
 				elapsed += 0.01;
 			}
 		}, 10);
 	}
 
 	function handleMove(direction: Direction) {
-		if (!session || session.isComplete || showIntro) return;
+		if (!gameIsActive || currentIsComplete || showIntro) return;
 
-		// Destructure proxy to get plain values for canMove
-		const { maze, playerPos, moves } = session;
-		if (!canMove(maze.cells, playerPos, direction, maze.width, maze.height)) {
-			return;
-		}
+		const shape = activeShape;
 
-		const newPos = applyMove(playerPos, direction);
-		const isComplete = newPos.x === maze.end.x && newPos.y === maze.end.y;
-
-		// Create a fresh object so Svelte 5 detects the change
-		session = {
-			maze,
-			playerPos: newPos,
-			moves: moves + 1,
-			elapsed: session.elapsed,
-			isComplete,
-			hintPath: null
-		};
-
-		visitedCells = new Set([...visitedCells, `${newPos.x},${newPos.y}`]);
-
-		if (isComplete) {
-			onLevelComplete();
+		if (shape === 'hexagonal' && hexState) {
+			const { maze, pos, moves } = hexState;
+			const dirs = keyToHexDir(direction);
+			for (const hdir of dirs) {
+				if (canMoveHex(maze.cells, pos.col, pos.row, hdir)) {
+					const newPos = applyMoveHex(pos.col, pos.row, hdir);
+					const done = newPos.col === maze.end.col && newPos.row === maze.end.row;
+					hexState = { maze, pos: newPos, moves: moves + 1, isComplete: done };
+					visitedCells = new Set([...visitedCells, `${newPos.col},${newPos.row}`]);
+					if (done) onLevelComplete();
+					return;
+				}
+			}
+		} else if (shape === 'circular' && circState) {
+			const { maze, pos, moves } = circState;
+			const dirs = keyToCircularDir(pos.sector, maze.rings[pos.ring]?.length ?? 1, direction);
+			for (const cdir of dirs) {
+				const result = canMoveCircular(maze, pos.ring, pos.sector, cdir);
+				if (result.canMove) {
+					const newPos = { ring: result.ring, sector: result.sector };
+					const done = newPos.ring === maze.end.ring && newPos.sector === maze.end.sector;
+					circState = { maze, pos: newPos, moves: moves + 1, isComplete: done };
+					visitedCells = new Set([...visitedCells, `${newPos.ring},${newPos.sector}`]);
+					if (done) onLevelComplete();
+					return;
+				}
+			}
+		} else if (shape === 'triangular' && triState) {
+			const { maze, pos, moves } = triState;
+			const pointsUp = (pos.col + pos.row) % 2 === 0;
+			const dirs = keyToTriDir(pointsUp, direction);
+			for (const tdir of dirs) {
+				if (canMoveTri(maze.cells, pos.col, pos.row, tdir, maze.cols, maze.rows)) {
+					const newPos = applyMoveTri(pos.col, pos.row, pointsUp, tdir);
+					const done = newPos.col === maze.end.col && newPos.row === maze.end.row;
+					triState = { maze, pos: newPos, moves: moves + 1, isComplete: done };
+					visitedCells = new Set([...visitedCells, `${newPos.col},${newPos.row}`]);
+					if (done) onLevelComplete();
+					return;
+				}
+			}
+		} else if (session) {
+			// Rectangular (default)
+			const { maze, playerPos, moves } = session;
+			if (!canMove(maze.cells, playerPos, direction, maze.width, maze.height)) return;
+			const newPos = applyMove(playerPos, direction);
+			const isComplete = newPos.x === maze.end.x && newPos.y === maze.end.y;
+			session = { maze, playerPos: newPos, moves: moves + 1, elapsed: session.elapsed, isComplete, hintPath: null };
+			visitedCells = new Set([...visitedCells, `${newPos.x},${newPos.y}`]);
+			if (isComplete) onLevelComplete();
 		}
 	}
 
 	function processQueue() {
-		if (moveQueue.length > 0 && session && !session.isComplete) {
+		if (moveQueue.length > 0 && gameIsActive && !currentIsComplete) {
 			const dir = moveQueue.shift()!;
 			handleMove(dir);
 		}
@@ -164,10 +249,10 @@
 	function onLevelComplete() {
 		clearInterval(timerInterval);
 
-		if (!levelDef || !session) return;
+		if (!levelDef || !gameIsActive) return;
 
 		const stars = calculateStars(
-			session.moves,
+			currentMoves,
 			elapsed,
 			levelDef.twoStarMoves,
 			levelDef.threeStarTime
@@ -187,7 +272,7 @@
 			star2: stars.star2,
 			star3: stars.star3,
 			numberOfStars: stars.total,
-			bestMoves: session.moves,
+			bestMoves: currentMoves,
 			bestTime: elapsed
 		};
 		gameStore.saveLevelProgress(worldId, updatedLevel);
@@ -196,7 +281,7 @@
 	}
 
 	function useHint() {
-		if (!session || session.isComplete || showIntro) return;
+		if (!session || session.isComplete || showIntro || activeShape !== 'rectangular') return;
 		if (gameStore.usePowerup('hint')) {
 			const hintPath = getHint(session);
 			session = { ...session, hintPath };
@@ -277,7 +362,7 @@
 	<title>Level {levelNumber} – MazeEscape</title>
 </svelte:head>
 
-{#if session && levelDef}
+{#if gameIsActive && levelDef}
 	<div
 		class="gameplay"
 		ontouchstart={handleTouchStart}
@@ -306,8 +391,8 @@
 				</div>
 				<div class="hud-stat">
 					<span class="hud-stat-label">👣</span>
-					<span class="hud-stat-value" class:over-threshold={session.moves > levelDef.twoStarMoves}>
-						{session.moves}
+					<span class="hud-stat-value" class:over-threshold={currentMoves > levelDef.twoStarMoves}>
+						{currentMoves}
 					</span>
 					<span class="hud-stat-target">/ {levelDef.twoStarMoves}</span>
 				</div>
@@ -316,14 +401,34 @@
 
 		<!-- Maze -->
 		<div class="maze-area">
-			<MazeRenderer
-				maze={session.maze}
-				playerPos={session.playerPos}
-				wallColor={gameStore.player.wallColor}
-				hintPath={session.hintPath}
-				showVisited={true}
-				{visitedCells}
-			/>
+			{#if activeShape === 'hexagonal' && hexState}
+				<HexMazeRenderer
+					maze={hexState.maze}
+					playerPos={hexState.pos}
+					wallColor={gameStore.player.wallColor}
+				/>
+			{:else if activeShape === 'circular' && circState}
+				<CircularMazeRenderer
+					maze={circState.maze}
+					playerPos={circState.pos}
+					wallColor={gameStore.player.wallColor}
+				/>
+			{:else if activeShape === 'triangular' && triState}
+				<TriMazeRenderer
+					maze={triState.maze}
+					playerPos={triState.pos}
+					wallColor={gameStore.player.wallColor}
+				/>
+			{:else if session}
+				<MazeRenderer
+					maze={session.maze}
+					playerPos={session.playerPos}
+					wallColor={gameStore.player.wallColor}
+					hintPath={session.hintPath}
+					showVisited={true}
+					{visitedCells}
+				/>
+			{/if}
 		</div>
 
 		<!-- Powerups & Controls -->
@@ -392,12 +497,12 @@
 	/>
 {/if}
 
-{#if showOutro && session && levelDef}
+{#if showOutro && gameIsActive && levelDef}
 	<MazeOutroOverlay
 		title="Level Complete!"
 		playerName={gameStore.player.playerName}
 		time={elapsed}
-		moves={session.moves}
+		moves={currentMoves}
 		stars={victoryStars.total}
 		twoStarMoves={levelDef.twoStarMoves}
 		threeStarTime={levelDef.threeStarTime}

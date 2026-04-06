@@ -44,31 +44,17 @@
 		return pts.join(' ');
 	}
 
-	// Wall segments — each wall is an edge of the hex
-	// Flat-top: vertex 0 is rightmost, going CCW: 0=right, 1=top-right, 2=top-left, 3=left, 4=bottom-left, 5=bottom-right
-	// Our wall indices: NE=0, E=1, SE=2, SW=3, W=4, NW=5
-	// Mapping wall index to which hex edge to draw:
-	// NE(0) = edge between vertex 1 and 2 (top-right to top-left... no)
-	// Let me re-map for flat-top:
-	// Vertex angles: 0°, 60°, 120°, 180°, 240°, 300°
-	// V0 = (1,0), V1 = (0.5, √3/2), V2 = (-0.5, √3/2), V3 = (-1,0), V4 = (-0.5,-√3/2), V5 = (0.5,-√3/2)
-	// So: V0=right, V1=upper-right, V2=upper-left, V3=left, V4=lower-left, V5=lower-right
-	// Wall NE = edge from V0 to V1 (right to upper-right)
-	// Wall NW = edge from V1 to V2 (upper-right to upper-left)
-	// Wall W  = edge from V2 to V3 (upper-left to left)
-	// Wall SW = edge from V3 to V4 (left to lower-left)
-	// Wall SE = edge from V4 to V5 (lower-left to lower-right)  -- wait this doesn't look right
-
-	// Actually for our coordinate system:
-	// NE(0)=top-right edge, E(1)=right edge, SE(2)=bottom-right edge
-	// SW(3)=bottom-left edge, W(4)=left edge, NW(5)=top-left edge
+	// Wall-edge mapping for flat-top hex:
+	// Vertices in SVG (y-down): V0=right(0°), V1=lower-right(60°), V2=lower-left(120°),
+	//   V3=left(180°), V4=upper-left(240°), V5=upper-right(300°)
+	// Wall indices: [N, NE, SE, S, SW, NW]
 	const WALL_EDGES: [number, number][] = [
-		[0, 1], // NE: V0 to V1
-		[5, 0], // E: V5 to V0
-		[4, 5], // SE: V4 to V5
-		[3, 4], // SW: V3 to V4
-		[2, 3], // W: V2 to V3
-		[1, 2], // NW: V1 to V2
+		[4, 5], // N: V4 to V5 (top edge)
+		[5, 0], // NE: V5 to V0 (upper-right edge)
+		[0, 1], // SE: V0 to V1 (lower-right edge)
+		[1, 2], // S: V1 to V2 (bottom edge)
+		[2, 3], // SW: V2 to V3 (lower-left edge)
+		[3, 4], // NW: V3 to V4 (upper-left edge)
 	];
 
 	function vertexPos(cx: number, cy: number, idx: number): { x: number; y: number } {

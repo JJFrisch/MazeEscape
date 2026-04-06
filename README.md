@@ -125,9 +125,7 @@ Documentation images are in the `Images` folder. Game assets live under `Resourc
 
 **License**
 
-This project does not include a license file. Add one if you plan to open-source it.
 
 ---
 
-If you'd like, I can also add real screenshots from a simulator/device or wire up CI build steps. Want me to commit these changes and create a short commit message?
 

@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Maui;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Http;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using MazeEscape.Services;
 

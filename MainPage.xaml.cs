@@ -14,35 +14,57 @@ namespace MazeEscape
 
         public bool running = false;
 
-        public MainPage(IGameInitializer gameInitializer)
+        public MainPage(IGameInitializer? gameInitializer = null)
         {
             InitializeComponent();
-            _gameInitializer = gameInitializer ?? throw new ArgumentNullException(nameof(gameInitializer));
+            
+            // If gameInitializer is not provided, try to resolve from DI
+            if (gameInitializer == null)
+            {
+                try
+                {
+                    // This might fail if DI isn't fully set up, but that's ok - we'll skip initialization
+                    gameInitializer = Application.Current?.Handler?.MauiContext?.Services?.GetService<IGameInitializer>();
+                }
+                catch
+                {
+                    // Ignore DI resolution errors
+                }
+            }
+            
+            _gameInitializer = gameInitializer;
         }
 
         protected override async void OnAppearing()
         {
             base.OnAppearing();
 
-            // Initialize/load game state from API
-            System.Diagnostics.Debug.WriteLine("[MainPage] Initializing game state...");
-            var initResult = await _gameInitializer.InitializeOrLoadAsync(App.PlayerData);
-
-            if (initResult.Exception != null)
+            // Initialize/load game state from API (if service available)
+            if (_gameInitializer != null)
             {
-                System.Diagnostics.Debug.WriteLine($"[MainPage] Initialization warning: {initResult.ErrorMessage}");
-                // Continue anyway (offline mode fallback)
-            }
+                System.Diagnostics.Debug.WriteLine("[MainPage] Initializing game state...");
+                var initResult = await _gameInitializer.InitializeOrLoadAsync(App.PlayerData);
 
-            if (initResult.IsFirstTime)
-            {
-                System.Diagnostics.Debug.WriteLine("[MainPage] First-time player detected");
-                // Show name prompt for new player
-                await PromptForPlayerName();
+                if (initResult.Exception != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[MainPage] Initialization warning: {initResult.ErrorMessage}");
+                    // Continue anyway (offline mode fallback)
+                }
+
+                if (initResult.IsFirstTime)
+                {
+                    System.Diagnostics.Debug.WriteLine("[MainPage] First-time player detected");
+                    // Show name prompt for new player
+                    await PromptForPlayerName();
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[MainPage] Existing player loaded");
+                }
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("[MainPage] Existing player loaded");
+                System.Diagnostics.Debug.WriteLine("[MainPage] GameInitializer not available - running in offline mode");
             }
 
             // Update UI with player name

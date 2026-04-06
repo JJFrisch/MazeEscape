@@ -50,8 +50,15 @@ namespace MazeEscape.Services
 
         public async Task ClearTokenAsync()
         {
-            await SecureStorage.RemoveAsync(STORAGE_KEY_TOKEN);
-            await SecureStorage.RemoveAsync(STORAGE_KEY_EXPIRATION);
+            try
+            {
+                await SecureStorage.Remove(STORAGE_KEY_TOKEN);
+                await SecureStorage.Remove(STORAGE_KEY_EXPIRATION);
+            }
+            catch
+            {
+                // Ignore errors on token cleanup
+            }
         }
 
         private async Task<string> RefreshTokenAsync()

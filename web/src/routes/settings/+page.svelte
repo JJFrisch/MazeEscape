@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { authStore } from '$lib/supabase/authStore.svelte';
 
@@ -113,7 +114,7 @@
 				<button class="save-btn" onclick={syncNow} disabled={gameStore.cloudSyncBusy}>Sync Now</button>
 				<button class="secondary-btn" onclick={signOut} disabled={authStore.loading}>Sign Out</button>
 			{:else}
-				<a class="auth-link" href="/MazeEscape/auth">Sign in to enable sync</a>
+				<a class="auth-link" href="{base}/auth">Sign in to enable sync</a>
 			{/if}
 		</div>
 	</section>

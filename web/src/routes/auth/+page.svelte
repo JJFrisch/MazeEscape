@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
+	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { authStore } from '$lib/supabase/authStore.svelte';
 
 	let mode = $state<'sign-in' | 'sign-up'>('sign-in');

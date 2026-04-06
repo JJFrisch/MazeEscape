@@ -38,8 +38,8 @@
 			'Charting the nebula…',
 			'Scanning exit vectors…'
 		],
-		elemental: [
-			'Weaving ancient paths…',
+		elemental: [ 
+			'Weaving ancient paths… ',
 			'Placing stepping stones…',
 			'Summoning the maze spirit…',
 			'Listening to the wind…',
@@ -397,7 +397,7 @@
 		actions={[
 			{ label: 'Retry', onclick: () => { showOutro = false; startGame(); } },
 			{ label: levelDef.connectTo1 ? 'Next Level →' : 'Back to World', primary: true, onclick: goToNextLevel }
-		]}
+		]} 
 	/>
 {/if}
 

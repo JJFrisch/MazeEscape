@@ -1,11 +1,10 @@
 <!--
-  MazeRenderer: Canvas-based maze rendering with smooth player animations.
-  Handles drawing walls, cells, start/end markers, player, and hint path.
-  Responsive to container size.
+  MazeRenderer: SVG-based maze rendering.
+  Uses declarative markup instead of imperative canvas drawing so the maze is
+  visible reliably on first render across browsers and deploy targets.
 -->
 <script lang="ts">
-	import { onMount, onDestroy, tick } from 'svelte';
-	import type { MazeData, Position } from '$lib/core/types';
+	import type { MazeCell, MazeData, Position } from '$lib/core/types';
 
 	let {
 		maze,
@@ -25,244 +24,146 @@
 		visitedCells?: Set<string>;
 	} = $props();
 
-	let canvas = $state<HTMLCanvasElement | undefined>(undefined);
-	let container = $state<HTMLDivElement | undefined>(undefined);
-	let animFrame: number;
-	let targetPlayerX = $derived(playerPos.x);
-	let targetPlayerY = $derived(playerPos.y);
-	let animatedPlayerX = $state(0);
-	let animatedPlayerY = $state(0);
-
-	const WALL_WIDTH = 2;
-	const CELL_PADDING = 0.1;
-	const ANIMATION_SPEED = 0.15; // lerp factor
+	const CELL_SIZE = 32;
+	const PADDING = 12;
 	const FALLBACK_WALL_COLOR = '#38bdf8';
 
-	function lerp(a: number, b: number, t: number): number {
-		return a + (b - a) * t;
+	const strokeColor = $derived(wallColor === '#000000' ? FALLBACK_WALL_COLOR : (wallColor || FALLBACK_WALL_COLOR));
+	const viewBoxWidth = $derived(maze.width * CELL_SIZE + PADDING * 2);
+	const viewBoxHeight = $derived(maze.height * CELL_SIZE + PADDING * 2);
+	const hintPathPoints = $derived(
+		(hintPath ?? [])
+			.map((point) => `${cellCenterX(point.x)},${cellCenterY(point.y)}`)
+			.join(' ')
+	);
+
+	function cellLeft(x: number): number {
+		return PADDING + x * CELL_SIZE;
 	}
 
-	function draw() {
-		if (!canvas || !container || !maze) return;
-
-		const ctx = canvas.getContext('2d');
-		if (!ctx) return;
-
-		const rect = container.getBoundingClientRect();
-		const dpr = window.devicePixelRatio || 1;
-		const displayWidth = rect.width;
-		const displayHeight = rect.height;
-
-		if (displayWidth <= 0 || displayHeight <= 0) {
-			return;
-		}
-
-		canvas.width = displayWidth * dpr;
-		canvas.height = displayHeight * dpr;
-		canvas.style.width = `${displayWidth}px`;
-		canvas.style.height = `${displayHeight}px`;
-		ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-		// Calculate cell size to fit the container
-		const padding = 8;
-		const availW = displayWidth - padding * 2;
-		const availH = displayHeight - padding * 2;
-		const cellSize = Math.min(availW / maze.width, availH / maze.height);
-		const offsetX = (displayWidth - cellSize * maze.width) / 2;
-		const offsetY = (displayHeight - cellSize * maze.height) / 2;
-
-		// Clear
-		ctx.fillStyle = '#0f172a';
-		ctx.fillRect(0, 0, displayWidth, displayHeight);
-
-		// Draw cells
-		for (let y = 0; y < maze.height; y++) {
-			for (let x = 0; x < maze.width; x++) {
-				const cell = maze.cells[y][x];
-				const cx = offsetX + x * cellSize;
-				const cy = offsetY + y * cellSize;
-				const inner = cellSize * CELL_PADDING;
-
-				// Cell background
-				if (cell.value === 2) {
-					// Start cell
-					ctx.fillStyle = 'rgba(99, 102, 241, 0.2)';
-					ctx.fillRect(cx + inner, cy + inner, cellSize - inner * 2, cellSize - inner * 2);
-				} else if (cell.value === 3) {
-					// End cell
-					ctx.fillStyle = 'rgba(52, 211, 153, 0.25)';
-					ctx.fillRect(cx + inner, cy + inner, cellSize - inner * 2, cellSize - inner * 2);
-
-					// Goal marker
-					ctx.fillStyle = '#34d399';
-					const markerSize = cellSize * 0.3;
-					ctx.beginPath();
-					ctx.arc(
-						cx + cellSize / 2,
-						cy + cellSize / 2,
-						markerSize / 2,
-						0,
-						Math.PI * 2
-					);
-					ctx.fill();
-				} else if (showVisited && visitedCells.has(`${x},${y}`)) {
-					ctx.fillStyle = 'rgba(167, 139, 250, 0.08)';
-					ctx.fillRect(cx + inner, cy + inner, cellSize - inner * 2, cellSize - inner * 2);
-				}
-			}
-		}
-
-		// Draw hint path
-		if (hintPath && hintPath.length > 1) {
-			ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
-			ctx.lineWidth = cellSize * 0.15;
-			ctx.lineCap = 'round';
-			ctx.lineJoin = 'round';
-			ctx.beginPath();
-			ctx.moveTo(
-				offsetX + hintPath[0].x * cellSize + cellSize / 2,
-				offsetY + hintPath[0].y * cellSize + cellSize / 2
-			);
-			for (let i = 1; i < hintPath.length; i++) {
-				ctx.lineTo(
-					offsetX + hintPath[i].x * cellSize + cellSize / 2,
-					offsetY + hintPath[i].y * cellSize + cellSize / 2
-				);
-			}
-			ctx.stroke();
-		}
-
-		// Draw walls
-		ctx.strokeStyle = wallColor === '#000000' ? FALLBACK_WALL_COLOR : (wallColor || FALLBACK_WALL_COLOR);
-		ctx.lineWidth = WALL_WIDTH;
-		ctx.lineCap = 'round';
-
-		for (let y = 0; y < maze.height; y++) {
-			for (let x = 0; x < maze.width; x++) {
-				const cell = maze.cells[y][x];
-				const cx = offsetX + x * cellSize;
-				const cy = offsetY + y * cellSize;
-
-				// North wall
-				if (cell.north) {
-					ctx.beginPath();
-					ctx.moveTo(cx, cy);
-					ctx.lineTo(cx + cellSize, cy);
-					ctx.stroke();
-				}
-
-				// East wall
-				if (cell.east) {
-					ctx.beginPath();
-					ctx.moveTo(cx + cellSize, cy);
-					ctx.lineTo(cx + cellSize, cy + cellSize);
-					ctx.stroke();
-				}
-
-				// South border (last row)
-				if (y === maze.height - 1) {
-					ctx.beginPath();
-					ctx.moveTo(cx, cy + cellSize);
-					ctx.lineTo(cx + cellSize, cy + cellSize);
-					ctx.stroke();
-				}
-
-				// West border (first column)
-				if (x === 0) {
-					ctx.beginPath();
-					ctx.moveTo(cx, cy);
-					ctx.lineTo(cx, cy + cellSize);
-					ctx.stroke();
-				}
-			}
-		}
-
-		// Draw player (animated position)
-		animatedPlayerX = lerp(animatedPlayerX, targetPlayerX, ANIMATION_SPEED);
-		animatedPlayerY = lerp(animatedPlayerY, targetPlayerY, ANIMATION_SPEED);
-
-		const px = offsetX + animatedPlayerX * cellSize + cellSize / 2;
-		const py = offsetY + animatedPlayerY * cellSize + cellSize / 2;
-		const playerRadius = cellSize * 0.35;
-
-		// Player glow
-		const gradient = ctx.createRadialGradient(px, py, 0, px, py, playerRadius * 2);
-		gradient.addColorStop(0, 'rgba(167, 139, 250, 0.3)');
-		gradient.addColorStop(1, 'rgba(167, 139, 250, 0)');
-		ctx.fillStyle = gradient;
-		ctx.fillRect(px - playerRadius * 2, py - playerRadius * 2, playerRadius * 4, playerRadius * 4);
-
-		// Player body
-		ctx.fillStyle = '#a78bfa';
-		ctx.beginPath();
-		ctx.arc(px, py, playerRadius, 0, Math.PI * 2);
-		ctx.fill();
-
-		// Player emoji/icon
-		ctx.font = `${cellSize * 0.45}px sans-serif`;
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillText(skinEmoji, px, py + 1);
-
-		// Check if animation needs to continue
-		const dx = Math.abs(animatedPlayerX - targetPlayerX);
-		const dy = Math.abs(animatedPlayerY - targetPlayerY);
-		if (dx > 0.01 || dy > 0.01) {
-			animFrame = requestAnimationFrame(draw);
-		}
+	function cellTop(y: number): number {
+		return PADDING + y * CELL_SIZE;
 	}
 
-	$effect(() => {
-		// Redraw whenever the canvas, maze, or visual inputs change.
-		if (canvas && container && maze) {
-			maze; // track
-			targetPlayerX; // track
-			targetPlayerY; // track
-			hintPath; // track
-			wallColor; // track
-			showVisited; // track
-			visitedCells; // track
-			cancelAnimationFrame(animFrame);
-			animFrame = requestAnimationFrame(draw);
+	function cellCenterX(x: number): number {
+		return cellLeft(x) + CELL_SIZE / 2;
+	}
+
+	function cellCenterY(y: number): number {
+		return cellTop(y) + CELL_SIZE / 2;
+	}
+
+	function innerRect(x: number, y: number) {
+		const inset = CELL_SIZE * 0.12;
+		return {
+			x: cellLeft(x) + inset,
+			y: cellTop(y) + inset,
+			width: CELL_SIZE - inset * 2,
+			height: CELL_SIZE - inset * 2,
+			rx: CELL_SIZE * 0.08
+		};
+	}
+
+	function wallSegments(cell: MazeCell) {
+		const left = cellLeft(cell.x);
+		const top = cellTop(cell.y);
+		const right = left + CELL_SIZE;
+		const bottom = top + CELL_SIZE;
+		const segments: Array<{ x1: number; y1: number; x2: number; y2: number }> = [];
+
+		if (cell.north) {
+			segments.push({ x1: left, y1: top, x2: right, y2: top });
 		}
-	});
 
-	onMount(() => {
-		let observer: ResizeObserver | undefined;
+		if (cell.east) {
+			segments.push({ x1: right, y1: top, x2: right, y2: bottom });
+		}
 
-		const scheduleInitialDraw = async () => {
-			await tick();
-			animatedPlayerX = targetPlayerX;
-			animatedPlayerY = targetPlayerY;
+		if (cell.y === maze.height - 1) {
+			segments.push({ x1: left, y1: bottom, x2: right, y2: bottom });
+		}
 
-			if (!container) {
-				return;
-			}
+		if (cell.x === 0) {
+			segments.push({ x1: left, y1: top, x2: left, y2: bottom });
+		}
 
-			observer = new ResizeObserver(() => {
-				cancelAnimationFrame(animFrame);
-				animFrame = requestAnimationFrame(draw);
-			});
-			observer.observe(container);
-			cancelAnimationFrame(animFrame);
-			animFrame = requestAnimationFrame(draw);
-		};
-
-		void scheduleInitialDraw();
-
-		return () => {
-			observer?.disconnect();
-			cancelAnimationFrame(animFrame);
-		};
-	});
-
-	onDestroy(() => {
-		cancelAnimationFrame(animFrame);
-	});
+		return segments;
+	}
 </script>
 
-<div class="maze-container" bind:this={container} role="img" aria-label="Maze grid">
-	<canvas bind:this={canvas}></canvas>
+<div class="maze-container" role="img" aria-label="Maze grid">
+	<svg
+		class="maze-svg"
+		viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+		preserveAspectRatio="xMidYMid meet"
+	>
+		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill="#0f172a" />
+
+		{#each maze.cells as row}
+			{#each row as cell (`${cell.x},${cell.y}`)}
+				{#if cell.value === 2}
+					{@const rect = innerRect(cell.x, cell.y)}
+					<rect {...rect} fill="rgba(99, 102, 241, 0.22)" />
+				{:else if cell.value === 3}
+					{@const rect = innerRect(cell.x, cell.y)}
+					<rect {...rect} fill="rgba(52, 211, 153, 0.25)" />
+					<circle
+						cx={cellCenterX(cell.x)}
+						cy={cellCenterY(cell.y)}
+						r={CELL_SIZE * 0.14}
+						fill="#34d399"
+					/>
+				{:else if showVisited && visitedCells.has(`${cell.x},${cell.y}`)}
+					{@const rect = innerRect(cell.x, cell.y)}
+					<rect {...rect} fill="rgba(167, 139, 250, 0.08)" />
+				{/if}
+			{/each}
+		{/each}
+
+		{#if hintPath && hintPath.length > 1}
+			<polyline
+				points={hintPathPoints}
+				fill="none"
+				stroke="rgba(251, 191, 36, 0.55)"
+				stroke-width={CELL_SIZE * 0.16}
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			/>
+		{/if}
+
+		<g stroke={strokeColor} stroke-width="3" stroke-linecap="round">
+			{#each maze.cells as row}
+				{#each row as cell (`wall-${cell.x},${cell.y}`)}
+					{#each wallSegments(cell) as segment (`${segment.x1}-${segment.y1}-${segment.x2}-${segment.y2}`)}
+						<line
+							x1={segment.x1}
+							y1={segment.y1}
+							x2={segment.x2}
+							y2={segment.y2}
+						/>
+					{/each}
+				{/each}
+			{/each}
+		</g>
+
+		<circle
+			cx={cellCenterX(playerPos.x)}
+			cy={cellCenterY(playerPos.y)}
+			r={CELL_SIZE * 0.28}
+			fill="#a78bfa"
+			fill-opacity="0.95"
+		/>
+		<text
+			x={cellCenterX(playerPos.x)}
+			y={cellCenterY(playerPos.y) + 1}
+			text-anchor="middle"
+			dominant-baseline="middle"
+			font-size={CELL_SIZE * 0.44}
+			font-family="Apple Color Emoji, Segoe UI Emoji, sans-serif"
+		>
+			{skinEmoji}
+		</text>
+	</svg>
 </div>
 
 <style>
@@ -275,7 +176,7 @@
 		background: #0f172a;
 	}
 
-	canvas {
+	.maze-svg {
 		display: block;
 		width: 100%;
 		height: 100%;

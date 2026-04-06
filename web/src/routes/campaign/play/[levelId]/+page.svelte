@@ -2,15 +2,16 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import { onMount, onDestroy } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
 	import { createGameSession, tryMove, getHint, calculateStars } from '$lib/core/session';
 	import type { GameSessionState, GameSessionConfig } from '$lib/core/session';
 	import type { Direction } from '$lib/core/types';
+	import { getWorldTheme } from '$lib/worldThemes';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
-	import Stars from '$lib/components/Stars.svelte';
-	import Modal from '$lib/components/Modal.svelte';
+	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
+	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
 
 	// Parse route: "worldId-levelNumber" e.g. "1-5" or "2-3b"
 	const levelKey = $derived($page.params.levelId as string);
@@ -18,11 +19,40 @@
 	const levelNumber = $derived((levelKey ?? '').split('-').slice(1).join('-'));
 	const worldDef = $derived(getAllWorlds().find((w) => w.worldId === worldId));
 	const levelDef = $derived(worldDef ? getLevelByNumber(worldDef, levelNumber) : undefined);
+	const theme = $derived(getWorldTheme(worldId));
+
+	// Per-world intro phrases keyed by motif
+	const INTRO_PHRASES: Record<'tech' | 'space' | 'elemental', string[]> = {
+		tech: [
+			'Routing neural pathways…',
+			'Compiling the grid…',
+			'Encrypting dead ends…',
+			'Charging exit nodes…',
+			'Calibrating the labyrinth…'
+		],
+		space: [
+			'Mapping star clusters…',
+			'Plotting warp routes…',
+			'Anchoring gravity wells…',
+			'Charting the nebula…',
+			'Scanning exit vectors…'
+		],
+		elemental: [
+			'Weaving ancient paths…',
+			'Placing stepping stones…',
+			'Summoning the maze spirit…',
+			'Listening to the wind…',
+			'The way reveals itself…'
+		]
+	};
+
+	const introPhrases = $derived(INTRO_PHRASES[theme.motif]);
 
 	let session = $state<GameSessionState | null>(null);
 	let elapsed = $state(0);
 	let timerInterval: ReturnType<typeof setInterval>;
-	let showVictory = $state(false);
+	let showIntro = $state(false);
+	let showOutro = $state(false);
 	let victoryStars = $state({ star1: false, star2: false, star3: false, total: 0 });
 	let coinsEarned = $state(0);
 	let visitedCells = $state(new Set<string>());
@@ -46,9 +76,15 @@
 
 		session = createGameSession(config);
 		elapsed = 0;
-		showVictory = false;
+		showOutro = false;
 		visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
+		moveQueue = [];
+		clearInterval(timerInterval);
+		showIntro = true;
+	}
 
+	function startGameplay() {
+		showIntro = false;
 		clearInterval(timerInterval);
 		timerInterval = setInterval(() => {
 			if (session && !session.isComplete) {
@@ -58,7 +94,7 @@
 	}
 
 	function handleMove(direction: Direction) {
-		if (!session || session.isComplete) return;
+		if (!session || session.isComplete || showIntro) return;
 
 		const result = tryMove(session, direction);
 		if (result.moved) {
@@ -81,6 +117,7 @@
 	}
 
 	function queueMove(direction: Direction) {
+		if (showIntro) return;
 		if (moveQueue.length < MOVE_QUEUE_MAX) {
 			moveQueue.push(direction);
 		}
@@ -118,11 +155,11 @@
 		};
 		gameStore.saveLevelProgress(worldId, updatedLevel);
 
-		showVictory = true;
+		showOutro = true;
 	}
 
 	function useHint() {
-		if (!session || session.isComplete) return;
+		if (!session || session.isComplete || showIntro) return;
 		if (gameStore.usePowerup('hint')) {
 			getHint(session);
 			session = session; // trigger reactivity
@@ -130,6 +167,7 @@
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
+		if (showIntro || showOutro) return;
 		const dirMap: Record<string, Direction> = {
 			ArrowUp: 'up',
 			ArrowDown: 'down',
@@ -157,6 +195,7 @@
 	}
 
 	function handleTouchEnd(e: TouchEvent) {
+		if (showIntro) return;
 		const dx = e.changedTouches[0].clientX - touchStartX;
 		const dy = e.changedTouches[0].clientY - touchStartY;
 		const threshold = 30;
@@ -181,10 +220,6 @@
 			goto(`${base}/campaign/worlds/${worldId}`);
 		}
 	}
-
-	onMount(() => {
-		startGame();
-	});
 
 	onDestroy(() => {
 		clearInterval(timerInterval);
@@ -270,39 +305,35 @@
 		</div>
 	</div>
 
-	<!-- Victory Modal -->
-	<Modal open={showVictory} onclose={() => showVictory = false}>
-		<div class="victory">
-			<h2 class="victory-title">🎉 Level Complete!</h2>
-			<div class="victory-stars">
-				<Stars count={victoryStars.total} size="2.5rem" />
-			</div>
-			<div class="victory-stats">
-				<div class="victory-stat">
-					<span class="vs-label">Time</span>
-					<span class="vs-value">{elapsed.toFixed(1)}s</span>
-					<span class="vs-target">/ {levelDef.threeStarTime}s for ★★★</span>
-				</div>
-				<div class="victory-stat">
-					<span class="vs-label">Moves</span>
-					<span class="vs-value">{session.moves}</span>
-					<span class="vs-target">/ {levelDef.twoStarMoves} for ★★</span>
-				</div>
-				<div class="victory-stat coins-earned">
-					<span class="vs-label">Coins</span>
-					<span class="vs-value">+{coinsEarned} 🪙</span>
-				</div>
-			</div>
-			<div class="victory-actions">
-				<button class="btn btn-ghost" onclick={() => { showVictory = false; startGame(); }}>
-					Retry
-				</button>
-				<button class="btn btn-primary" onclick={goToNextLevel}>
-					{levelDef.connectTo1 ? 'Next Level →' : 'Back to World'}
-				</button>
-			</div>
-		</div>
-	</Modal>
+	<!-- Level intro overlay -->
+	{#if showIntro}
+		<MazeIntroOverlay
+			title="Level {levelNumber}"
+			subtitle={worldDef?.worldName ?? ''}
+			phrases={introPhrases}
+			accentColor={theme.accentColor}
+			ondismiss={startGameplay}
+		/>
+	{/if}
+
+	<!-- Level complete overlay -->
+	{#if showOutro && session}
+		<MazeOutroOverlay
+			title="Level Complete!"
+			playerName={gameStore.player.playerName}
+			time={elapsed}
+			moves={session.moves}
+			stars={victoryStars.total}
+			twoStarMoves={levelDef.twoStarMoves}
+			threeStarTime={levelDef.threeStarTime}
+			coins={coinsEarned}
+			accentColor={theme.accentColor}
+			actions={[
+				{ label: 'Retry', onclick: () => { showOutro = false; startGame(); } },
+				{ label: levelDef.connectTo1 ? 'Next Level →' : 'Back to World', primary: true, onclick: goToNextLevel }
+			]}
+		/>
+	{/if}
 {:else}
 	<div class="loading">
 		<p>Loading level...</p>
@@ -469,97 +500,6 @@
 	.dpad-btn:active {
 		background: var(--color-accent-primary);
 		color: white;
-	}
-
-	/* Victory */
-	.victory {
-		text-align: center;
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-6);
-	}
-
-	.victory-title {
-		font-family: var(--font-display);
-		font-size: var(--text-2xl);
-	}
-
-	.victory-stars {
-		display: flex;
-		justify-content: center;
-	}
-
-	.victory-stats {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-3);
-	}
-
-	.victory-stat {
-		display: flex;
-		align-items: baseline;
-		justify-content: center;
-		gap: var(--space-2);
-	}
-
-	.vs-label {
-		color: var(--color-text-muted);
-		font-size: var(--text-sm);
-		min-width: 50px;
-		text-align: right;
-	}
-
-	.vs-value {
-		font-weight: 700;
-		font-family: var(--font-mono);
-		font-size: var(--text-lg);
-	}
-
-	.vs-target {
-		color: var(--color-text-muted);
-		font-size: var(--text-xs);
-	}
-
-	.coins-earned .vs-value {
-		color: var(--color-accent-gold);
-	}
-
-	.victory-actions {
-		display: flex;
-		gap: var(--space-3);
-		justify-content: center;
-	}
-
-	.btn {
-		padding: var(--space-3) var(--space-6);
-		border-radius: var(--radius-lg);
-		font-family: var(--font-display);
-		font-weight: 600;
-		font-size: var(--text-base);
-		cursor: pointer;
-		border: none;
-		transition: all var(--transition-fast);
-	}
-
-	.btn-primary {
-		background: var(--color-accent-primary);
-		color: white;
-	}
-
-	.btn-primary:hover {
-		background: var(--color-accent-glow);
-		box-shadow: var(--shadow-glow);
-	}
-
-	.btn-ghost {
-		background: transparent;
-		color: var(--color-text-secondary);
-		border: 1px solid var(--color-border);
-	}
-
-	.btn-ghost:hover {
-		background: var(--color-bg-card);
-		color: var(--color-text-primary);
 	}
 
 	.loading {

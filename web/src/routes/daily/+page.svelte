@@ -1,14 +1,14 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { onMount, onDestroy } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getDailyMazeForDate, getDailyMazesForMonth, getDailyMazeSeed } from '$lib/core/daily';
 	import { createGameSession, tryMove, getHint, calculateStars } from '$lib/core/session';
 	import type { GameSessionState } from '$lib/core/session';
 	import type { Direction, DailyMazeLevel } from '$lib/core/types';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
-	import Stars from '$lib/components/Stars.svelte';
-	import Modal from '$lib/components/Modal.svelte';
+	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
+	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
 
 	const today = new Date();
 	let viewYear = $state(today.getFullYear());
@@ -20,11 +20,20 @@
 	let session = $state<GameSessionState | null>(null);
 	let elapsed = $state(0);
 	let timerInterval: ReturnType<typeof setInterval>;
-	let showVictory = $state(false);
+	let showIntro = $state(false);
+	let showOutro = $state(false);
 	let victoryStars = $state({ star1: false, star2: false, star3: false, total: 0 });
 	let coinsEarned = $state(0);
 	let visitedCells = $state(new Set<string>());
 	let playing = $state(false);
+
+	const DAILY_PHRASES = [
+		"Shuffling today's challenge…",
+		'Seeding the labyrinth…',
+		'Laying down bricks…',
+		'Routing dead ends…',
+		'Maze ready!'
+	];
 
 	// Check if daily unlocked (requires World 1 Level 10 completed)
 	const unlocked = $derived(gameStore.isDailyMazeUnlocked());
@@ -88,9 +97,14 @@
 		selectedDaily = dailyLevel;
 		elapsed = 0;
 		playing = true;
-		showVictory = false;
+		showOutro = false;
 		visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
+		clearInterval(timerInterval);
+		showIntro = true;
+	}
 
+	function startGameplay() {
+		showIntro = false;
 		clearInterval(timerInterval);
 		timerInterval = setInterval(() => {
 			if (session && !session.isComplete) elapsed += 0.01;
@@ -98,7 +112,7 @@
 	}
 
 	function handleMove(direction: Direction) {
-		if (!session || session.isComplete) return;
+		if (!session || session.isComplete || showIntro) return;
 		const result = tryMove(session, direction);
 		if (result.moved) {
 			visitedCells = new Set([...visitedCells, `${result.x},${result.y}`]);
@@ -125,11 +139,11 @@
 		};
 		gameStore.saveDailyResult(result);
 
-		showVictory = true;
+		showOutro = true;
 	}
 
 	function useHint() {
-		if (!session || session.isComplete) return;
+		if (!session || session.isComplete || showIntro) return;
 		if (gameStore.usePowerup('hint')) {
 			getHint(session);
 			session = session;
@@ -138,12 +152,14 @@
 
 	function backToCalendar() {
 		clearInterval(timerInterval);
+		showIntro = false;
+		showOutro = false;
 		playing = false;
 		session = null;
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
-		if (!playing) return;
+		if (!playing || showIntro || showOutro) return;
 		const dirMap: Record<string, Direction> = {
 			ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
 			w: 'up', s: 'down', a: 'left', d: 'right'
@@ -156,6 +172,7 @@
 	let touchStartY = 0;
 	function handleTouchStart(e: TouchEvent) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
 	function handleTouchEnd(e: TouchEvent) {
+		if (showIntro) return;
 		const dx = e.changedTouches[0].clientX - touchStartX;
 		const dy = e.changedTouches[0].clientY - touchStartY;
 		if (Math.abs(dx) > Math.abs(dy)) { if (Math.abs(dx) > 30) handleMove(dx > 0 ? 'right' : 'left'); }
@@ -276,19 +293,35 @@
 		</div>
 	</div>
 
-	<Modal open={showVictory} onclose={() => {showVictory = false; backToCalendar();}}>
-		<div class="victory">
-			<h2>🎉 Daily Maze Complete!</h2>
-			<Stars count={victoryStars.total} size="2.5rem" />
-			<div class="victory-stats">
-				<p>⏱️ {elapsed.toFixed(1)}s &nbsp; 👣 {session.moves} moves</p>
-				<p class="coins-earned">+{coinsEarned} 🪙</p>
-			</div>
-			<button class="btn btn-primary" onclick={() => {showVictory = false; backToCalendar();}}>
-				Back to Calendar
-			</button>
-		</div>
-	</Modal>
+	<!-- Daily intro overlay -->
+	{#if showIntro}
+		<MazeIntroOverlay
+			title="Daily Maze"
+			subtitle={selectedDate ?? ''}
+			phrases={DAILY_PHRASES}
+			accentColor="#34d399"
+			ondismiss={startGameplay}
+		/>
+	{/if}
+
+	<!-- Daily complete overlay -->
+	{#if showOutro && session && selectedDaily}
+		<MazeOutroOverlay
+			title="Daily Maze Complete!"
+			playerName={gameStore.player.playerName}
+			time={elapsed}
+			moves={session.moves}
+			stars={victoryStars.total}
+			twoStarMoves={selectedDaily.movesNeeded}
+			threeStarTime={selectedDaily.timeNeeded}
+			coins={coinsEarned}
+			accentColor="#34d399"
+			actions={[
+				{ label: 'Retry', onclick: () => { showOutro = false; if (selectedDate) startDailyMaze(selectedDate); } },
+				{ label: '← Calendar', primary: true, onclick: () => { showOutro = false; backToCalendar(); } }
+			]}
+		/>
+	{/if}
 {/if}
 
 <style>
@@ -502,31 +535,4 @@
 	}
 	.dpad-btn:active { background: var(--color-accent-primary); color: white; }
 
-	.victory {
-		text-align: center;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: var(--space-4);
-	}
-
-	.coins-earned {
-		color: var(--color-accent-gold);
-		font-weight: 700;
-		font-size: var(--text-lg);
-	}
-
-	.btn {
-		padding: var(--space-3) var(--space-6);
-		border-radius: var(--radius-lg);
-		font-family: var(--font-display);
-		font-weight: 600;
-		cursor: pointer;
-		border: none;
-	}
-
-	.btn-primary {
-		background: var(--color-accent-primary);
-		color: white;
-	}
 </style>

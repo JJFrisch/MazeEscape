@@ -1,5 +1,4 @@
-﻿using SQLite;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -12,7 +11,6 @@ namespace MazeEscape.Models
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        [PrimaryKey, AutoIncrement]
         public int LevelID { get; set; } //must be unique for the levels
 
         public int Width { get; set; }

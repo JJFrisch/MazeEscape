@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MazeEscape.Models
 {
-    public class CampaignWorld : INotifyPropertyChanged
+    public partial class CampaignWorld : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
         public int WorldID { get; set; } //must be unique for the worlds
@@ -21,7 +21,6 @@ namespace MazeEscape.Models
         public int StarCount { get; set; }
         public List<string> UnlockedMazesNumbers { get; set; }
         public List<int> UnlockedGatesNumbers { get; set; }
-        public List<IReward> ChestModels { get; set; }
         public Dictionary<string, List<string>> LevelConnectsToDictionary { get; set; }
         public int HighestAreaUnlocked { get; set; }
         public double distanceScrolled { get; set; }
@@ -33,10 +32,15 @@ namespace MazeEscape.Models
 
         public CampaignWorld()
         {
+            WorldName = string.Empty;
+            ImageUrl = string.Empty;
             Completed = false;
             HighestBeatenLevel = 0;
             StarCount = 0;
-            
+            UnlockedMazesNumbers = new List<string>();
+            UnlockedGatesNumbers = new List<int>();
+            LevelConnectsToDictionary = new Dictionary<string, List<string>>();
+            gateStarRequired = new List<int>();
         }
     }
 }

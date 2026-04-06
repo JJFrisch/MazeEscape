@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MazeEscape.Web", "MazeEscap
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MazeEscape.Api", "MazeEscape.Api\MazeEscape.Api.csproj", "{CDA62D44-61E7-454D-944D-183F4A573DCC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MazeEscape.Api.Tests", "MazeEscape.Api.Tests\MazeEscape.Api.Tests.csproj", "{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -85,6 +87,18 @@ Global
 		{CDA62D44-61E7-454D-944D-183F4A573DCC}.Release|x64.Build.0 = Release|Any CPU
 		{CDA62D44-61E7-454D-944D-183F4A573DCC}.Release|x86.ActiveCfg = Release|Any CPU
 		{CDA62D44-61E7-454D-944D-183F4A573DCC}.Release|x86.Build.0 = Release|Any CPU
+		{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}.Debug|x64.Build.0 = Debug|Any CPU
+		{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}.Debug|x86.Build.0 = Debug|Any CPU
+		{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}.Release|x64.ActiveCfg = Release|Any CPU
+		{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}.Release|x64.Build.0 = Release|Any CPU
+		{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}.Release|x86.ActiveCfg = Release|Any CPU
+		{99F4807E-EA5C-4F97-8A1F-6E62EF6AF677}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

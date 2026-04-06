@@ -2,6 +2,7 @@
 @using MazeEscape.Web.Services
 @inject SyncCoordinator SyncCoordinator
 @inject SyncStatusService SyncStatus
+@inject IConfiguration Config
 @implements IDisposable
 
 <PageTitle>Maze Escape Web</PageTitle>
@@ -24,11 +25,12 @@
 </div>
 
 @code {
-	private const string PlayerId = "player-001";
+	private string PlayerId = "player-001";
 	private string ResultText = "Ready.";
 
 	protected override async Task OnInitializedAsync()
 	{
+		PlayerId = Config["SyncApi:PlayerId"] ?? PlayerId;
 		SyncStatus.Changed += OnSyncStatusChanged;
 		await SyncCoordinator.BootstrapFromCloudAsync(PlayerId);
 		ResultText = await SyncCoordinator.LoadLocalSummaryAsync(PlayerId);

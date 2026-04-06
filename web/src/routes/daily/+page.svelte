@@ -35,9 +35,11 @@
 		'Routing dead ends…',
 		'Maze ready!'
 	];
+	const ENABLE_DAILY_INTRO = false;
 
 	// Check if daily unlocked (requires World 1 Level 10 completed)
 	const unlocked = $derived(gameStore.isDailyMazeUnlocked());
+	const canAcceptInput = $derived(playing && session !== null && !session.isComplete && !showIntro && !showOutro);
 
 	const monthNames = [
 		'January', 'February', 'March', 'April', 'May', 'June',
@@ -101,7 +103,10 @@
 		showOutro = false;
 		visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
 		clearInterval(timerInterval);
-		showIntro = true;
+		showIntro = ENABLE_DAILY_INTRO;
+		if (!ENABLE_DAILY_INTRO) {
+			startGameplay();
+		}
 	}
 
 	function startGameplay() {
@@ -113,7 +118,7 @@
 	}
 
 	function handleMove(direction: Direction) {
-		if (!session || session.isComplete || showIntro) return;
+		if (!canAcceptInput || !session) return;
 
 		const { maze, playerPos, moves } = session;
 		if (!canMove(maze.cells, playerPos, direction, maze.width, maze.height)) return;
@@ -156,7 +161,7 @@
 	}
 
 	function useHint() {
-		if (!session || session.isComplete || showIntro) return;
+		if (!session || !canAcceptInput) return;
 		if (gameStore.usePowerup('hint')) {
 			const hintPath = getHint(session);
 			session = { ...session, hintPath };
@@ -172,7 +177,7 @@
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
-		if (!playing || showIntro || showOutro) return;
+		if (!canAcceptInput) return;
 		const dirMap: Record<string, Direction> = {
 			ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
 			w: 'up', s: 'down', a: 'left', d: 'right'
@@ -185,7 +190,7 @@
 	let touchStartY = 0;
 	function handleTouchStart(e: TouchEvent) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }
 	function handleTouchEnd(e: TouchEvent) {
-		if (showIntro) return;
+		if (!canAcceptInput) return;
 		const dx = e.changedTouches[0].clientX - touchStartX;
 		const dy = e.changedTouches[0].clientY - touchStartY;
 		if (Math.abs(dx) > Math.abs(dy)) { if (Math.abs(dx) > 30) handleMove(dx > 0 ? 'right' : 'left'); }
@@ -296,12 +301,12 @@
 				💡 Hint ({gameStore.player.hintsOwned})
 			</button>
 			<div class="dpad" role="group" aria-label="Movement controls">
-				<button class="dpad-btn" onclick={() => handleMove('up')}>▲</button>
+				<button class="dpad-btn" onclick={() => handleMove('up')} disabled={!canAcceptInput}>▲</button>
 				<div class="dpad-middle">
-					<button class="dpad-btn" onclick={() => handleMove('left')}>◀</button>
-					<button class="dpad-btn" onclick={() => handleMove('right')}>▶</button>
+					<button class="dpad-btn" onclick={() => handleMove('left')} disabled={!canAcceptInput}>◀</button>
+					<button class="dpad-btn" onclick={() => handleMove('right')} disabled={!canAcceptInput}>▶</button>
 				</div>
-				<button class="dpad-btn" onclick={() => handleMove('down')}>▼</button>
+				<button class="dpad-btn" onclick={() => handleMove('down')} disabled={!canAcceptInput}>▼</button>
 			</div>
 		</div>
 	</div>

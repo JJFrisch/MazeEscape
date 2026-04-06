@@ -84,13 +84,12 @@
 	let timerInterval: ReturnType<typeof setInterval> | undefined;
 	let showIntro = $state(false);
 	let showOutro = $state(false);
+	const canAcceptInput = $derived(gameIsActive && !currentIsComplete && !showIntro && !showOutro);
 	let loadError = $state('');
 	let initializedLevelKey = $state('');
 	let victoryStars = $state({ star1: false, star2: false, star3: false, total: 0 });
 	let coinsEarned = $state(0);
 	let visitedCells = $state(new Set<string>());
-	let moveQueue: Direction[] = [];
-	const MOVE_QUEUE_MAX = 2;
 
 	function startGame() {
 		if (!levelDef) {
@@ -143,7 +142,6 @@
 			loadError = '';
 			elapsed = 0;
 			showOutro = false;
-			moveQueue = [];
 			clearInterval(timerInterval);
 			showIntro = ENABLE_LEVEL_INTRO;
 
@@ -174,7 +172,7 @@
 	}
 
 	function handleMove(direction: Direction) {
-		if (!gameIsActive || currentIsComplete || showIntro) return;
+		if (!canAcceptInput) return;
 
 		const shape = activeShape;
 
@@ -231,19 +229,8 @@
 		}
 	}
 
-	function processQueue() {
-		if (moveQueue.length > 0 && gameIsActive && !currentIsComplete) {
-			const dir = moveQueue.shift()!;
-			handleMove(dir);
-		}
-	}
-
-	function queueMove(direction: Direction) {
-		if (showIntro) return;
-		if (moveQueue.length < MOVE_QUEUE_MAX) {
-			moveQueue.push(direction);
-		}
-		processQueue();
+	function dispatchMove(direction: Direction) {
+		handleMove(direction);
 	}
 
 	function onLevelComplete() {
@@ -281,7 +268,7 @@
 	}
 
 	function useHint() {
-		if (!session || session.isComplete || showIntro || activeShape !== 'rectangular') return;
+		if (!session || session.isComplete || !canAcceptInput || activeShape !== 'rectangular') return;
 		if (gameStore.usePowerup('hint')) {
 			const hintPath = getHint(session);
 			session = { ...session, hintPath };
@@ -289,7 +276,7 @@
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
-		if (showIntro || showOutro) return;
+		if (!canAcceptInput) return;
 		const dirMap: Record<string, Direction> = {
 			ArrowUp: 'up',
 			ArrowDown: 'down',
@@ -303,7 +290,7 @@
 		const dir = dirMap[e.key];
 		if (dir) {
 			e.preventDefault();
-			queueMove(dir);
+			dispatchMove(dir);
 		}
 	}
 
@@ -317,18 +304,18 @@
 	}
 
 	function handleTouchEnd(e: TouchEvent) {
-		if (showIntro) return;
+		if (!canAcceptInput) return;
 		const dx = e.changedTouches[0].clientX - touchStartX;
 		const dy = e.changedTouches[0].clientY - touchStartY;
 		const threshold = 30;
 
 		if (Math.abs(dx) > Math.abs(dy)) {
 			if (Math.abs(dx) > threshold) {
-				queueMove(dx > 0 ? 'right' : 'left');
+				dispatchMove(dx > 0 ? 'right' : 'left');
 			}
 		} else {
 			if (Math.abs(dy) > threshold) {
-				queueMove(dy > 0 ? 'down' : 'up');
+				dispatchMove(dy > 0 ? 'down' : 'up');
 			}
 		}
 	}
@@ -444,25 +431,25 @@
 				</button>
 			</div>
 			<div class="dpad" role="group" aria-label="Movement controls">
-				<button class="dpad-btn dpad-up" onclick={() => queueMove('up')} aria-label="Move up">
+				<button class="dpad-btn dpad-up" onclick={() => dispatchMove('up')} aria-label="Move up" disabled={!canAcceptInput}>
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
 						<polyline points="18 15 12 9 6 15"/>
 					</svg>
 				</button>
 				<div class="dpad-middle">
-					<button class="dpad-btn dpad-left" onclick={() => queueMove('left')} aria-label="Move left">
+					<button class="dpad-btn dpad-left" onclick={() => dispatchMove('left')} aria-label="Move left" disabled={!canAcceptInput}>
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
 							<polyline points="15 18 9 12 15 6"/>
 						</svg>
 					</button>
 					<div class="dpad-center" aria-hidden="true"></div>
-					<button class="dpad-btn dpad-right" onclick={() => queueMove('right')} aria-label="Move right">
+					<button class="dpad-btn dpad-right" onclick={() => dispatchMove('right')} aria-label="Move right" disabled={!canAcceptInput}>
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
 							<polyline points="9 18 15 12 9 6"/>
 						</svg>
 					</button>
 				</div>
-				<button class="dpad-btn dpad-down" onclick={() => queueMove('down')} aria-label="Move down">
+				<button class="dpad-btn dpad-down" onclick={() => dispatchMove('down')} aria-label="Move down" disabled={!canAcceptInput}>
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
 						<polyline points="6 9 12 15 18 9"/>
 					</svg>

@@ -15,19 +15,65 @@ MazeEscape is a cross-platform puzzle game built with .NET MAUI. Navigate mazes,
 
 ![Sample Maze Screen](Images/screenshot1.svg)
 
-**Getting Started**
+## 🚀 Quick Start
+
+### Prerequisites
+- **[.NET SDK 9.0](https://dotnet.microsoft.com/download/dotnet/9.0)** or later
+- **Git**
+
+### One-Minute Setup
+```bash
+# Clone repo
+git clone https://github.com/JJFrisch/MazeEscape.git
+cd MazeEscape
+
+# Run setup script
+# macOS/Linux:
+bash setup.sh
+# Windows:
+setup.bat
+
+# Start the API
+dotnet run --project MazeEscape.Api
+
+# Test in another terminal
+curl http://localhost:5000/api/health
+```
+
+You should see:
+```json
+{
+  "status": "healthy",
+  "service": "MazeEscape.Api",
+  "environment": "Development",
+  "timestamp": "..."
+}
+```
+
+## 📖 Documentation
+
+New to the project? Start here:
+
+| Document | Purpose |
+|----------|---------|
+| **[LOCAL_DEVELOPMENT.md](LOCAL_DEVELOPMENT.md)** | Complete setup guide for your machine |
+| **[API_SETUP_SUMMARY.md](API_SETUP_SUMMARY.md)** | Overview of what was added |
+| **[DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md)** | Production deployment steps |
+| **[docs/index.html](docs/index.html)** | Interactive API documentation |
+
+## Getting Started (Original)
 
 Prerequisites:
 
-- Install the .NET SDK 8 or later. See https://dotnet.microsoft.com/
+- Install the .NET SDK 9 or later. See https://dotnet.microsoft.com/
 
 - Install .NET MAUI workloads for your platform (follow Microsoft's MAUI setup docs).
 
 Clone the repo and run:
 
 ```bash
-git clone <repo-url>
-cd MazeEscape-1
+git clone https://github.com/JJFrisch/MazeEscape.git
+cd MazeEscape
 dotnet restore
 dotnet build
 ```

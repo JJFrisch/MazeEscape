@@ -5,37 +5,43 @@
              x:Class="MazeEscape.CampaignChestOpenedPopupPage"
              CanBeDismissedByTappingOutsideOfPopup="True"
              >
-    <AbsoluteLayout>
+    <Grid RowDefinitions="*">
         <Image Source="background_blue_3.png"
-               AbsoluteLayout.LayoutBounds="1,1,1,1"
-               AbsoluteLayout.LayoutFlags="All"
-               Aspect="Fill"
-               Opacity="0.8"/>
+               Aspect="AspectFill"
+               Opacity="0.82"/>
 
-        <VerticalStackLayout Spacing="10" Padding="10"
-                             AbsoluteLayout.LayoutBounds="0.5,0.9,1,0.8"
-                             AbsoluteLayout.LayoutFlags="All">
-        <Label 
-            Text="You Won"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center"
-            TextColor="White"
-            FontAttributes="Bold"
-            FontSize="25"/>
-        <Label 
-            x:Name="coinLabel"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" 
-            TextColor="White"
-            FontAttributes="Bold"
-            FontSize="25"/>
-        <Image 
-            x:Name="coinImage"
-            Source="coin.png"
-            HorizontalOptions="Center"
-            WidthRequest="80"
-            Aspect="AspectFit"/>
+        <Border StrokeThickness="0"
+                BackgroundColor="#F6F7FB"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Padding="20"
+                StrokeShape="RoundRectangle 22"
+                WidthRequest="280">
+            <VerticalStackLayout Spacing="12">
+                <Label Text="Chest Opened"
+                       HorizontalOptions="Center"
+                       TextColor="#1F2937"
+                       FontAttributes="Bold"
+                       FontSize="28"/>
 
-         </VerticalStackLayout>
-    </AbsoluteLayout>
+                <Label x:Name="coinLabel"
+                       HorizontalOptions="Center"
+                       TextColor="#0F766E"
+                       FontAttributes="Bold"
+                       FontSize="30"/>
+
+                <Image x:Name="coinImage"
+                       Source="coin.png"
+                       HorizontalOptions="Center"
+                       WidthRequest="92"
+                       HeightRequest="92"
+                       Aspect="AspectFit"/>
+
+                <Label Text="Tap outside to continue"
+                       HorizontalOptions="Center"
+                       TextColor="#4B5563"
+                       FontSize="14"/>
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
 </mct:Popup>

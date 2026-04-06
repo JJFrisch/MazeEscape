@@ -7,11 +7,8 @@ public partial class CampaignChestOpenedPopupPage : Popup
 	public CampaignChestOpenedPopupPage(int coinsEarned)
 	{
         InitializeComponent();
-        double width = App.PlayerData.WindowWidth * 0.4;  // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Width / 4;
-        double height = App.PlayerData.WindowHeight * 0.4; // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Height / 4;
-
-        // Set   the size of the popup
-        this.Size = new Size(width, height);
+        // Set the popup size using current page dimensions with safe bounds.
+        this.Size = PopupSizing.Calculate(0.5, 0.42, 280, 520, 240, 420);
 
         coinLabel.Text = $"{coinsEarned} coins!";
         App.PlayerData.CoinCount += coinsEarned;

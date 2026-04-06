@@ -7,130 +7,153 @@
 
 
     <AbsoluteLayout>
-
-
-
-        <Image AbsoluteLayout.LayoutBounds="0.5, 0.5, 370, 500"
-               AbsoluteLayout.LayoutFlags="PositionProportional" 
+        <Image AbsoluteLayout.LayoutBounds="0.5,0.5,1,1"
+               AbsoluteLayout.LayoutFlags="All"
                Source="scroll5.png"
-               Aspect="Fill"
+               Aspect="AspectFit"
                Opacity="1"
                Background="Transparent"/>
 
+        <VerticalStackLayout AbsoluteLayout.LayoutBounds="0.5,0.5,0.9,0.94"
+                             AbsoluteLayout.LayoutFlags="All"
+                             Padding="22,22,22,16"
+                             Spacing="14">
+            <Label Text="Level 1"
+                   x:Name="levelLabel"
+                   Style="{DynamicResource campaignLevelLabel}"
+                   FontSize="34"
+                   FontAttributes="Bold"
+                   HorizontalTextAlignment="Center"
+                   TextColor="#0C5C69"/>
 
+            <Grid ColumnDefinitions="*,*,*"
+                  ColumnSpacing="14"
+                  HorizontalOptions="Center"
+                  HeightRequest="70">
+                <Image x:Name="starOneImage"
+                       Grid.Column="0"
+                       Source="empty_star.png"
+                       Aspect="AspectFit"
+                       HeightRequest="62"/>
+                <Image x:Name="starTwoImage"
+                       Grid.Column="1"
+                       Source="empty_star.png"
+                       Aspect="AspectFit"
+                       HeightRequest="62"/>
+                <Image x:Name="starThreeImage"
+                       Grid.Column="2"
+                       Source="empty_star.png"
+                       Aspect="AspectFit"
+                       HeightRequest="62"/>
+            </Grid>
 
-        <Label Text="Level 1" AbsoluteLayout.LayoutBounds="0.5,0,300,0.2" x:Name="levelLabel"
-               AbsoluteLayout.LayoutFlags="PositionProportional, HeightProportional"
-               Style="{DynamicResource campaignLevelLabel}"
-               FontSize="38"
-               FontAttributes="Bold"
-               TextColor="DarkCyan"/>
+            <Grid BackgroundColor="#F2F2F2"
+                  Padding="14,10"
+                  RowDefinitions="Auto,2,Auto"
+                  ColumnDefinitions="*,*"
+                  ColumnSpacing="20">
+                <Label Grid.Row="0"
+                       Grid.Column="0"
+                       Text="Time"
+                       FontSize="22"
+                       HorizontalTextAlignment="Center"
+                       TextColor="#262626"
+                       Style="{DynamicResource dataLabel}"/>
 
-        <Label x:Name="coinsEarnedLabel"
-               Text="-10" TextColor="Black"
-               AbsoluteLayout.LayoutBounds="0.7,0.8,50,50"  
-               AbsoluteLayout.LayoutFlags="PositionProportional"
-               Style="{DynamicResource dataLabel}"/>
+                <Label Grid.Row="0"
+                       Grid.Column="1"
+                       Text="Moves"
+                       FontSize="22"
+                       HorizontalTextAlignment="Center"
+                       TextColor="#262626"
+                       Style="{DynamicResource dataLabel}"/>
 
+                <BoxView Grid.Row="1"
+                         Grid.Column="0"
+                         HeightRequest="2"
+                         Color="#8C8C8C"/>
 
-        <Image AbsoluteLayout.LayoutBounds="0.4,0.81,50,50"
-               AbsoluteLayout.LayoutFlags="PositionProportional"
-               x:Name="coinImage"
-               Source="coin.png"/>
+                <BoxView Grid.Row="1"
+                         Grid.Column="1"
+                         HeightRequest="2"
+                         Color="#8C8C8C"/>
 
+                <Label x:Name="timeLabel"
+                       Grid.Row="2"
+                       Grid.Column="0"
+                       Text="15s / 23s"
+                       FontSize="18"
+                       HorizontalTextAlignment="Center"
+                       TextColor="#202020"
+                       Style="{DynamicResource dataLabel}"/>
 
-        <Image AbsoluteLayout.LayoutBounds="0.15,0.25,0.2,0.2"
-               AbsoluteLayout.LayoutFlags="All"
-               x:Name="starOneImage"/>
+                <Label x:Name="movesLabel"
+                       Grid.Row="2"
+                       Grid.Column="1"
+                       Text="35 / 40"
+                       FontSize="18"
+                       HorizontalTextAlignment="Center"
+                       TextColor="#202020"
+                       Style="{DynamicResource dataLabel}"/>
+            </Grid>
 
-        <Image AbsoluteLayout.LayoutBounds="0.5,0.18,0.2,0.2"
-               AbsoluteLayout.LayoutFlags="All"
-               x:Name="starTwoImage"/>
+            <HorizontalStackLayout HorizontalOptions="Center"
+                                   VerticalOptions="Center"
+                                   Spacing="8">
+                <Image x:Name="coinImage"
+                       Source="coin.png"
+                       Aspect="AspectFit"
+                       WidthRequest="40"
+                       HeightRequest="40"/>
+                <Label x:Name="coinsEarnedLabel"
+                       Text="-10"
+                       TextColor="#1E1E1E"
+                       FontSize="20"
+                       VerticalTextAlignment="Center"
+                       Style="{DynamicResource dataLabel}"/>
+            </HorizontalStackLayout>
 
-        <Image AbsoluteLayout.LayoutBounds="0.84,0.25,0.2,0.2"
-               AbsoluteLayout.LayoutFlags="All"
-               x:Name="starThreeImage"/>
+            <Grid RowDefinitions="Auto"
+                  ColumnDefinitions="*,*,*"
+                  ColumnSpacing="18"
+                  VerticalOptions="EndAndExpand">
+                <Image Grid.ColumnSpan="3"
+                       Source="button_background_5.png"
+                       Aspect="AspectFit"
+                       Opacity="0.95"
+                       HorizontalOptions="Fill"
+                       VerticalOptions="Center"
+                       HeightRequest="70"/>
 
-        <BoxView BackgroundColor="WhiteSmoke" Opacity="0.3"
-                 AbsoluteLayout.LayoutBounds="0.5, 0.525, 270, 100"
-                 AbsoluteLayout.LayoutFlags="PositionProportional" />
+                <ImageButton Grid.Column="0"
+                             Clicked="OnCloseButtonClicked"
+                             Source="home_button_icon.png"
+                             Background="Transparent"
+                             Aspect="AspectFit"
+                             HorizontalOptions="Center"
+                             WidthRequest="68"
+                             HeightRequest="52"/>
 
+                <ImageButton Grid.Column="1"
+                             Clicked="OnRetryButtonClicked"
+                             Source="retry_icon.png"
+                             Background="Transparent"
+                             Aspect="AspectFit"
+                             HorizontalOptions="Center"
+                             WidthRequest="68"
+                             HeightRequest="52"/>
 
-        <Label Style="{DynamicResource dataLabel}" Text="Time" TextColor="Black"
-               FontSize="23"
-               AbsoluteLayout.LayoutBounds="0.15,0.48,100,50"
-               AbsoluteLayout.LayoutFlags="PositionProportional"
-               WidthRequest="100"
-               HeightRequest="50"/>
-
-        <BoxView BackgroundColor="DarkGray"
-                 AbsoluteLayout.LayoutBounds="0,0.52,100,3"
-                 AbsoluteLayout.LayoutFlags="PositionProportional"
-                 CornerRadius="30"/>
-
-        <Label x:Name="timeLabel" Style="{DynamicResource dataLabel}" Text="15s / 23s"
-               AbsoluteLayout.LayoutBounds="-0.09,0.62,120,50" TextColor="Black"
-               HorizontalTextAlignment="Center"
-               AbsoluteLayout.LayoutFlags="PositionProportional"  
-               WidthRequest="120"
-               HeightRequest="50"/>
-
-        <Label Style="{DynamicResource dataLabel}" Text="Moves" TextColor="Black"
-               FontSize="23"
-               AbsoluteLayout.LayoutBounds="1,0.48,100,50"
-               AbsoluteLayout.LayoutFlags="PositionProportional"
-               HorizontalTextAlignment="Center"
-               WidthRequest="100"
-               HeightRequest="50"/>
-
-        <BoxView BackgroundColor="DarkGray"
-                 AbsoluteLayout.LayoutBounds="1,0.52,100,3"
-                 AbsoluteLayout.LayoutFlags="PositionProportional"
-                 CornerRadius="30"/>
-
-
-        <Label x:Name="movesLabel" Style="{DynamicResource dataLabel}" TextColor="Black"
-               WidthRequest="120" Text="35 / 40"
-               HeightRequest="50"
-               HorizontalTextAlignment="Center" 
-               AbsoluteLayout.LayoutBounds="1.09,0.62,120,50" 
-               AbsoluteLayout.LayoutFlags="PositionProportional"/>
-
-
-        <Image 
-                 AbsoluteLayout.LayoutBounds="0.5,1.1,1.1,0.2"
-                 AbsoluteLayout.LayoutFlags="All"
-            Aspect="Fill"
-                 Opacity="0.9" 
-               Source="button_background_5.png"/>
-
-
-        <ImageButton AbsoluteLayout.LayoutBounds="-0.02,1.05,70,50"
-                    AbsoluteLayout.LayoutFlags="PositionProportional"
-                    Clicked="OnCloseButtonClicked" 
-                     WidthRequest="70"
-                     HeightRequest="50"
-                     Source="home_button_icon.png"
-                     Background="Transparent"/>
-
-
-        <ImageButton AbsoluteLayout.LayoutBounds="0.5,1.05,70,50"
-                    AbsoluteLayout.LayoutFlags="PositionProportional"
-                    Clicked="OnRetryButtonClicked" 
-                     WidthRequest="70"
-                     HeightRequest="50"
-                     Source="retry_icon.png"
-                     Background="Transparent"/>
-
-
-        <ImageButton x:Name="nextLevelButton" 
-                    AbsoluteLayout.LayoutBounds="1,1.05,70,50"
-                    AbsoluteLayout.LayoutFlags="PositionProportional"
-                    Clicked="OnCloseButtonClicked" 
-                     WidthRequest="70"
-                     HeightRequest="50"
-                     Source="next_level_icon.png"
-                     Background="Transparent"/>
+                <ImageButton x:Name="nextLevelButton"
+                             Grid.Column="2"
+                             Clicked="OnCloseButtonClicked"
+                             Source="next_level_icon.png"
+                             Background="Transparent"
+                             Aspect="AspectFit"
+                             HorizontalOptions="Center"
+                             WidthRequest="68"
+                             HeightRequest="52"/>
+            </Grid>
+        </VerticalStackLayout>
 
 
         <!--   If Text buttons instead of image buttons 

@@ -1,5 +1,6 @@
 ﻿namespace MazeEscape
 {
+    using System.Diagnostics;
     using MazeEscape.Services;
 
     public partial class App : Application
@@ -13,7 +14,7 @@
         {
             InitializeComponent();
 
-            PlayerData = _playerData;
+            PlayerData = _playerData ?? throw new ArgumentNullException(nameof(_playerData));
             _gameInitializer = gameInitializer ?? throw new ArgumentNullException(nameof(gameInitializer));
             _saveSynchronizer = saveSynchronizer ?? throw new ArgumentNullException(nameof(saveSynchronizer));
         }
@@ -24,6 +25,16 @@
 
             int newWidth = App.PlayerData.WindowWidth;
             int newHeight = App.PlayerData.WindowHeight;
+
+            if (newWidth <= 0)
+            {
+                newWidth = 400;
+            }
+
+            if (newHeight <= 0)
+            {
+                newHeight = 670;
+            }
 
             window.Width = newWidth;
             window.Height = newHeight;
@@ -38,10 +49,10 @@
         {
             base.OnSleep();
 
-            System.Diagnostics.Debug.WriteLine("[App] OnSleep triggered. Saving checkpoint before app pauses...");
+            Debug.WriteLine("[App] OnSleep triggered. Saving checkpoint before app pauses...");
 
             // Fire-and-forget save (don't block app pause)
-            _ = _saveSynchronizer.SaveCheckpointAsync(PlayerData, "app_paused");
+            RunBackgroundTask(_saveSynchronizer.SaveCheckpointAsync(PlayerData, "app_paused"), "SaveCheckpointAsync");
         }
 
         /// <summary>
@@ -51,10 +62,22 @@
         {
             base.OnResume();
 
-            System.Diagnostics.Debug.WriteLine("[App] OnResume triggered. Processing offline queue...");
+            Debug.WriteLine("[App] OnResume triggered. Processing offline queue...");
 
             // Process any queued saves that happened while offline
-            _ = _saveSynchronizer.ProcessOfflineQueueAsync();
+            RunBackgroundTask(_saveSynchronizer.ProcessOfflineQueueAsync(), "ProcessOfflineQueueAsync");
+        }
+
+        private static async void RunBackgroundTask(Task task, string operation)
+        {
+            try
+            {
+                await task;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[App] Background task failed ({operation}): {ex.Message}");
+            }
         }
     }
 }

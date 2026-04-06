@@ -15,11 +15,8 @@ public partial class World2CampaignMazeFinishedPopupPage : Popup
     public World2CampaignMazeFinishedPopupPage(TimeSpan time, int moves, CampaignLevel level, int coinsEarned)
     {
         InitializeComponent();
-        double width = App.PlayerData.WindowWidth * 0.6;  // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Width / 4;
-        double height = App.PlayerData.WindowHeight * 0.6; // Microsoft.Maui.Devices.DeviceDisplay.MainDisplayInfo.Height / 4;
-
-        // Set   the size of the popup
-        this.Size = new Size(width, height);
+        // Set the popup size using current page dimensions with safe bounds.
+        this.Size = PopupSizing.Calculate(0.62, 0.78, 340, 700, 460, 900);
 
         Time = time;
         Moves = moves;

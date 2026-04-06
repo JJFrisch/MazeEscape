@@ -1,0 +1,65 @@
+﻿@page "/"
+@using MazeEscape.Web.Services
+@inject SyncCoordinator SyncCoordinator
+@inject SyncStatusService SyncStatus
+@implements IDisposable
+
+<PageTitle>Maze Escape Web</PageTitle>
+
+<h1>Maze Escape Web Sync Console</h1>
+
+<p>IndexedDB local persistence is active and cloud sync plumbing is connected.</p>
+
+<div class="card p-3 mt-3">
+	<div><strong>Player Id:</strong> @PlayerId</div>
+	<div><strong>Status:</strong> @SyncStatus.StatusText</div>
+	<div><strong>Syncing:</strong> @(SyncStatus.IsSyncing ? "Yes" : "No")</div>
+	<div><strong>Last Update:</strong> @(SyncStatus.LastUpdatedUtc?.ToString("u") ?? "n/a")</div>
+	<div class="mt-3 d-flex gap-2">
+		<button class="btn btn-primary" @onclick="SaveLocal">Save Local</button>
+		<button class="btn btn-outline-primary" @onclick="SyncNow">Sync Now</button>
+		<button class="btn btn-outline-secondary" @onclick="LoadLocal">Load Local</button>
+	</div>
+	<div class="mt-3"><strong>Result:</strong> @ResultText</div>
+</div>
+
+@code {
+	private const string PlayerId = "player-001";
+	private string ResultText = "Ready.";
+
+	protected override async Task OnInitializedAsync()
+	{
+		SyncStatus.Changed += OnSyncStatusChanged;
+		await SyncCoordinator.BootstrapFromCloudAsync(PlayerId);
+		ResultText = await SyncCoordinator.LoadLocalSummaryAsync(PlayerId);
+	}
+
+	private async Task SaveLocal()
+	{
+		var payloadJson = "{\"coins\":250,\"level\":3,\"updatedFrom\":\"web\"}";
+		await SyncCoordinator.SaveLocalAsync(PlayerId, payloadJson);
+		await SyncCoordinator.SyncNowAsync(PlayerId);
+		ResultText = "Local save written and synced.";
+	}
+
+	private async Task SyncNow()
+	{
+		await SyncCoordinator.SyncNowAsync(PlayerId);
+		ResultText = "Sync attempt finished.";
+	}
+
+	private async Task LoadLocal()
+	{
+		ResultText = await SyncCoordinator.LoadLocalSummaryAsync(PlayerId);
+	}
+
+	private void OnSyncStatusChanged()
+	{
+		InvokeAsync(StateHasChanged);
+	}
+
+	public void Dispose()
+	{
+		SyncStatus.Changed -= OnSyncStatusChanged;
+	}
+}

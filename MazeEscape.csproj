@@ -15,9 +15,10 @@
 		<ApplicationId>com.jjfrisch.Mazeescape</ApplicationId>
 		<ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
+		<SkipValidateMauiImplicitPackageReferences>true</SkipValidateMauiImplicitPackageReferences>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">26.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">14.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
@@ -46,6 +47,30 @@
 	  <RuntimeIdentifier>iossimulator-x64</RuntimeIdentifier>
 	  <EnableCodeSigning>false</EnableCodeSigning>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<Compile Remove="MazeEscape.Core\**\*.cs" />
+		<Compile Remove="MazeEscape.Core/**/*.cs" />
+		<Compile Remove="MazeEscape.Core/**" />
+		<Compile Remove="MazeEscape.Web\**\*.cs" />
+		<Compile Remove="MazeEscape.Web/**/*.cs" />
+		<Compile Remove="MazeEscape.Web/**" />
+		<None Remove="MazeEscape.Core/**/*.cs" />
+		<None Remove="MazeEscape.Web/**/*.cs" />
+		<ProjectReference Include="MazeEscape.Core\MazeEscape.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
+		<PackageReference Include="CommunityToolkit.Maui" Version="11.0.0" />
+		<PackageReference Include="ColorPicker.Maui" Version="1.0.0" />
+		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="2.88.9" />
+		<PackageReference Include="SharpHook.Reactive" Version="5.3.7" />
+		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+		<PackageReference Include="Fody" Version="6.8.0" PrivateAssets="all" />
+		<PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+	</ItemGroup>
 
 </Project>
 

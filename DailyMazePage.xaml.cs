@@ -4,8 +4,10 @@ using System.Reactive.Linq;
 using System.Timers;
 using CommunityToolkit.Maui.Extensions;
 using CommunityToolkit.Maui.Views;
+using MazeEscape.Core.Game;
 using MazeEscape.Drawables;
 using MazeEscape.Models;
+using MazeEscape.Services;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Layouts;
 using SharpHook;
@@ -44,6 +46,7 @@ public partial class DailyMazePage : ContentPage
     public double MazeWindowHeight = Application.Current.MainPage.Height * 0.83;
 
     MazeModel Maze = new MazeModel();
+    private IGameSession? _gameSession;
     MazeGraphicsView mazeGraphicsView;
 
     PlayerDrawable drawer;
@@ -372,38 +375,38 @@ public partial class DailyMazePage : ContentPage
             "an unvisited cell that is connected to the previously visited cells. The process of hunting and killing continues until all cells in the grid have been visited and a " +
             "fully connected maze has been created." },
 
-        {"GenerateKruskals", "Kruskal’s algorithm generates a maze by constructing a minimum spanning tree (MST) over a grid graph. Each cell is a vertex, and walls between them " +
+        {"GenerateKruskals", "Kruskalï¿½s algorithm generates a maze by constructing a minimum spanning tree (MST) over a grid graph. Each cell is a vertex, and walls between them " +
             "represent weighted edges. Initially, each cell is its own disjoint set. The algorithm sorts all walls randomly and iterates through them, removing a wall if it connects " +
             "vertices from different sets. This is efficiently managed using the union-find data structure. The process continues until a spanning tree forms, ensuring connectivity " +
-            "without cycles. The resulting maze has uniform randomness, as edge selection is globally randomized rather than biased by a growing frontier, like Prim’s algorithm." },
+            "without cycles. The resulting maze has uniform randomness, as edge selection is globally randomized rather than biased by a growing frontier, like Primï¿½s algorithm." },
 
-        {"GeneratePrims", "Prim’s algorithm generates a maze using a growing tree approach, treating the grid as a graph where cells are vertices and walls are edges." +
-            " It begins with a random single cell and tracks its frontier—walls separating it from unvisited cells. At each step, a random frontier wall is removed, and the adjacent cell " +
-            "is added to the tree. This continues until all cells are connected. The algorithm’s selection method shapes the maze: purely random choices create sprawling, natural " +
+        {"GeneratePrims", "Primï¿½s algorithm generates a maze using a growing tree approach, treating the grid as a graph where cells are vertices and walls are edges." +
+            " It begins with a random single cell and tracks its frontierï¿½walls separating it from unvisited cells. At each step, a random frontier wall is removed, and the adjacent cell " +
+            "is added to the tree. This continues until all cells are connected. The algorithmï¿½s selection method shapes the maze: purely random choices create sprawling, natural " +
             "mazes, while always selecting the newest frontier cell results in long, winding corridors with fewer short loops." },
 
         {"GenerateGrowingTree_50_0", "The GrowingTree_50_0 algorithm generates a maze using a growing tree approach with edges selected 50% of the time by random and 0% the newest edges," +
-            " leaving the other 50% of edges chosen by being the oldest. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edges—walls separating " +
-            "the tree from unvisited cells—are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
-            " and the new cell added to the tree. This continues until all cells are connected. The maze’s structure depends on edge " +
+            " leaving the other 50% of edges chosen by being the oldest. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edgesï¿½walls separating " +
+            "the tree from unvisited cellsï¿½are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
+            " and the new cell added to the tree. This continues until all cells are connected. The mazeï¿½s structure depends on edge " +
             "selection: a purely random choice creates a Prim-like maze, while preferring the newest edges mimics recursive backtracking." },
 
         {"GenerateGrowingTree_25_75", "The GrowingTree_25_75 algorithm generates a maze using a growing tree approach with edges selected 75% of the time by random and 25% of the time the newest edge" +
-            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edges—walls separating " +
-            "the tree from unvisited cells—are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
-            " and the new cell added to the tree. This continues until all cells are connected. The maze’s structure depends on edge " +
+            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edgesï¿½walls separating " +
+            "the tree from unvisited cellsï¿½are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
+            " and the new cell added to the tree. This continues until all cells are connected. The mazeï¿½s structure depends on edge " +
             "selection: a purely random choice creates a Prim-like maze, while preferring the newest edges mimics recursive backtracking." },
 
         {"GenerateGrowingTree_75_25", "The GrowingTree_75_25 algorithm generates a maze using a growing tree approach with edges selected 25% of the time by random and 75% of the time the newest edge" +
-            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edges—walls separating " +
-            "the tree from unvisited cells—are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
-            " and the new cell added to the tree. This continues until all cells are connected. The maze’s structure depends on edge " +
+            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edgesï¿½walls separating " +
+            "the tree from unvisited cellsï¿½are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
+            " and the new cell added to the tree. This continues until all cells are connected. The mazeï¿½s structure depends on edge " +
             "selection: a purely random choice creates a Prim-like maze, while preferring the newest edges mimics recursive backtracking." },
 
         {"GenerateGrowingTree_50_50", "The GrowingTree_50_50 algorithm generates a maze using a growing tree approach with edges selected 50% of the time by random and 50% of the time the newest edge" +
-            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edges—walls separating " +
-            "the tree from unvisited cells—are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
-            " and the new cell added to the tree. This continues until all cells are connected. The maze’s structure depends on edge " +
+            " is choosen. Treating the grid as a graph, it starts with a single cell as the initial tree. Frontier edgesï¿½walls separating " +
+            "the tree from unvisited cellsï¿½are stored in a priority queue or randomized list. At each step, a random frontier edge is selected following the above chances, its wall removed," +
+            " and the new cell added to the tree. This continues until all cells are connected. The mazeï¿½s structure depends on edge " +
             "selection: a purely random choice creates a Prim-like maze, while preferring the newest edges mimics recursive backtracking." },
 
         {"GenerateBacktracking", "The backtracking algorithm generates a maze using depth-first search, treating the grid as a graph where cells are vertices and walls are edges. " +
@@ -469,7 +472,7 @@ public partial class DailyMazePage : ContentPage
                     DrawCountDownTimer(5);
                 }
 
-                if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
+                if (_gameSession?.IsComplete() == true)
                 {
                     TotalTime = DateTime.Now - timeStarted;
                     CompletedMaze();
@@ -492,6 +495,7 @@ public partial class DailyMazePage : ContentPage
         drawer.Initialize();
 
         InitializeMaze();
+        _gameSession = new MazeGameSession(Maze);
 
         DrawMaze("line");
 
@@ -756,40 +760,31 @@ public partial class DailyMazePage : ContentPage
 
     public void MoveLeft()
     {
-        if (Maze.Player.X > 0 && !Maze.Cells[Maze.Player.Y][Maze.Player.X - 1].East)
-        {
-
-            Maze.Player.X--;
-            UpdatePlayerDrawerPosition();
-            RedrawPlayer();
-        }
+        TryMove(Direction.Left);
     }
     public void MoveRight()
     {
-        if (Maze.Player.X < Maze.Width - 1 && !Maze.Cells[Maze.Player.Y][Maze.Player.X].East)
-        {
-
-            Maze.Player.X++;
-            UpdatePlayerDrawerPosition();
-            RedrawPlayer();
-        }
+        TryMove(Direction.Right);
     }
     public void MoveUp()
     {
-        if (Maze.Player.Y > 0 && !Maze.Cells[Maze.Player.Y][Maze.Player.X].North)
-        {
-
-            Maze.Player.Y--;
-            UpdatePlayerDrawerPosition();
-            RedrawPlayer();
-        }
+        TryMove(Direction.Up);
     }
     public void MoveDown()
     {
-        if (Maze.Player.Y < Maze.Height - 1 && !Maze.Cells[Maze.Player.Y + 1][Maze.Player.X].North)
-        {
+        TryMove(Direction.Down);
+    }
 
-            Maze.Player.Y++;
+    private void TryMove(Direction direction)
+    {
+        if (_gameSession == null)
+        {
+            return;
+        }
+
+        var result = _gameSession.TryMove(direction);
+        if (result.Moved)
+        {
             UpdatePlayerDrawerPosition();
             RedrawPlayer();
         }

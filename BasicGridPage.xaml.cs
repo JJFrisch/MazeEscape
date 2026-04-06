@@ -1,6 +1,8 @@
 namespace MazeEscape;
 
+using MazeEscape.Core.Game;
 using MazeEscape.Drawables;
+using MazeEscape.Services;
 using System.Collections.Generic;
 using System.Numerics;
 using MazeEscape.Models;
@@ -19,6 +21,7 @@ public partial class BasicGridPage : ContentPage
 
 
     MazeModel Maze = new MazeModel();
+    private IGameSession? _gameSession;
 
     PlayerDrawable drawer;
     SimpleReactiveGlobalHook? hook;
@@ -122,6 +125,8 @@ public partial class BasicGridPage : ContentPage
 
         Maze.GenerateBacktracking(width, height);
         //Maze.GenerateHuntAndKill(width, height);
+
+        _gameSession = new MazeGameSession(Maze);
 
         drawer.WindowWidth = MazeWindowWidth;
         drawer.WindowHeight = MazeWindowHeight;
@@ -245,36 +250,31 @@ public partial class BasicGridPage : ContentPage
 
     public void MoveLeft()
     {
-        if (Maze.Player.X > 0 && !Maze.Cells[Maze.Player.Y][Maze.Player.X-1].East)
-        {
-            Maze.Player.X--;
-            UpdatePlayerDrawerPosition();
-            RedrawPlayer();
-        }
+        TryMove(Direction.Left);
     }
     public void MoveRight()
     {
-        if (Maze.Player.X < Maze.Width - 1 && !Maze.Cells[Maze.Player.Y][Maze.Player.X].East)
-        {
-            Maze.Player.X++;
-            UpdatePlayerDrawerPosition();
-            RedrawPlayer();
-        }
+        TryMove(Direction.Right);
     }
     public void MoveUp()
     {
-        if (Maze.Player.Y > 0 && !Maze.Cells[Maze.Player.Y][Maze.Player.X].North)
-        {
-            Maze.Player.Y--;
-            UpdatePlayerDrawerPosition();
-            RedrawPlayer();
-        }  
+        TryMove(Direction.Up);
     }
     public void MoveDown()
     {
-        if (Maze.Player.Y < Maze.Height- 1 && !Maze.Cells[Maze.Player.Y+1][Maze.Player.X].North)
+        TryMove(Direction.Down);
+    }
+
+    private void TryMove(Direction direction)
+    {
+        if (_gameSession == null)
         {
-            Maze.Player.Y++;
+            return;
+        }
+
+        var result = _gameSession.TryMove(direction);
+        if (result.Moved)
+        {
             UpdatePlayerDrawerPosition();
             RedrawPlayer();
         }
@@ -317,7 +317,7 @@ public partial class BasicGridPage : ContentPage
         drawer.XPos = Maze.Player.X;
         drawer.YPos = Maze.Player.Y;
 
-        if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
+        if (_gameSession?.IsComplete() == true)
         {
             RedrawPlayer();
             CompletedMaze();

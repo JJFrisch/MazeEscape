@@ -1,6 +1,8 @@
 using CommunityToolkit.Maui.Views;
+using MazeEscape.Core.Game;
 using MazeEscape.Drawables;
 using MazeEscape.Models;
+using MazeEscape.Services;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics.Text;
 using Microsoft.Maui.Layouts;
@@ -27,6 +29,7 @@ public partial class CampaignLevelPage : ContentPage
     public double MazeWindowHeight = Application.Current.MainPage.Height * 0.8;
 
     MazeModel Maze = new MazeModel();
+    private IGameSession? _gameSession;
     double cell_width;
     double cell_height;
 
@@ -75,7 +78,7 @@ public partial class CampaignLevelPage : ContentPage
             labelTimer.Text = $"{Math.Round(timePassed.TotalSeconds, 1).ToString("N1")} / {Level.ThreeStarTime.ToString()}"; 
             moveNumberText.Text = $"{numberOfMoves.ToString()} / {Level.TwoStarMoves.ToString()}";
 
-            if (Maze.Player.X == Maze.End.Item1 && Maze.Player.Y == Maze.End.Item2)
+            if (_gameSession?.IsComplete() == true)
             {
                 TotalTime = DateTime.Now - timeStarted;
                 await FinishAnimation();
@@ -111,6 +114,7 @@ public partial class CampaignLevelPage : ContentPage
         //drawer.Initialize();
 
         InitializeMaze();
+        _gameSession = new MazeGameSession(Maze);
 
         DrawMaze("line");
 
@@ -366,61 +370,32 @@ public partial class CampaignLevelPage : ContentPage
 
     public async Task MoveLeft()
     {
-        if (Maze.Player.X > 0 && !Maze.Cells[Maze.Player.Y][Maze.Player.X - 1].East)
-        {
-            Maze.Player.X--;
-
-            // Await animation for moving
-            await UpdatePlayer();
-
-            //var x_pos = (float)(Maze.Player.X * cell_width);
-            //var y_pos = (float)(Maze.Player.Y * cell_height);
-            //var scale = Math.Min(cell_width, cell_height) * 0.95;
-            //var xPadding = (cell_width - scale) / 2;
-            //var yPadding = (cell_height - scale) / 2;
-
-            //await PlayerImage.TranslateTo(x_pos + xPadding, y_pos + yPadding);
-
-
-            //UpdatePlayerDrawerPosition();
-            //RedrawPlayer();
-        }
+        await TryMove(Direction.Left);
     }
     public async Task MoveRight()
     {
-        if (Maze.Player.X < Maze.Width - 1 && !Maze.Cells[Maze.Player.Y][Maze.Player.X].East)
-        {
-
-            Maze.Player.X++;
-            //await PlayerImage.TranslateTo(PlayerImage.X + cell_width, PlayerImage.Y);
-            await UpdatePlayer();
-            //UpdatePlayerDrawerPosition();
-            //RedrawPlayer();
-        }
+        await TryMove(Direction.Right);
     }
     public async Task MoveUp()
     {
-        if (Maze.Player.Y > 0 && !Maze.Cells[Maze.Player.Y][Maze.Player.X].North)
-        {
-
-            Maze.Player.Y--;
-            await UpdatePlayer();
-            //await PlayerImage.TranslateTo(PlayerImage.X, PlayerImage.Y - cell_height);
-
-            //UpdatePlayerDrawerPosition();
-            //RedrawPlayer();
-        }
+        await TryMove(Direction.Up);
     }
     public async Task MoveDown()
     {
-        if (Maze.Player.Y < Maze.Height - 1 && !Maze.Cells[Maze.Player.Y + 1][Maze.Player.X].North)
-        {
+        await TryMove(Direction.Down);
+    }
 
-            Maze.Player.Y++;
-            //await PlayerImage.TranslateTo(PlayerImage.X, PlayerImage.Y + cell_height);
+    private async Task TryMove(Direction direction)
+    {
+        if (_gameSession == null)
+        {
+            return;
+        }
+
+        var result = _gameSession.TryMove(direction);
+        if (result.Moved)
+        {
             await UpdatePlayer();
-            //UpdatePlayerDrawerPosition();
-            //RedrawPlayer();
         }
     }
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '$lib/styles/global.css';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
+	import { initializeSupabaseAuth } from '$lib/supabase/auth';
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
 
@@ -8,6 +9,11 @@
 
 	onMount(() => {
 		gameStore.init();
+		const cleanupSupabaseAuth = initializeSupabaseAuth();
+
+		return () => {
+			cleanupSupabaseAuth();
+		};
 	});
 </script>
 
@@ -16,7 +22,7 @@
 </svelte:head>
 
 <div class="app-shell">
-	<header class="app-header" role="banner">
+	<header class="app-header">
 		<a href="{base}/" class="logo" aria-label="MazeEscape Home">
 			<span class="logo-icon">🔮</span>
 			<span class="logo-text">MazeEscape</span>

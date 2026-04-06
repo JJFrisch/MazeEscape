@@ -13,9 +13,9 @@
 	import Modal from '$lib/components/Modal.svelte';
 
 	// Parse route: "worldId-levelNumber" e.g. "1-5" or "2-3b"
-	const levelKey = $derived($page.params.levelId);
-	const worldId = $derived(Number(levelKey.split('-')[0]));
-	const levelNumber = $derived(levelKey.split('-').slice(1).join('-'));
+	const levelKey = $derived($page.params.levelId as string);
+	const worldId = $derived(Number((levelKey ?? '').split('-')[0]));
+	const levelNumber = $derived((levelKey ?? '').split('-').slice(1).join('-'));
 	const worldDef = $derived(getAllWorlds().find((w) => w.worldId === worldId));
 	const levelDef = $derived(worldDef ? getLevelByNumber(worldDef, levelNumber) : undefined);
 

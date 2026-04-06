@@ -41,7 +41,7 @@ namespace MazeEscape.Models
             }
 
             // Serialize the full SaveableData to JSON for backup
-            var saveableData = new PlayerDataModel.SaveableData
+            var saveableData = new SaveableData
             {
                 PlayerName = playerData.PlayerName,
                 Worlds = playerData.Worlds,
@@ -116,7 +116,7 @@ namespace MazeEscape.Models
             {
                 try
                 {
-                    var saveableData = JsonSerializer.Deserialize<PlayerDataModel.SaveableData>(
+                    var saveableData = JsonSerializer.Deserialize<SaveableData>(
                         payload.SaveableDataBackupJson
                     );
 

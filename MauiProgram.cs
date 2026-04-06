@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Maui;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SkiaSharp.Views.Maui.Controls.Hosting;
 using MazeEscape.Services;
@@ -24,7 +25,7 @@ namespace MazeEscape
             builder.Services.AddSingleton<PlayerDataModel>();
 
             // Register HTTP & Auth Services
-            builder.Services.AddHttpClient(httpClient =>
+            builder.Services.AddHttpClient("MazeEscapeApi", httpClient =>
             {
                 // Configure API base address (dev vs prod - can read from config)
 #if DEBUG
@@ -34,6 +35,12 @@ namespace MazeEscape
                 httpClient.BaseAddress = new Uri("https://your-api-domain.com");
 #endif
                 httpClient.Timeout = TimeSpan.FromSeconds(30);
+            });
+
+            builder.Services.AddSingleton(sp =>
+            {
+                var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+                return httpClientFactory.CreateClient("MazeEscapeApi");
             });
 
             // Register AuthTokenProvider (handles JWT token lifecycle)

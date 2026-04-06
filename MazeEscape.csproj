@@ -10,6 +10,7 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<NoWarn>$(NoWarn);CS8600;CS8601;CS8602;CS8603;CS8604;CS8612;CS8618;CS8622;CS8625;CS8767;CS0618;CS4014;CS1998;CS0168;CS0067;CS0414;CS0649;CS0252;XC0022;XC0025</NoWarn>
 
 		<ApplicationTitle>Maze Escape</ApplicationTitle>
 		<ApplicationId>com.jjfrisch.Mazeescape</ApplicationId>

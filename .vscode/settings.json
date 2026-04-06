@@ -1,5 +1,22 @@
 {
     "csharp-dev-tools.roslyn.projectOrSolutionFiles": [
         "/Users/jakefrischmann/repos/MazeEscape/MazeEscape.sln"
-    ]
+    ],
+    "css.validate": false,
+    "less.validate": false,
+    "scss.validate": false,
+    "search.exclude": {
+        "**/bin": true,
+        "**/obj": true,
+        "MazeEscape.Web/wwwroot/lib": true
+    },
+    "files.watcherExclude": {
+        "**/bin/**": true,
+        "**/obj/**": true,
+        "**/wwwroot/lib/**": true
+    },
+    "problems.exclude": {
+        "**/MazeEscape.Web/wwwroot/lib/**": true,
+        "**/*.min.css": true
+    }
 }

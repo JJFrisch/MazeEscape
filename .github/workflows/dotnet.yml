@@ -19,10 +19,22 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 9.0.x
     - name: Restore dependencies
-      run: dotnet restore
+      run: |
+        dotnet restore MazeEscape.Core/MazeEscape.Core.csproj
+        dotnet restore MazeEscape.Api/MazeEscape.Api.csproj
+        dotnet restore MazeEscape.Api.Tests/MazeEscape.Api.Tests.csproj
+        dotnet restore MazeEscape.Web/MazeEscape.Web.csproj
+        dotnet restore MazeEscape.Web.Tests/MazeEscape.Web.Tests.csproj
     - name: Build
-      run: dotnet build --no-restore
+      run: |
+        dotnet build MazeEscape.Core/MazeEscape.Core.csproj --no-restore --configuration Release
+        dotnet build MazeEscape.Api/MazeEscape.Api.csproj --no-restore --configuration Release
+        dotnet build MazeEscape.Api.Tests/MazeEscape.Api.Tests.csproj --no-restore --configuration Release
+        dotnet build MazeEscape.Web/MazeEscape.Web.csproj --no-restore --configuration Release
+        dotnet build MazeEscape.Web.Tests/MazeEscape.Web.Tests.csproj --no-restore --configuration Release
     - name: Test
-      run: dotnet test --no-build --verbosity normal
+      run: |
+        dotnet test MazeEscape.Api.Tests/MazeEscape.Api.Tests.csproj --no-build --configuration Release --verbosity normal
+        dotnet test MazeEscape.Web.Tests/MazeEscape.Web.Tests.csproj --no-build --configuration Release --verbosity normal

@@ -76,7 +76,8 @@ namespace MazeEscape
             var level = await App.PlayerData.World1_LevelDatabase.GetItemAsync("10");
             if (level.Star1)
             {
-                dailyChallengeButton.Source = "daily_mazes_button_background.png";
+                dailyChallengeButton.Text = "Daily Mazes";
+                dailyChallengeButton.BackgroundColor = Color.FromArgb("#80000000");
                 dailyChallengeButton.IsEnabled = true;
             }
         }

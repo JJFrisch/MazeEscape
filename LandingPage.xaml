@@ -23,44 +23,15 @@
            Aspect="AspectFill"/>
 
 
-        <ImageButton
-            AbsoluteLayout.LayoutBounds="0.5,0.88,130,110"
+        <Button
+            AbsoluteLayout.LayoutBounds="0.5,0.88,160,56"
             AbsoluteLayout.LayoutFlags="PositionProportional"
-            Style="{DynamicResource baseImageButtonStyle}"
             Clicked="OnEnterClicked"
-            HorizontalOptions="Center"
-            VerticalOptions="Center"
-            Opacity=".95"
-            Source="play_button_image_1.png"
-            Aspect="Fill"
-            Background="Transparent">
-            <VisualStateManager.VisualStateGroups>
-                <VisualStateGroupList>
-                <VisualStateGroup x:Name="CommonStates">
-                    <VisualState x:Name="Normal">
-                        <VisualState.Setters>
-                            <Setter Property="Scale"
-                                    Value="1" />
-                        </VisualState.Setters>
-                    </VisualState>
-                    <VisualState x:Name="Pressed">
-                        <VisualState.Setters>
-                                <Setter Property="Opacity"
-                                        Value="0.8" />
-                                <Setter Property="Scale"
-                                        Value="0.9" />
-                        </VisualState.Setters>
-                    </VisualState>
-                        <VisualState x:Name="PointerOver">
-                            <VisualState.Setters>
-                                <Setter Property="Scale"
-                                        Value="0.9" />
-                            </VisualState.Setters>
-                        </VisualState>
-                    </VisualStateGroup>
-                </VisualStateGroupList>
-            </VisualStateManager.VisualStateGroups>
-        </ImageButton>
+            Text="Play"
+            FontAttributes="Bold"
+            TextColor="White"
+            BackgroundColor="#B3000000"
+            CornerRadius="18" />
 
 
 

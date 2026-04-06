@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net9.0-android35.0;net9.0-ios26.0;net9.0-maccatalyst18.0</TargetFrameworks>
+		<TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0</TargetFrameworks>
 
 		<OutputType>Exe</OutputType>
@@ -24,29 +24,7 @@
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(TargetFramework)'=='net9.0-ios26.0'">
-	  <ProvisioningType>manual</ProvisioningType>
-	  <CodesignKey>iPhone Distribution</CodesignKey>
-	  <CodesignProvision></CodesignProvision>
-	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios26.0|AnyCPU'">
-	  <MtouchLink>SdkOnly</MtouchLink>
-	  <MtouchDebug>true</MtouchDebug>
-	  <MtouchInterpreter>-all</MtouchInterpreter>
-	  <EnableCodeSigning>false</EnableCodeSigning>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Release|net9.0-ios26.0'">
-	  <ProvisioningType>manual</ProvisioningType>
-	  <CodesignKey>iPhone Distribution</CodesignKey>
-	  <RuntimeIdentifier>ios-arm64</RuntimeIdentifier>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)'=='Debug|net9.0-ios26.0'">
-	  <RuntimeIdentifier>iossimulator-x64</RuntimeIdentifier>
-	  <EnableCodeSigning>false</EnableCodeSigning>
-	</PropertyGroup>
 
 	<ItemGroup>
 		<Compile Remove="MazeEscape.Core\**\*.cs" />

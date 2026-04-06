@@ -11,7 +11,6 @@ function createAuthStore() {
 	let error = $state('');
 	let notice = $state('');
 	let recoveryMode = $state(false);
-	let lastEvent = $state<AuthChangeEvent | null>(null);
 
 	function setSession(nextSession: Session | null) {
 		session = nextSession;
@@ -19,31 +18,16 @@ function createAuthStore() {
 		initialized = true;
 		if (!nextSession) {
 			error = '';
+			recoveryMode = false;
 		}
-	}
-
-	function setNotice(message: string) {
-		notice = message;
-	}
-
-	function setError(message: string) {
-		error = message;
-	}
-
-	function setRecoveryMode(nextRecoveryMode: boolean) {
-		recoveryMode = nextRecoveryMode;
 	}
 
 	function handleAuthEvent(event: AuthChangeEvent, nextSession: Session | null) {
-		lastEvent = event;
 		setSession(nextSession);
-
 		if (event === 'PASSWORD_RECOVERY') {
 			recoveryMode = true;
 			notice = 'Reset your password below.';
-		}
-
-		if (event === 'SIGNED_OUT') {
+		} else if (event === 'SIGNED_OUT') {
 			recoveryMode = false;
 		}
 	}
@@ -87,22 +71,22 @@ function createAuthStore() {
 			return false;
 		}
 
-		recoveryMode = false;
 		setSession(data.session ?? null);
 		notice = data.session
 			? 'Account created and signed in.'
-			: 'Account created. Check your email to confirm sign-in.';
+			: 'Account created. Check your email to confirm your account, then sign in.';
 		return true;
 	}
 
-	async function requestPasswordReset(email: string, redirectTo: string): Promise<boolean> {
+	async function requestPasswordReset(email: string): Promise<boolean> {
 		loading = true;
 		clearMessages();
 
 		const supabase = getSupabaseBrowserClient();
-		const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-			redirectTo
-		});
+		const redirectTo = typeof window !== 'undefined'
+			? `${window.location.origin}${window.location.pathname}`
+			: undefined;
+		const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo });
 
 		loading = false;
 
@@ -115,12 +99,12 @@ function createAuthStore() {
 		return true;
 	}
 
-	async function updatePassword(password: string): Promise<boolean> {
+	async function updatePassword(newPassword: string): Promise<boolean> {
 		loading = true;
 		clearMessages();
 
 		const supabase = getSupabaseBrowserClient();
-		const { data, error: updateError } = await supabase.auth.updateUser({ password });
+		const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
 
 		loading = false;
 
@@ -130,8 +114,7 @@ function createAuthStore() {
 		}
 
 		recoveryMode = false;
-		setSession(data.user ? session : null);
-		notice = 'Password updated.';
+		notice = 'Password updated. You are now signed in.';
 		return true;
 	}
 
@@ -163,13 +146,9 @@ function createAuthStore() {
 		get error() { return error; },
 		get notice() { return notice; },
 		get recoveryMode() { return recoveryMode; },
-		get lastEvent() { return lastEvent; },
 		get isAuthenticated() { return user !== null; },
 		setSession,
 		handleAuthEvent,
-		setNotice,
-		setError,
-		setRecoveryMode,
 		clearMessages,
 		signIn,
 		signUp,

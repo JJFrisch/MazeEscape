@@ -13,31 +13,21 @@
 	let confirmPassword = $state('');
 	let localError = $state('');
 
-	function applyUrlState() {
-		if (typeof window === 'undefined') return;
-
-		const search = new URLSearchParams(window.location.search);
+	onMount(() => {
+		// Parse URL errors surfaced by Supabase in the redirect (e.g. expired links)
 		const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
-		const type = hash.get('type') ?? search.get('type');
+		const search = new URLSearchParams(window.location.search);
 		const errorDescription = hash.get('error_description') ?? search.get('error_description');
-
 		if (errorDescription) {
 			localError = decodeURIComponent(errorDescription.replace(/\+/g, ' '));
 		}
+	});
 
-		if (type === 'recovery') {
+	// Respond to PASSWORD_RECOVERY event from the Supabase auth listener
+	$effect(() => {
+		if (authStore.recoveryMode) {
 			mode = 'recovery';
-			authStore.setRecoveryMode(true);
-			authStore.setNotice('Reset your password below.');
 		}
-
-		if (type === 'signup') {
-			authStore.setNotice(authStore.isAuthenticated ? 'Email confirmed. You are now signed in.' : 'Email confirmed. You can sign in now.');
-		}
-	}
-
-	onMount(() => {
-		applyUrlState();
 	});
 
 	async function submit() {
@@ -50,8 +40,25 @@
 				return;
 			}
 
-			const redirectTo = `${window.location.origin}${base}/auth`;
-			await authStore.requestPasswordReset(email.trim(), redirectTo);
+			await authStore.requestPasswordReset(email.trim());
+			return;
+		}
+
+		if (mode === 'recovery') {
+			if (!password.trim()) {
+				localError = 'A new password is required.';
+				return;
+			}
+
+			if (password !== confirmPassword) {
+				localError = 'Passwords do not match.';
+				return;
+			}
+
+			const success = await authStore.updatePassword(password);
+			if (success && authStore.isAuthenticated) {
+				await goto(`${base}/settings`);
+			}
 			return;
 		}
 
@@ -60,7 +67,7 @@
 			return;
 		}
 
-		if ((mode === 'sign-up' || mode === 'recovery') && password !== confirmPassword) {
+		if (mode === 'sign-up' && password !== confirmPassword) {
 			localError = 'Passwords do not match.';
 			return;
 		}
@@ -69,12 +76,10 @@
 			? await authStore.signIn(email.trim(), password)
 			: mode === 'sign-up'
 				? await authStore.signUp(email.trim(), password)
-				: await authStore.updatePassword(password);
+				: false;
 
 		if (success && authStore.isAuthenticated) {
 			await goto(`${base}/settings`);
-		} else if (success && mode === 'recovery') {
-			mode = 'sign-in';
 		}
 	}
 
@@ -143,11 +148,12 @@
 				<button class="primary-btn" onclick={signOut} disabled={authStore.loading}>Sign Out</button>
 			</div>
 		{:else}
+			{#if mode === 'sign-in' || mode === 'sign-up'}
 			<div class="mode-toggle" role="tablist" aria-label="Authentication mode">
-				<button class:active={mode === 'sign-in'} onclick={() => { mode = 'sign-in'; authStore.setRecoveryMode(false); }}>Sign In</button>
-				<button class:active={mode === 'sign-up'} onclick={() => { mode = 'sign-up'; authStore.setRecoveryMode(false); }}>Sign Up</button>
-				<button class:active={mode === 'reset-request'} onclick={() => { mode = 'reset-request'; authStore.setRecoveryMode(false); }}>Reset</button>
+				<button class:active={mode === 'sign-in'} onclick={() => mode = 'sign-in'}>Sign In</button>
+				<button class:active={mode === 'sign-up'} onclick={() => mode = 'sign-up'}>Sign Up</button>
 			</div>
+			{/if}
 
 			<form class="auth-form" onsubmit={(event) => { event.preventDefault(); void submit(); }}>
 				<label for="auth-email">Email</label>
@@ -180,6 +186,10 @@
 				{#if mode === 'sign-in'}
 					<button class="secondary-btn" type="button" onclick={() => mode = 'reset-request'}>
 						Forgot your password?
+					</button>
+				{:else if mode === 'reset-request'}
+					<button class="secondary-btn" type="button" onclick={() => { mode = 'sign-in'; authStore.clearMessages(); }}>
+						Back to sign in
 					</button>
 				{/if}
 			</form>

@@ -37,7 +37,7 @@ interface ProfileRow {
 	month_prize1_achieved: boolean;
 	month_prize2_achieved: boolean;
 	most_recent_month: string;
-	updated_at: string;
+	updated_at?: string;
 }
 
 interface LevelProgressRow {
@@ -50,7 +50,7 @@ interface LevelProgressRow {
 	star3: boolean;
 	best_moves: number;
 	best_time_seconds: number;
-	updated_at: string;
+	updated_at?: string;
 }
 
 interface DailyMazeResultRow {
@@ -60,13 +60,13 @@ interface DailyMazeResultRow {
 	status: DailyMazeLevel['status'];
 	completion_time: number;
 	completion_moves: number;
-	updated_at: string;
+	updated_at?: string;
 }
 
 interface OwnedSkinRow {
 	user_id: string;
 	skin_id: number;
-	acquired_at: string;
+	acquired_at?: string;
 }
 
 interface WorldProgressRow {
@@ -249,7 +249,12 @@ function createGameStore() {
 	let worlds = $state<WorldDefinition[]>(getAllWorlds());
 	let levelProgress = $state<Record<string, CampaignLevel>>({});
 	let dailyResults = $state<Record<string, DailyMazeLevel>>({});
-	let syncMetadata = $state<SyncMetadata>(createDefaultSyncMetadata(player, levelProgress, dailyResults));
+	let syncMetadata = $state<SyncMetadata>({
+		playerUpdatedAt: 0,
+		levelUpdatedAt: {},
+		dailyUpdatedAt: {},
+		skinUpdatedAt: {}
+	});
 	let initialized = $state(false);
 	let cloudUserId = $state<string | null>(null);
 	let cloudSyncStatus = $state<CloudSyncStatus>('offline');
@@ -347,7 +352,7 @@ function createGameStore() {
 				supabase.from('profiles').select('*').eq('id', cloudUserId).maybeSingle<ProfileRow>(),
 				supabase.from('level_progress').select('*').eq('user_id', cloudUserId).returns<LevelProgressRow[]>(),
 				supabase.from('daily_maze_results').select('*').eq('user_id', cloudUserId).returns<DailyMazeResultRow[]>(),
-				supabase.from('owned_skins').select('user_id, skin_id').eq('user_id', cloudUserId).returns<OwnedSkinRow[]>()
+				supabase.from('owned_skins').select('user_id, skin_id, acquired_at').eq('user_id', cloudUserId).returns<OwnedSkinRow[]>()
 			]);
 
 			const errors = [profileResult.error, levelResult.error, dailyResult.error, skinResult.error].filter(Boolean);
@@ -355,46 +360,89 @@ function createGameStore() {
 				throw new Error(errors[0]?.message ?? 'Failed to load cloud save.');
 			}
 
+			const remoteProfileTimestamp = timestampFromIso(profileResult.data?.updated_at);
 			const remotePlayer = mapProfileRowToPlayerData(profileResult.data ?? null, skinResult.data ?? []);
-			player = mergePlayerData(player, remotePlayer);
+			if (remotePlayer && remoteProfileTimestamp > syncMetadata.playerUpdatedAt) {
+				player = { ...remotePlayer };
+				syncMetadata.playerUpdatedAt = remoteProfileTimestamp;
+			} else {
+				player = { ...player, playerId: cloudUserId };
+			}
+
+			const skinIds = new Set<number>([0, ...player.unlockedSkinIds, ...(skinResult.data ?? []).map((row) => row.skin_id)]);
+			for (const skinRow of skinResult.data ?? []) {
+				const skinKey = String(skinRow.skin_id);
+				const remoteSkinTimestamp = timestampFromIso(skinRow.acquired_at);
+				const localSkinTimestamp = syncMetadata.skinUpdatedAt[skinKey] ?? 0;
+				syncMetadata.skinUpdatedAt[skinKey] = Math.max(localSkinTimestamp, remoteSkinTimestamp);
+			}
+			for (const skinId of skinIds) {
+				if (!(String(skinId) in syncMetadata.skinUpdatedAt)) {
+					touchSkin(skinId, syncMetadata.playerUpdatedAt || Date.now());
+				}
+			}
+			player.unlockedSkinIds = Array.from(skinIds).sort((a, b) => a - b);
+			if (!player.unlockedSkinIds.includes(player.currentSkinId)) {
+				player.currentSkinId = 0;
+			}
 
 			const remoteLevelMap: Record<string, CampaignLevel> = {};
+			const remoteLevelTimestamps: Record<string, number> = {};
 			for (const row of levelResult.data ?? []) {
 				const mapped = mapLevelRowToCampaignLevel(row);
 				if (mapped) {
-					remoteLevelMap[`${row.world_id}:${row.level_number}`] = mapped;
+					const key = `${row.world_id}:${row.level_number}`;
+					remoteLevelMap[key] = mapped;
+					remoteLevelTimestamps[key] = timestampFromIso(row.updated_at);
 				}
 			}
 
 			const mergedLevelKeys = new Set([...Object.keys(levelProgress), ...Object.keys(remoteLevelMap)]);
 			const mergedLevelProgress: Record<string, CampaignLevel> = {};
 			for (const key of mergedLevelKeys) {
-				const [worldIdText, levelNumber] = key.split(':');
-				const template = getLevelTemplate(Number(worldIdText), levelNumber);
-				if (!template) continue;
-				mergedLevelProgress[key] = mergeCampaignLevel(levelProgress[key], remoteLevelMap[key], template);
+				const localLevel = levelProgress[key];
+				const remoteLevel = remoteLevelMap[key];
+				const localTimestamp = syncMetadata.levelUpdatedAt[key] ?? 0;
+				const remoteTimestamp = remoteLevelTimestamps[key] ?? 0;
+
+				if (remoteLevel && (!localLevel || remoteTimestamp > localTimestamp)) {
+					mergedLevelProgress[key] = { ...remoteLevel };
+					syncMetadata.levelUpdatedAt[key] = remoteTimestamp;
+				} else if (localLevel) {
+					mergedLevelProgress[key] = { ...localLevel };
+					syncMetadata.levelUpdatedAt[key] = localTimestamp || Date.now();
+				}
 			}
 			levelProgress = mergedLevelProgress;
 
 			const remoteDailyMap: Record<string, DailyMazeLevel> = {};
+			const remoteDailyTimestamps: Record<string, number> = {};
 			for (const row of dailyResult.data ?? []) {
 				remoteDailyMap[row.short_date] = mapDailyRowToDailyLevel(row);
+				remoteDailyTimestamps[row.short_date] = timestampFromIso(row.updated_at);
 			}
 			const mergedDailyKeys = new Set([...Object.keys(dailyResults), ...Object.keys(remoteDailyMap)]);
 			const mergedDailyResults: Record<string, DailyMazeLevel> = {};
 			for (const key of mergedDailyKeys) {
-				const remote = remoteDailyMap[key];
-				if (!remote) {
-					mergedDailyResults[key] = { ...dailyResults[key] };
-					continue;
+				const localDaily = dailyResults[key];
+				const remoteDaily = remoteDailyMap[key];
+				const localTimestamp = syncMetadata.dailyUpdatedAt[key] ?? 0;
+				const remoteTimestamp = remoteDailyTimestamps[key] ?? 0;
+
+				if (remoteDaily && (!localDaily || remoteTimestamp > localTimestamp)) {
+					mergedDailyResults[key] = { ...remoteDaily };
+					syncMetadata.dailyUpdatedAt[key] = remoteTimestamp;
+				} else if (localDaily) {
+					mergedDailyResults[key] = { ...localDaily };
+					syncMetadata.dailyUpdatedAt[key] = localTimestamp || Date.now();
 				}
-				mergedDailyResults[key] = mergeDailyLevel(dailyResults[key], remote);
 			}
 			dailyResults = mergedDailyResults;
 
 			saveToStorage(STORAGE_KEY, player);
 			saveToStorage(LEVEL_STORAGE_KEY, levelProgress);
 			saveToStorage(DAILY_STORAGE_KEY, dailyResults);
+			saveToStorage(SYNC_METADATA_STORAGE_KEY, syncMetadata);
 			setCloudStatus('synced');
 		} catch (error) {
 			setCloudStatus('error', error instanceof Error ? error.message : 'Failed to sync from cloud.');
@@ -500,6 +548,7 @@ function createGameStore() {
 	}
 
 	async function syncNow() {
+		await pullFromCloud();
 		await pushToCloud();
 	}
 

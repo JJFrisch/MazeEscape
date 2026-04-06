@@ -1,4 +1,4 @@
-import type { RealtimeChannel, Session } from '@supabase/supabase-js';
+import type { AuthChangeEvent, RealtimeChannel, Session } from '@supabase/supabase-js';
 import { getSupabaseBrowserClient } from './client';
 import { authStore } from './authStore.svelte';
 
@@ -10,7 +10,7 @@ interface InitializeSupabaseAuthOptions {
 export function initializeSupabaseAuth(options: InitializeSupabaseAuthOptions = {}): () => void {
 	const supabase = getSupabaseBrowserClient();
 
-	const handleSession = (event: Parameters<typeof supabase.auth.onAuthStateChange>[0] extends (event: infer EventType, session: Session | null) => void ? EventType : never, session: Session | null) => {
+	const handleSession = (event: AuthChangeEvent, session: Session | null) => {
 		authStore.handleAuthEvent(event, session);
 		if (session?.user?.id) {
 			void options.onSignedIn?.(session.user.id);

@@ -52,6 +52,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.0.120" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.0" />
 		<PackageReference Include="CommunityToolkit.Maui" Version="11.0.0" />
 		<PackageReference Include="ColorPicker.Maui" Version="1.0.0" />
 		<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="2.88.9" />

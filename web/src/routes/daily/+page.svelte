@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { onDestroy } from 'svelte';
+	import { onDestroy, tick } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getDailyMazeForDate, getDailyMazesForMonth, getDailyMazeSeed } from '$lib/core/daily';
 	import { createGameSession, getHint, calculateStars } from '$lib/core/session';
@@ -35,7 +35,7 @@
 		'Routing dead ends…',
 		'Maze ready!'
 	];
-	const ENABLE_DAILY_INTRO = false;
+	const ENABLE_DAILY_INTRO = true;
 
 	// Check if daily unlocked (requires World 1 Level 10 completed)
 	const unlocked = $derived(gameStore.isDailyMazeUnlocked());
@@ -81,8 +81,15 @@
 		}
 	}
 
-	function startDailyMaze(dateStr: string) {
+	async function startDailyMaze(dateStr: string) {
 		if (isFuture(dateStr) || !unlocked) return;
+
+		clearInterval(timerInterval);
+		showIntro = false;
+		showOutro = false;
+		elapsed = 0;
+		coinsEarned = 0;
+		victoryStars = { star1: false, star2: false, star3: false, total: 0 };
 
 		const d = new Date(dateStr);
 		const dailyLevel = getDailyMazeForDate(d);
@@ -98,11 +105,9 @@
 		});
 		selectedDate = dateStr;
 		selectedDaily = dailyLevel;
-		elapsed = 0;
 		playing = true;
-		showOutro = false;
 		visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
-		clearInterval(timerInterval);
+		await tick();
 		showIntro = ENABLE_DAILY_INTRO;
 		if (!ENABLE_DAILY_INTRO) {
 			startGameplay();

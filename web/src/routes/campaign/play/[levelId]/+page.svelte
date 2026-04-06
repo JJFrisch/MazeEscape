@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
-	import { onDestroy, untrack } from 'svelte';
+	import { onDestroy, tick, untrack } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
 	import { createGameSession, getHint, calculateStars } from '$lib/core/session';
@@ -54,7 +54,7 @@
 	};
 
 	const introPhrases = $derived(INTRO_PHRASES[theme.motif]);
-	const ENABLE_LEVEL_INTRO = false; // temporary fallback while debugging intro/browser behavior
+	const ENABLE_LEVEL_INTRO = true;
 
 	let session = $state<GameSessionState | null>(null);
 	// Non-rectangular maze state
@@ -91,7 +91,11 @@
 	let coinsEarned = $state(0);
 	let visitedCells = $state(new Set<string>());
 
-	function startGame() {
+	function hasActiveGameState() {
+		return session !== null || hexState !== null || circState !== null || triState !== null;
+	}
+
+	async function startGame() {
 		if (!levelDef) {
 			loadError = `Level ${levelNumber} could not be loaded.`;
 			session = null;
@@ -104,6 +108,14 @@
 		}
 
 		try {
+			clearInterval(timerInterval);
+			showIntro = false;
+			showOutro = false;
+			elapsed = 0;
+			coinsEarned = 0;
+			victoryStars = { star1: false, star2: false, star3: false, total: 0 };
+			loadError = '';
+
 			const seed = worldId * 10000 + (parseInt(levelDef.levelNumber) || 0) * 100 +
 				(levelDef.levelNumber.includes('b') ? 50 : 0);
 			const shape = levelDef.mazeShape ?? 'rectangular';
@@ -139,10 +151,8 @@
 				visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
 			}
 
-			loadError = '';
-			elapsed = 0;
-			showOutro = false;
-			clearInterval(timerInterval);
+			await tick();
+
 			showIntro = ENABLE_LEVEL_INTRO;
 
 			if (!ENABLE_LEVEL_INTRO) {
@@ -161,11 +171,12 @@
 	}
 
 	function startGameplay() {
-		if (!gameIsActive) return;
+		if (!hasActiveGameState()) return;
 		showIntro = false;
+		showOutro = false;
 		clearInterval(timerInterval);
 		timerInterval = setInterval(() => {
-			if (gameIsActive && !currentIsComplete) {
+			if (hasActiveGameState() && !currentIsComplete) {
 				elapsed += 0.01;
 			}
 		}, 10);

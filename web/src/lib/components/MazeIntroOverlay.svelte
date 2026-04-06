@@ -31,15 +31,6 @@
 
 	let phraseTimer: ReturnType<typeof setInterval>;
 
-	function advance() {
-		if (phraseIndex < phrases.length - 1) {
-			phraseIndex++;
-		} else {
-			clearInterval(phraseTimer);
-			isDone = true;
-		}
-	}
-
 	function dismiss() {
 		if (!isDone || dismissed) return;
 		dismissed = true;
@@ -48,7 +39,19 @@
 	}
 
 	onMount(() => {
-		phraseTimer = setInterval(advance, PHRASE_INTERVAL_MS);
+		// Capture length as a plain value so the interval callback has no
+		// dependency on Svelte 5 reactive signals or props references.
+		const total = phrases.length;
+		let step = 0;
+		phraseTimer = setInterval(() => {
+			step++;
+			if (step < total) {
+				phraseIndex = step;
+			} else {
+				clearInterval(phraseTimer);
+				isDone = true;
+			}
+		}, PHRASE_INTERVAL_MS);
 	});
 
 	onDestroy(() => {

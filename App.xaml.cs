@@ -17,7 +17,7 @@
             _gameInitializer = gameInitializer ?? throw new ArgumentNullException(nameof(gameInitializer));
             _saveSynchronizer = saveSynchronizer ?? throw new ArgumentNullException(nameof(saveSynchronizer));
 
-            MainPage = new NavigationPage(new MainPage());
+            MainPage = new NavigationPage(new LandingPage(gameInitializer));
         }
 
         protected override Window CreateWindow(IActivationState? activationState)

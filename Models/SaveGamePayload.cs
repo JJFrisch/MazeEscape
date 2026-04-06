@@ -37,6 +37,9 @@ namespace MazeEscape.Models
         // Client-side save timestamp (for debugging)
         public required DateTimeOffset LocalSaveTimeUtc { get; set; }
 
+        // Full serialized SaveableData for backward compatibility & complete state restoration
+        public string? SaveableDataBackupJson { get; set; }
+
         // Daily maze database reference (if needed)
         public string? DailyMazeDatabaseJson { get; set; }
     }

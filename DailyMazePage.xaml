@@ -68,7 +68,7 @@
                             Grid.ColumnSpan="0"
                             Grid.RowSpan="99" CornerRadius="10, 10, 20, 20" />
 
-                    <ImageButton Source="backgroundd10.jpeg" Aspect="Fill"
+                        <ImageButton Source="background10.jpeg" Aspect="Fill"
                             Opacity="0.5"
                             Grid.ColumnSpan="99"
                             Grid.RowSpan="99"

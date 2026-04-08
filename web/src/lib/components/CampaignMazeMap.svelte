@@ -128,18 +128,27 @@
 
 	function onPointerDown(e: PointerEvent) {
 		if (e.button !== 0 && e.pointerType !== 'touch') return;
-		isPanning = true;
+		// Don't capture or start panning yet — wait until the pointer has actually
+		// moved (see onPointerMove). Calling setPointerCapture here would redirect
+		// the subsequent click event to this container, swallowing all child onclick
+		// handlers (level nodes, collectibles).
 		panStartX = e.clientX;
 		panStartY = e.clientY;
 		panOriginX = panX;
 		panOriginY = panY;
-		(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
 	}
 
 	function onPointerMove(e: PointerEvent) {
-		if (!isPanning) return;
-		panX = panOriginX + (e.clientX - panStartX);
-		panY = panOriginY + (e.clientY - panStartY);
+		const dx = e.clientX - panStartX;
+		const dy = e.clientY - panStartY;
+		// Only commit to panning once we've clearly dragged past the click threshold.
+		if (!isPanning) {
+			if (Math.hypot(dx, dy) < 6) return;
+			isPanning = true;
+			(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+		}
+		panX = panOriginX + dx;
+		panY = panOriginY + dy;
 		clampPan();
 	}
 
@@ -286,8 +295,8 @@
 	function levelNodeFill(node: MapNode): string {
 		const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
 		if (prog?.completed) return node.type === 'bonus_level' ? ACCENT_GOLD : ACCENT_BLUE;
-		if (isLevelUnlocked(node.levelNumber ?? '')) return '#1e3a5c';
-		return '#0f1c2e';
+		if (isLevelUnlocked(node.levelNumber ?? '')) return '#0f2a44';
+		return '#0a1628';
 	}
 
 	function levelNodeStroke(node: MapNode): string {
@@ -485,8 +494,8 @@
 								{#each [0, 1, 2] as si}
 									<circle
 										cx={px + (si - 1) * T * 0.14} cy={py + T * 0.44}
-										r={T * 0.06}
-										fill={si < stars ? ACCENT_GOLD : '#1e3a5c'}
+										r={T * 0.07}
+										fill={si < stars ? ACCENT_GOLD : 'rgba(30, 58, 92, 0.9)'}
 									/>
 								{/each}
 							{/if}

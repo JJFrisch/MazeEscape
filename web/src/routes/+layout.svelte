@@ -3,10 +3,17 @@
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { initializeSupabaseAuth } from '$lib/supabase/auth';
 	import { authStore } from '$lib/supabase/authStore.svelte';
+	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
 
 	let { children } = $props();
+
+	const path = $derived($page.url.pathname);
+	function isActive(href: string): boolean {
+		if (href === `${base}/`) return path === `${base}/` || path === '/';
+		return path.startsWith(href);
+	}
 
 	onMount(() => {
 		gameStore.init();
@@ -46,13 +53,13 @@
 		</a>
 
 		<nav class="header-nav" aria-label="Main navigation">
-			<a href="{base}/" class="nav-link">Home</a>
-			<a href="{base}/campaign/worlds" class="nav-link">Campaign</a>
-			<a href="{base}/daily" class="nav-link">Daily</a>
-			<a href="{base}/shop" class="nav-link">Shop</a>
-			<a href="{base}/equip" class="nav-link">Equip</a>
-			<a href="{base}/settings" class="nav-link">Settings</a>
-			<a href="{base}/auth" class="nav-link">{authStore.isAuthenticated ? 'Account' : 'Sign In'}</a>
+			<a href="{base}/" class="nav-link" class:active={isActive(`${base}/`)}>Home</a>
+			<a href="{base}/campaign/worlds" class="nav-link" class:active={isActive(`${base}/campaign`)}>Campaign</a>
+			<a href="{base}/daily" class="nav-link" class:active={isActive(`${base}/daily`)}>Daily</a>
+			<a href="{base}/shop" class="nav-link" class:active={isActive(`${base}/shop`)}>Shop</a>
+			<a href="{base}/equip" class="nav-link" class:active={isActive(`${base}/equip`)}>Equip</a>
+			<a href="{base}/settings" class="nav-link" class:active={isActive(`${base}/settings`)}>Settings</a>
+			<a href="{base}/auth" class="nav-link" class:active={isActive(`${base}/auth`)}>{authStore.isAuthenticated ? 'Account' : 'Sign In'}</a>
 		</nav>
 
 		<div class="header-stats">
@@ -90,13 +97,13 @@
 		align-items: center;
 		gap: var(--space-4);
 		padding: 0 var(--space-6);
-		background: var(--color-bg-secondary);
-		border-bottom: 1px solid var(--color-border);
+		background: #0a1628;
+		border-bottom: 1px solid rgba(56, 189, 248, 0.15);
 		height: var(--header-height);
 		position: sticky;
 		top: 0;
 		z-index: 100;
-		box-shadow: var(--shadow-sm);
+		box-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
 	}
 
 	/* ── Logo ───────────────────────────────────── */
@@ -104,7 +111,7 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		color: var(--color-text-primary);
+		color: #f0f6ff;
 		font-family: var(--font-display);
 		font-weight: 700;
 		font-size: var(--text-lg);
@@ -115,12 +122,12 @@
 
 	.logo:hover {
 		opacity: 0.78;
-		color: var(--color-text-primary);
+		color: #f0f6ff;
 	}
 
 	.logo-icon {
 		flex-shrink: 0;
-		filter: drop-shadow(0 0 4px rgba(21, 101, 192, 0.35));
+		filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.5));
 	}
 
 	/* ── Nav ────────────────────────────────────── */
@@ -133,19 +140,35 @@
 	}
 
 	.nav-link {
+		position: relative;
 		padding: var(--space-1) var(--space-3);
 		border-radius: var(--radius-md);
 		font-size: var(--text-sm);
 		font-weight: 500;
-		color: var(--color-text-secondary);
-		transition: all var(--transition-fast);
+		color: rgba(255, 255, 255, 0.55);
+		text-decoration: none;
+		transition: color var(--transition-fast);
 		white-space: nowrap;
 	}
 
 	.nav-link:hover {
-		background: var(--color-bg-card-hover);
-		color: var(--color-accent-primary);
-		border-radius: var(--radius-md);
+		color: #f0f6ff;
+	}
+
+	.nav-link.active {
+		color: #38bdf8;
+	}
+
+	.nav-link.active::after {
+		content: '';
+		position: absolute;
+		bottom: -2px;
+		left: var(--space-3);
+		right: var(--space-3);
+		height: 2px;
+		background: #38bdf8;
+		border-radius: 1px;
+		box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
 	}
 
 	/* ── Stats ──────────────────────────────────── */
@@ -169,12 +192,13 @@
 		gap: var(--space-1);
 		font-size: var(--text-sm);
 		font-weight: 600;
+		color: rgba(255, 255, 255, 0.7);
 	}
 
 	.coin-stat {
-		color: var(--color-accent-gold);
-		background: rgba(217, 119, 6, 0.08);
-		border: 1px solid rgba(217, 119, 6, 0.22);
+		color: #fbbf24;
+		background: rgba(251, 191, 36, 0.08);
+		border: 1px solid rgba(251, 191, 36, 0.25);
 		border-radius: var(--radius-full);
 		padding: 3px var(--space-3) 3px var(--space-2);
 	}

@@ -215,15 +215,16 @@
 	.world-label {
 		font-size: 0.65rem;
 		font-weight: 700;
-		letter-spacing: 0.1em;
+		letter-spacing: 0.12em;
 		text-transform: uppercase;
-		color: rgba(255, 255, 255, 0.45);
+		color: #38bdf8;
+		text-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
 	}
 
 	.world-title {
 		font-family: var(--font-display);
 		font-size: clamp(0.95rem, 3vw, 1.35rem);
-		font-weight: 700;
+		font-weight: 800;
 		color: #f0f6ff;
 		line-height: 1.2;
 		white-space: nowrap;
@@ -237,14 +238,21 @@
 		gap: 0.3rem;
 		flex-shrink: 0;
 		font-size: 0.85rem;
+		background: rgba(251, 191, 36, 0.1);
+		border: 1px solid rgba(251, 191, 36, 0.3);
+		border-radius: 9999px;
+		padding: 3px 10px 3px 6px;
 	}
 
 	.star-icon { width: 16px; height: 16px; object-fit: contain; }
 
-	.star-value { font-weight: 700; }
+	.star-value {
+		font-weight: 700;
+		color: #fbbf24;
+	}
 
 	.star-denom {
-		color: rgba(255, 255, 255, 0.4);
+		color: rgba(251, 191, 36, 0.55);
 		font-size: 0.75rem;
 	}
 
@@ -258,15 +266,25 @@
 		bottom: 0;
 		left: 0;
 		right: 0;
-		height: 2px;
+		height: 3px;
 		animation: accent-pulse 2.5s ease-in-out infinite;
 	}
 
 	/* ── Maze map wrapper ────────────────────────────────── */
 	.map-wrapper {
-		height: calc(100dvh - 64px - var(--header-height, 0px));
+		/* Subtract header (3.5rem), world-strip (64px), and app-main's
+		   top + bottom padding (2 × var(--space-6) = 3rem) so content
+		   fits exactly in the viewport with zero page scroll. */
+		height: calc(100dvh - var(--header-height) - 64px - 3rem);
 		width: 100%;
 		overflow: hidden;
+	}
+
+	@media (max-width: 640px) {
+		/* app-main padding shrinks to var(--space-4) = 1rem per side on mobile */
+		.map-wrapper {
+			height: calc(100dvh - var(--header-height) - 64px - 2rem);
+		}
 	}
 
 	/* ── Fallback grid layout ────────────────────────────── */

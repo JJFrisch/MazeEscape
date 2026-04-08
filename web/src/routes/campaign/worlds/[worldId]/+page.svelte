@@ -87,7 +87,7 @@
 					Campaign Levels
 				</h2>
 				<div class="levels-grid">
-					{#each mainLevels as level}
+					{#each mainLevels as level, i}
 						{@const unlocked = isLevelUnlocked(level.levelNumber)}
 						{@const completed = isLevelCompleted(level.levelNumber)}
 						{@const stars = getLevelStars(level.levelNumber)}
@@ -97,13 +97,13 @@
 								href="{base}/campaign/play/{worldId}-{level.levelNumber}"
 								class="level-card"
 								class:completed
-								style="--accent: {theme.accentColor}; --accent-dim: {theme.accentDim}"
+								style="--accent: {theme.accentColor}; --accent-dim: {theme.accentDim}; --i: {i}"
 							>
 								<span class="level-num">{level.levelNumber}</span>
 								<div class="star-row">
-									{#each Array(3) as _, i}
+									{#each Array(3) as _, si}
 										<img
-											src="{base}/images/{i < stars ? 'full_star' : 'empty_star'}.png"
+											src="{base}/images/{si < stars ? 'full_star' : 'empty_star'}.png"
 											alt=""
 											class="star-img"
 											aria-hidden="true"
@@ -113,7 +113,7 @@
 								<span class="level-size">{level.width}×{level.height}</span>
 							</a>
 						{:else}
-							<div class="level-card locked" aria-label="Level {level.levelNumber} - Locked">
+							<div class="level-card locked" style="--i: {i}" aria-label="Level {level.levelNumber} - Locked">
 								<span class="level-num">{level.levelNumber}</span>
 								<img src="{base}/images/lock.png" alt="Locked" class="lock-sm-img" />
 							</div>
@@ -129,7 +129,7 @@
 						Bonus Levels
 					</h2>
 					<div class="levels-grid">
-						{#each bonusLevels as level}
+						{#each bonusLevels as level, i}
 							{@const unlocked = isLevelUnlocked(level.levelNumber)}
 							{@const completed = isLevelCompleted(level.levelNumber)}
 							{@const stars = getLevelStars(level.levelNumber)}
@@ -139,13 +139,13 @@
 									href="{base}/campaign/play/{worldId}-{level.levelNumber}"
 									class="level-card bonus"
 									class:completed
-									style="--accent: {theme.accentColor}; --accent-dim: {theme.accentDim}"
+									style="--accent: {theme.accentColor}; --accent-dim: {theme.accentDim}; --i: {i}"
 								>
 									<span class="level-num">{level.levelNumber}</span>
 									<div class="star-row">
-										{#each Array(3) as _, i}
+										{#each Array(3) as _, si}
 											<img
-												src="{base}/images/{i < stars ? 'full_star' : 'empty_star'}.png"
+												src="{base}/images/{si < stars ? 'full_star' : 'empty_star'}.png"
 												alt=""
 												class="star-img"
 												aria-hidden="true"
@@ -155,7 +155,7 @@
 									<span class="level-size">{level.width}×{level.height}</span>
 								</a>
 							{:else}
-								<div class="level-card locked bonus" aria-label="Bonus {level.levelNumber} - Locked">
+								<div class="level-card locked bonus" style="--i: {i}" aria-label="Bonus {level.levelNumber} - Locked">
 									<span class="level-num">{level.levelNumber}</span>
 									<img src="{base}/images/lock.png" alt="Locked" class="lock-sm-img" />
 								</div>
@@ -241,13 +241,16 @@
 
 	.star-icon { width: 16px; height: 16px; object-fit: contain; }
 
-	.star-value {
-		font-weight: 700;
-	}
+	.star-value { font-weight: 700; }
 
 	.star-denom {
 		color: rgba(255, 255, 255, 0.4);
 		font-size: 0.75rem;
+	}
+
+	@keyframes accent-pulse {
+		0%, 100% { opacity: 0.75; }
+		50% { opacity: 1; box-shadow: 0 0 8px currentColor; }
 	}
 
 	.accent-bar {
@@ -256,12 +259,11 @@
 		left: 0;
 		right: 0;
 		height: 2px;
-		opacity: 0.75;
+		animation: accent-pulse 2.5s ease-in-out infinite;
 	}
 
 	/* ── Maze map wrapper ────────────────────────────────── */
 	.map-wrapper {
-		/* Full remaining height of the viewport below the strip */
 		height: calc(100dvh - 64px - var(--header-height, 0px));
 		width: 100%;
 		overflow: hidden;
@@ -278,14 +280,21 @@
 		margin-bottom: var(--space-10);
 	}
 
+	@keyframes blink-dot {
+		0%, 49% { opacity: 1; }
+		50%, 100% { opacity: 0; }
+	}
+
 	.section-title {
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		font-family: var(--font-display);
-		font-size: var(--text-lg);
+		font-family: 'Courier New', monospace;
+		font-size: var(--text-base);
 		font-weight: 700;
 		color: var(--color-text-secondary);
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
 		margin-bottom: var(--space-5);
 	}
 
@@ -294,12 +303,18 @@
 		height: 8px;
 		border-radius: 50%;
 		flex-shrink: 0;
+		animation: blink-dot 1.2s step-end infinite;
 	}
 
 	.levels-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
 		gap: var(--space-3);
+	}
+
+	@keyframes cell-pop {
+		from { transform: scale(0.82) translateY(10px); opacity: 0; }
+		to   { transform: scale(1) translateY(0);       opacity: 1; }
 	}
 
 	.level-card {
@@ -317,18 +332,19 @@
 		aspect-ratio: 1;
 		min-height: 84px;
 		box-shadow: var(--shadow-sm);
+		animation: cell-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--i, 0) * 40ms) both;
 	}
 
 	.level-card:not(.locked):hover {
 		border-color: var(--accent, var(--color-accent-primary));
 		background: var(--color-bg-card-hover);
-		transform: translateY(-3px);
-		box-shadow: 0 4px 20px var(--accent-dim, rgba(21,101,192,0.18));
+		transform: translateY(-4px) scale(1.04);
+		box-shadow: 0 6px 24px var(--accent-dim, rgba(21,101,192,0.25));
 	}
 
 	.level-card.completed {
 		border-color: var(--accent, var(--color-accent-primary));
-		background: color-mix(in srgb, var(--accent, #1565c0) 6%, white);
+		background: color-mix(in srgb, var(--accent, #1565c0) 10%, transparent);
 	}
 
 	.level-card.locked {

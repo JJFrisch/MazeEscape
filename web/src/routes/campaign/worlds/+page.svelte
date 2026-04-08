@@ -27,6 +27,7 @@
 				class="world-card"
 				class:locked={isLocked}
 				style="
+					--i: {i};
 					--world-accent: {theme?.accentColor ?? '#38bdf8'};
 					--world-accent-dim: {theme?.accentDim ?? 'rgba(56,189,248,0.18)'};
 					{theme?.bgImageFile
@@ -71,7 +72,7 @@
 							<div
 								class="progress-bar-fill"
 								style="
-									width: {Math.min((stars / (world.numberOfLevels * 3)) * 100, 100)}%;
+									--fill-w: {Math.min((stars / (world.numberOfLevels * 3)) * 100, 100)}%;
 									background: {theme?.accentColor ?? '#38bdf8'};
 								"
 							></div>
@@ -131,6 +132,7 @@
 		font-weight: 700;
 		color: var(--color-text-primary);
 		margin-bottom: var(--space-2);
+		letter-spacing: 0.04em;
 	}
 
 	.page-sub {
@@ -146,6 +148,11 @@
 	}
 
 	/* ── World card ──────────────────────────────── */
+	@keyframes card-rise {
+		from { transform: translateY(28px); opacity: 0; }
+		to   { transform: translateY(0);    opacity: 1; }
+	}
+
 	.world-card {
 		position: relative;
 		border-radius: var(--radius-2xl);
@@ -158,6 +165,25 @@
 		justify-content: flex-end;
 		border: 1px solid rgba(255, 255, 255, 0.10);
 		transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+		animation: card-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 130ms) both;
+	}
+
+	/* Shimmer sweep */
+	.world-card::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		pointer-events: none;
+		background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.09) 50%, transparent 60%);
+		background-size: 200% 100%;
+		background-position: -200% 0;
+		transition: background-position 0.6s ease;
+		border-radius: var(--radius-2xl);
+	}
+
+	.world-card:not(.locked):hover::before {
+		background-position: 200% 0;
 	}
 
 	.world-card:not(.locked):hover {
@@ -212,6 +238,7 @@
 		padding: 4px var(--space-3);
 		border-radius: var(--radius-full);
 		backdrop-filter: blur(6px);
+		animation: glow-throb 3s ease-in-out infinite;
 	}
 
 	.tech-motif {
@@ -240,7 +267,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-3);
-		/* gradient already applied via bg-image */
 	}
 
 	.world-num {
@@ -299,16 +325,23 @@
 	}
 
 	.progress-bar-track {
-		height: 4px;
+		height: 5px;
 		background: rgba(255, 255, 255, 0.10);
 		border-radius: var(--radius-full);
 		overflow: hidden;
 	}
 
+	@keyframes bar-fill {
+		from { width: 0; }
+		to   { width: var(--fill-w, 0%); }
+	}
+
 	.progress-bar-fill {
 		height: 100%;
 		border-radius: var(--radius-full);
-		transition: width var(--transition-slow);
+		width: var(--fill-w, 0%);
+		animation: bar-fill 0.9s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 130ms + 300ms) both;
+		box-shadow: 0 0 8px currentColor;
 	}
 
 	/* ── Play button ─────────────────────────────── */
@@ -332,6 +365,7 @@
 	.play-btn:hover {
 		background: rgba(255, 255, 255, 0.16);
 		transform: translateX(4px);
+		box-shadow: 0 0 16px var(--world-accent-dim, rgba(56,189,248,0.3));
 	}
 
 	.coming-soon {

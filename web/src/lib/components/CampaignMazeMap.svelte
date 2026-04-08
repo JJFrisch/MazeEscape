@@ -392,6 +392,9 @@
 				{@const collected = gameStore.isMapItemCollected(worldId, item.id)}
 				{@const visible = isAreaVisible(item.area)}
 				{#if visible}
+					{@const px = cx(item.tile.col)}
+					{@const py = cy(item.tile.row)}
+					{@const color = collected ? '#374151' : collectibleColor(item.type)}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<g
 						class="collectible"
@@ -401,9 +404,6 @@
 						aria-label={collected ? `${item.label} (collected)` : item.label}
 						tabindex={collected ? undefined : 0}
 					>
-						{@const px = cx(item.tile.col)}
-						{@const py = cy(item.tile.row)}
-						{@const color = collected ? '#374151' : collectibleColor(item.type)}
 						<!-- Glow ring (uncollected) -->
 						{#if !collected}
 							<circle cx={px} cy={py} r={T * 0.38} fill={color} opacity="0.15"/>

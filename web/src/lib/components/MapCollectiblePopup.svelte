@@ -53,16 +53,16 @@
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
-<div class="popup-backdrop" onclick={onClose} role="dialog" aria-modal="true" aria-label={collectible.label}>
+<div class="popup-backdrop" onclick={onClose} role="dialog" aria-modal="true" aria-label={collectible.label} tabindex="-1">
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
-	<div class="popup-card" onclick={(e) => e.stopPropagation()} style="--item-color: {color}">
+	<div class="popup-card" onclick={(e) => e.stopPropagation()} role="document" style="--item-color: {color}">
 		<!-- Close button -->
 		<button class="close-btn" onclick={onClose} aria-label="Close">✕</button>
 
 		<!-- Icon burst -->
 		<div class="icon-burst">
-			<div class="icon-ring" />
-			<div class="icon-ring ring2" />
+			<div class="icon-ring"></div>
+			<div class="icon-ring ring2"></div>
 			<span class="icon-emoji">{icon}</span>
 		</div>
 

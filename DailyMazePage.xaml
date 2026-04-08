@@ -164,6 +164,25 @@
 
 
 
+                <!-- Claimed badge overlays: shown when prize is already collected -->
+                <Label x:Name="prize1ClaimedLabel"
+                       Text="✓"
+                       TextColor="LimeGreen"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       IsVisible="False"
+                       AbsoluteLayout.LayoutBounds="0.74, 0.795, 25, 35"
+                       AbsoluteLayout.LayoutFlags="PositionProportional"/>
+
+                <Label x:Name="prize2ClaimedLabel"
+                       Text="✓"
+                       TextColor="LimeGreen"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       IsVisible="False"
+                       AbsoluteLayout.LayoutBounds="0.94, 0.795, 25, 35"
+                       AbsoluteLayout.LayoutFlags="PositionProportional"/>
+
                 <Frame BackgroundColor="Gold" BorderColor="Black" AbsoluteLayout.LayoutBounds="0.85,0.8,220,30"
                         AbsoluteLayout.LayoutFlags="PositionProportional" HasShadow="True" Opacity="0.9"
                        WidthRequest="220" HorizontalOptions="Start" x:Name="progressStarSlider"/>

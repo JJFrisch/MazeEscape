@@ -89,8 +89,8 @@ public partial class EquipPage : ContentPage
 
                     priceLabel = new Label
                     {
-                        Text = skin.CoinPrice.ToString(),
-                        TextColor = Colors.Gold,
+                        Text = skin.GemPrice > 0 ? skin.GemPrice.ToString() : skin.CoinPrice.ToString(),
+                        TextColor = skin.GemPrice > 0 ? Colors.MediumPurple : Colors.Gold,
                         FontSize = 15,
                         WidthRequest = 70,
                         FontAttributes = FontAttributes.Bold,
@@ -99,7 +99,7 @@ public partial class EquipPage : ContentPage
                         VerticalOptions = LayoutOptions.End,
                     };
 
-                    if (skin.CoinPrice > App.PlayerData.CoinCount)
+                    if (skin.GemPrice == 0 && skin.CoinPrice > App.PlayerData.CoinCount)
                     {
                         priceLabel.TextColor = Colors.Black;
                     }
@@ -123,8 +123,22 @@ public partial class EquipPage : ContentPage
                         VerticalOptions = LayoutOptions.End,
                     };
 
-                    if (skin.CoinPrice == 0) { 
-                        // make coin into gem
+                    if (skin.GemPrice > 0)
+                    {
+                        coin.IsVisible = false;
+                        Label gemLabel = new Label
+                        {
+                            Text = $"💎 {skin.GemPrice}",
+                            TextColor = Colors.MediumPurple,
+                            FontSize = 13,
+                            FontAttributes = FontAttributes.Bold,
+                            HorizontalOptions = LayoutOptions.Center,
+                            VerticalOptions = LayoutOptions.End,
+                            Padding = new Thickness(0, 0, 0, 4),
+                        };
+                        Grid.SetColumn(gemLabel, col);
+                        Grid.SetRow(gemLabel, row);
+                        playerImageGrid.Add(gemLabel);
                     }
 
                     Grid.SetColumn(coin, col);

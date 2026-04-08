@@ -22,6 +22,9 @@
 
 
             GemPrice = gemPrice;
+            // Only inflate CoinPrice for skins that are purely special/chest-only (no gem price either).
+            // Gem-priced skins keep CoinPrice=0 so EquipPage can detect and display gem cost instead.
+            if (gemPrice > 0) { CoinPrice = 0; }
             IsSpecialSkin = isSpecialSkin;
         }
     }

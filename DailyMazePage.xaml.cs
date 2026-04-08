@@ -86,10 +86,12 @@ public partial class DailyMazePage : ContentPage
     {
         base.OnAppearing();
 
-        if (App.PlayerData.MostRecentMonth != date_time.ToShortDateString())
+        if (App.PlayerData.MostRecentMonth != date_time.ToString("MM-yyyy"))
         {
             RestartMonth = true;
-            App.PlayerData.MostRecentMonth = date_time.ToShortDateString();
+            App.PlayerData.MostRecentMonth = date_time.ToString("MM-yyyy");
+            App.PlayerData.MonthPrize1_achieved = false;
+            App.PlayerData.MonthPrize2_achieved = false;
             App.PlayerData.Save();
         }
 
@@ -289,12 +291,12 @@ public partial class DailyMazePage : ContentPage
             await this.ShowPopupAsync(new CampaignChestOpenedPopupPage(500), CancellationToken.None);
             App.PlayerData.Save();
         }
-        if (number_of_stars_won == 0)
-        {
-            App.PlayerData.MonthPrize1_achieved = false;
-            App.PlayerData.MonthPrize2_achieved = false;
-            App.PlayerData.Save();
-        }
+
+        // Update claimed-badge visibility
+        prize1ClaimedLabel.IsVisible = App.PlayerData.MonthPrize1_achieved;
+        prize2ClaimedLabel.IsVisible = App.PlayerData.MonthPrize2_achieved;
+        prizeLabel1.TextColor = App.PlayerData.MonthPrize1_achieved ? Colors.Gray : Colors.White;
+        prizeLabel2.TextColor = App.PlayerData.MonthPrize2_achieved ? Colors.Gray : Colors.White;
 
     }
 

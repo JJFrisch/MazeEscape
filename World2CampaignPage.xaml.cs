@@ -303,6 +303,7 @@ public partial class World2CampaignPage : ContentPage
         }
 
 
+        loading = false;
         imageButton.Opacity = 1;
         imageButton.Scale = 1;
     }

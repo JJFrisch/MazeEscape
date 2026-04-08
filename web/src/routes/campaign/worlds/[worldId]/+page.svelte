@@ -4,13 +4,17 @@
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
 	import { getWorldTheme } from '$lib/worldThemes';
+	import { getWorldMapLayout } from '$lib/core/campaignMapLayout';
+	import CampaignMazeMap from '$lib/components/CampaignMazeMap.svelte';
 
 	const worldId = $derived(Number($page.params.worldId));
 	const worldDef = $derived(getAllWorlds().find((w) => w.worldId === worldId));
 	const levels = $derived(worldDef?.levels ?? []);
 	const starCount = $derived(gameStore.getWorldStarCount(worldId));
 	const theme = $derived(getWorldTheme(worldId));
+	const mapLayout = $derived(getWorldMapLayout(worldId));
 
+	// Fallback grid helpers (used for worlds without a maze map yet)
 	function isLevelUnlocked(levelNum: string): boolean {
 		if (levelNum === '1') return true;
 		for (const level of levels) {
@@ -38,90 +42,52 @@
 </svelte:head>
 
 {#if worldDef}
-	<div class="world-page">
+	<!-- ── Sticky header strip ───────────────────────────── -->
+	<div
+		class="world-strip"
+		style="
+			{theme.bgImageFile
+				? `background-image: ${theme.overlayGradient}, url('${base}/images/${theme.bgImageFile}');`
+				: `background: linear-gradient(135deg, #042014, #064424);`
+			}
+		"
+	>
+		<a href="{base}/campaign/worlds" class="back-link">
+			<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+				<path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+			</svg>
+			All Worlds
+		</a>
 
-		<!-- ── World header band ───────────────────── -->
-		<div
-			class="world-banner"
-			style="
-				{theme.bgImageFile
-					? `background-image: ${theme.overlayGradient}, url('${base}/images/${theme.bgImageFile}');`
-					: `background: linear-gradient(135deg, #042014, #064424);`
-				}
-			"
-		>
-			<a href="{base}/campaign/worlds" class="back-link">
-				<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-					<path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-				</svg>
-				All Worlds
-			</a>
-
-			<div class="banner-content">
-				<div class="world-tag-small">World {worldDef.worldId}</div>
-				<h1 class="world-title" style="text-shadow: 0 0 30px {theme.accentColor}44">{worldDef.worldName}</h1>
-				<div class="world-stars">
-					<img src="{base}/images/full_star.png" alt="Stars earned:" class="star-badge-img" />
-					<span style="color: var(--color-accent-gold); font-weight: 700">{starCount}</span>
-					<span class="star-denom">/ {worldDef.numberOfLevels * 3} possible</span>
-				</div>
-			</div>
-
-			<!-- Accent line at bottom of banner -->
-			<div class="banner-accent-bar" style="background: {theme.accentColor}"></div>
+		<div class="strip-center">
+			<span class="world-label">World {worldDef.worldId}</span>
+			<h1 class="world-title" style="text-shadow: 0 0 24px {theme.accentColor}44">{worldDef.worldName}</h1>
 		</div>
 
-		<!-- ── Main levels ─────────────────────────── -->
-		<section class="levels-section">
-			<h2 class="section-title">
-				<span class="title-dot" style="background: {theme.accentColor}"></span>
-				Campaign Levels
-			</h2>
-			<div class="levels-grid">
-				{#each mainLevels as level}
-					{@const unlocked = isLevelUnlocked(level.levelNumber)}
-					{@const completed = isLevelCompleted(level.levelNumber)}
-					{@const stars = getLevelStars(level.levelNumber)}
+		<div class="strip-end">
+			<img src="{base}/images/full_star.png" alt="Stars:" class="star-icon" />
+			<span class="star-value" style="color: var(--color-accent-gold)">{starCount}</span>
+			<span class="star-denom">/ {worldDef.numberOfLevels * 3}</span>
+		</div>
 
-					{#if unlocked}
-						<a
-							href="{base}/campaign/play/{worldId}-{level.levelNumber}"
-							class="level-card"
-							class:completed
-							style="--accent: {theme.accentColor}; --accent-dim: {theme.accentDim}"
-						>
-							<span class="level-num">{level.levelNumber}</span>
-							<div class="star-row">
-								{#each Array(3) as _, i}
-									<img
-										src="{base}/images/{i < stars ? 'full_star' : 'empty_star'}.png"
-										alt=""
-										class="star-img"
-										aria-hidden="true"
-									/>
-								{/each}
-							</div>
-							<span class="level-size">{level.width}×{level.height}</span>
-						</a>
-					{:else}
-						<div class="level-card locked" aria-label="Level {level.levelNumber} - Locked">
-							<span class="level-num">{level.levelNumber}</span>
-							<img src="{base}/images/lock.png" alt="Locked" class="lock-sm-img" />
-						</div>
-					{/if}
-				{/each}
-			</div>
-		</section>
+		<div class="accent-bar" style="background: {theme.accentColor}"></div>
+	</div>
 
-		<!-- ── Bonus levels ────────────────────────── -->
-		{#if bonusLevels.length > 0}
+	{#if mapLayout}
+		<!-- ── Maze map view ────────────────────────────────── -->
+		<div class="map-wrapper">
+			<CampaignMazeMap {worldId} layout={mapLayout} />
+		</div>
+	{:else}
+		<!-- ── Fallback grid (worlds 2 & 3 until their maps are built) ── -->
+		<div class="world-page">
 			<section class="levels-section">
 				<h2 class="section-title">
-					<span class="title-dot" style="background: var(--color-accent-gold)"></span>
-					Bonus Levels
+					<span class="title-dot" style="background: {theme.accentColor}"></span>
+					Campaign Levels
 				</h2>
 				<div class="levels-grid">
-					{#each bonusLevels as level}
+					{#each mainLevels as level}
 						{@const unlocked = isLevelUnlocked(level.levelNumber)}
 						{@const completed = isLevelCompleted(level.levelNumber)}
 						{@const stars = getLevelStars(level.levelNumber)}
@@ -129,7 +95,7 @@
 						{#if unlocked}
 							<a
 								href="{base}/campaign/play/{worldId}-{level.levelNumber}"
-								class="level-card bonus"
+								class="level-card"
 								class:completed
 								style="--accent: {theme.accentColor}; --accent-dim: {theme.accentDim}"
 							>
@@ -147,7 +113,7 @@
 								<span class="level-size">{level.width}×{level.height}</span>
 							</a>
 						{:else}
-							<div class="level-card locked bonus" aria-label="Bonus {level.levelNumber} - Locked">
+							<div class="level-card locked" aria-label="Level {level.levelNumber} - Locked">
 								<span class="level-num">{level.levelNumber}</span>
 								<img src="{base}/images/lock.png" alt="Locked" class="lock-sm-img" />
 							</div>
@@ -155,8 +121,52 @@
 					{/each}
 				</div>
 			</section>
-		{/if}
-	</div>
+
+			{#if bonusLevels.length > 0}
+				<section class="levels-section">
+					<h2 class="section-title">
+						<span class="title-dot" style="background: var(--color-accent-gold)"></span>
+						Bonus Levels
+					</h2>
+					<div class="levels-grid">
+						{#each bonusLevels as level}
+							{@const unlocked = isLevelUnlocked(level.levelNumber)}
+							{@const completed = isLevelCompleted(level.levelNumber)}
+							{@const stars = getLevelStars(level.levelNumber)}
+
+							{#if unlocked}
+								<a
+									href="{base}/campaign/play/{worldId}-{level.levelNumber}"
+									class="level-card bonus"
+									class:completed
+									style="--accent: {theme.accentColor}; --accent-dim: {theme.accentDim}"
+								>
+									<span class="level-num">{level.levelNumber}</span>
+									<div class="star-row">
+										{#each Array(3) as _, i}
+											<img
+												src="{base}/images/{i < stars ? 'full_star' : 'empty_star'}.png"
+												alt=""
+												class="star-img"
+												aria-hidden="true"
+											/>
+										{/each}
+									</div>
+									<span class="level-size">{level.width}×{level.height}</span>
+								</a>
+							{:else}
+								<div class="level-card locked bonus" aria-label="Bonus {level.levelNumber} - Locked">
+									<span class="level-num">{level.levelNumber}</span>
+									<img src="{base}/images/lock.png" alt="Locked" class="lock-sm-img" />
+								</div>
+							{/if}
+						{/each}
+					</div>
+				</section>
+			{/if}
+		</div>
+	{/if}
+
 {:else}
 	<div class="not-found">
 		<h1>World not found</h1>
@@ -165,93 +175,105 @@
 {/if}
 
 <style>
-	.world-page {
-		max-width: 960px;
-		margin: 0 auto;
-	}
-
-	/* ── Banner ──────────────────────────────────── */
-	.world-banner {
-		position: relative;
+	/* ── Sticky header strip ─────────────────────────────── */
+	.world-strip {
+		position: sticky;
+		top: 0;
+		z-index: 30;
 		background-size: cover;
 		background-position: center;
-		border-radius: var(--radius-2xl);
-		overflow: hidden;
-		padding: var(--space-6) var(--space-8);
-		margin-bottom: var(--space-10);
-		min-height: 180px;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+		padding: 0.75rem 1.25rem;
 		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-		border: 1px solid rgba(255, 255, 255, 0.08);
+		align-items: center;
+		gap: 1rem;
+		min-height: 64px;
 	}
 
 	.back-link {
 		display: inline-flex;
 		align-items: center;
-		gap: var(--space-1);
-		font-size: var(--text-sm);
+		gap: 0.25rem;
+		font-size: 0.8rem;
 		font-weight: 500;
 		color: rgba(255, 255, 255, 0.65);
 		text-decoration: none;
-		transition: color var(--transition-fast);
-		align-self: flex-start;
+		white-space: nowrap;
+		flex-shrink: 0;
+		transition: color 0.15s;
 	}
+	.back-link:hover { color: #fff; }
 
-	.back-link:hover {
-		color: #fff;
-	}
-
-	.banner-content {
+	.strip-center {
+		flex: 1;
 		display: flex;
 		flex-direction: column;
-		gap: var(--space-2);
+		gap: 0.1rem;
+		min-width: 0;
 	}
 
-	.world-tag-small {
-		font-size: var(--text-xs);
+	.world-label {
+		font-size: 0.65rem;
 		font-weight: 700;
-		letter-spacing: 0.10em;
+		letter-spacing: 0.1em;
 		text-transform: uppercase;
-		color: rgba(255, 255, 255, 0.48);
+		color: rgba(255, 255, 255, 0.45);
 	}
 
 	.world-title {
 		font-family: var(--font-display);
-		font-size: clamp(1.6rem, 4vw, 2.5rem);
+		font-size: clamp(0.95rem, 3vw, 1.35rem);
 		font-weight: 700;
 		color: #f0f6ff;
-		line-height: 1.15;
+		line-height: 1.2;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
-	.world-stars {
+	.strip-end {
 		display: flex;
 		align-items: center;
-		gap: var(--space-1);
-		font-size: var(--text-base);
+		gap: 0.3rem;
+		flex-shrink: 0;
+		font-size: 0.85rem;
 	}
 
-	.star-badge-img {
-		width: 20px;
-		height: 20px;
-		object-fit: contain;
+	.star-icon { width: 16px; height: 16px; object-fit: contain; }
+
+	.star-value {
+		font-weight: 700;
 	}
 
 	.star-denom {
-		color: rgba(255, 255, 255, 0.40);
-		font-size: var(--text-sm);
+		color: rgba(255, 255, 255, 0.4);
+		font-size: 0.75rem;
 	}
 
-	.banner-accent-bar {
+	.accent-bar {
 		position: absolute;
 		bottom: 0;
 		left: 0;
 		right: 0;
-		height: 3px;
-		opacity: 0.80;
+		height: 2px;
+		opacity: 0.75;
 	}
 
-	/* ── Level section ───────────────────────────── */
+	/* ── Maze map wrapper ────────────────────────────────── */
+	.map-wrapper {
+		/* Full remaining height of the viewport below the strip */
+		height: calc(100dvh - 64px - var(--header-height, 0px));
+		width: 100%;
+		overflow: hidden;
+	}
+
+	/* ── Fallback grid layout ────────────────────────────── */
+	.world-page {
+		max-width: 960px;
+		margin: 0 auto;
+		padding: var(--space-6) var(--space-4);
+	}
+
 	.levels-section {
 		margin-bottom: var(--space-10);
 	}
@@ -274,7 +296,6 @@
 		flex-shrink: 0;
 	}
 
-	/* ── Level grid ──────────────────────────────── */
 	.levels-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
@@ -316,9 +337,7 @@
 		background: var(--color-bg-primary);
 	}
 
-	.level-card.bonus {
-		border-style: dashed;
-	}
+	.level-card.bonus { border-style: dashed; }
 
 	.level-num {
 		font-family: var(--font-display);
@@ -334,11 +353,7 @@
 		align-items: center;
 	}
 
-	.star-img {
-		width: 11px;
-		height: 11px;
-		object-fit: contain;
-	}
+	.star-img { width: 11px; height: 11px; object-fit: contain; }
 
 	.level-size {
 		font-size: 0.65rem;
@@ -353,7 +368,7 @@
 		opacity: 0.55;
 	}
 
-	/* ── Not found ───────────────────────────────── */
+	/* ── Not found ───────────────────────────────────────── */
 	.not-found {
 		text-align: center;
 		padding: var(--space-16);
@@ -365,9 +380,8 @@
 	}
 
 	@media (max-width: 640px) {
-		.world-banner {
-			padding: var(--space-4) var(--space-5);
-			min-height: 150px;
+		.world-strip {
+			padding: 0.6rem 0.9rem;
 		}
 		.levels-grid {
 			grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));

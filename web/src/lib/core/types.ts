@@ -48,6 +48,8 @@ export interface CampaignLevel {
 	minimumStarsToUnlock: number;
 	connectTo1: string | null;
 	connectTo2: string | null;
+	/** Optional reward popup shown after completing this level */
+	levelReward?: LevelReward;
 	completed: boolean;
 	star1: boolean;
 	star2: boolean;
@@ -227,3 +229,96 @@ export const POWERUP_COSTS: PowerupCost[] = [
 	{ name: 'extraTime', displayName: 'Extra Time', cost: 150, icon: '⏱️' },
 	{ name: 'extraMoves', displayName: 'Extra Moves', cost: 50, icon: '👟' }
 ];
+
+// ---------------------------------------------------------------------------
+// Campaign map types — treasure-map-style level select
+// ---------------------------------------------------------------------------
+
+/** A tile coordinate on the campaign map grid */
+export interface MapTile {
+	col: number;
+	row: number;
+}
+
+/** Types of nodes placed on the campaign map */
+export type MapNodeType = 'level' | 'bonus_level' | 'bonus_end' | 'star_gate' | 'key_gate' | 'portal';
+
+/** Collectible type — items the player can pick up on or off the map */
+export type MapCollectibleType = 'chest' | 'key' | 'gem' | 'cloak' | 'powerup_hint' | 'powerup_time' | 'powerup_moves';
+
+/** A level or gate node on the campaign map */
+export interface MapNode {
+	id: string;
+	type: MapNodeType;
+	tile: MapTile;
+	/** For level/bonus_level nodes: the level number string */
+	levelNumber?: string;
+	/** For star_gate nodes: stars required to pass */
+	starsRequired?: number;
+	/** For key_gate nodes: id of the key item required */
+	keyItemId?: string;
+	/** Area index (1–5); gates belong to the area they open */
+	area: number;
+}
+
+/** A segment of path drawn between two tiles */
+export interface MapPathSegment {
+	from: MapTile;
+	to: MapTile;
+	/** true = bonus branch (dashed corridor) */
+	bonus: boolean;
+}
+
+/** A fog-of-war region covering an area of the map */
+export interface MapFogRegion {
+	/** Area index this fog covers (lifts when player unlocks this area) */
+	area: number;
+	/** Top-left corner tile */
+	topLeft: MapTile;
+	/** Bottom-right corner tile (inclusive) */
+	bottomRight: MapTile;
+}
+
+/** A collectible item placed on the campaign map */
+export interface MapCollectible {
+	id: string;
+	type: MapCollectibleType;
+	tile: MapTile;
+	area: number;
+	/** Human-readable label shown in popup */
+	label: string;
+	/** Reward payload: coins amount, or skin id, or powerup count */
+	reward: MapCollectibleReward;
+}
+
+export interface MapCollectibleReward {
+	coins?: number;
+	skinId?: number;
+	powerup?: 'hint' | 'extraTime' | 'extraMoves';
+	powerupCount?: number;
+	/** If this collectible grants a key, the key item id */
+	keyItemId?: string;
+}
+
+/** Full layout definition for one world's campaign map */
+export interface WorldMapLayout {
+	worldId: number;
+	/** Total tile columns */
+	cols: number;
+	/** Total tile rows */
+	rows: number;
+	/** Virtual px per tile (used for SVG sizing) */
+	tileSize: number;
+	nodes: MapNode[];
+	/** Ordered path segments connecting nodes */
+	pathSegments: MapPathSegment[];
+	collectibles: MapCollectible[];
+	fogRegions: MapFogRegion[];
+}
+
+/** Optional reward granted to the player upon completing a specific level */
+export interface LevelReward {
+	type: MapCollectibleType;
+	label: string;
+	reward: MapCollectibleReward;
+}

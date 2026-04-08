@@ -10,7 +10,7 @@
  * - Minimum stars required to unlock
  */
 
-import type { CampaignLevel, MazeAlgorithm, MazeShape } from './types';
+import type { CampaignLevel, MazeAlgorithm, MazeShape, LevelReward } from './types';
 
 interface LevelDef {
 	num: string;
@@ -22,6 +22,7 @@ interface LevelDef {
 	connects?: string[];
 	minStars?: number;
 	shape?: MazeShape;
+	reward?: LevelReward;
 }
 
 function buildLevel(def: LevelDef, id: number): CampaignLevel {
@@ -44,6 +45,7 @@ function buildLevel(def: LevelDef, id: number): CampaignLevel {
 		minimumStarsToUnlock: def.minStars ?? 0,
 		connectTo1: connects[0] ?? null,
 		connectTo2: connects[1] ?? null,
+		...(def.reward ? { levelReward: def.reward } : {}),
 		completed: false,
 		star1: false,
 		star2: false,
@@ -75,7 +77,7 @@ const world1Defs: LevelDef[] = [
 	{ num: '11', w: 6, h: 6, type: 'huntAndKill', twoStar: 50, threeStar: 28 },
 	{ num: '12', w: 7, h: 6, type: 'backtracking', twoStar: 55, threeStar: 30 },
 	{ num: '13', w: 7, h: 7, type: 'growingTree_50_50', twoStar: 60, threeStar: 32 },
-	{ num: '14', w: 7, h: 7, type: 'prims', twoStar: 62, threeStar: 32 },
+{ num: '14', w: 7, h: 7, type: 'prims', twoStar: 62, threeStar: 32, reward: { type: 'key', label: 'Rusted Gate Key', reward: { keyItemId: 'key_area2' } } },
 
 	// Area 2 (Levels 15–28 + Bonus 5b–7b)
 	{ num: '15', w: 8, h: 7, type: 'backtracking', twoStar: 65, threeStar: 35, minStars: 20 },
@@ -94,7 +96,7 @@ const world1Defs: LevelDef[] = [
 	{ num: '25', w: 11, h: 11, type: 'huntAndKill', twoStar: 125, threeStar: 52 },
 	{ num: '26', w: 11, h: 11, type: 'growingTree_50_50', twoStar: 128, threeStar: 52 },
 	{ num: '27', w: 12, h: 11, type: 'backtracking', twoStar: 135, threeStar: 55 },
-	{ num: '28', w: 12, h: 12, type: 'prims', twoStar: 145, threeStar: 58 },
+{ num: '28', w: 12, h: 12, type: 'prims', twoStar: 145, threeStar: 58, reward: { type: 'gem', label: 'Crystal Gem', reward: { coins: 350 } } },
 
 	// Area 3 (Levels 29–43 + Bonus 8b–9b)
 	{ num: '29', w: 12, h: 12, type: 'huntAndKill', twoStar: 148, threeStar: 58, minStars: 45 },
@@ -113,7 +115,7 @@ const world1Defs: LevelDef[] = [
 	{ num: '40', w: 16, h: 16, type: 'growingTree_50_50', twoStar: 245, threeStar: 78 },
 	{ num: '41', w: 16, h: 16, type: 'kruskals', twoStar: 248, threeStar: 78 },
 	{ num: '42', w: 17, h: 16, type: 'backtracking', twoStar: 258, threeStar: 80 },
-	{ num: '43', w: 17, h: 17, type: 'prims', twoStar: 275, threeStar: 82 },
+{ num: '43', w: 17, h: 17, type: 'prims', twoStar: 275, threeStar: 82, reward: { type: 'key', label: 'Forest Gate Key', reward: { keyItemId: 'key_forest' } } },
 
 	// Area 4 (Levels 44–55 + Bonus 10b–20b)
 	{ num: '44', w: 17, h: 17, type: 'huntAndKill', twoStar: 278, threeStar: 82, minStars: 80 },
@@ -127,8 +129,8 @@ const world1Defs: LevelDef[] = [
 	{ num: '51', w: 20, h: 19, type: 'backtracking', twoStar: 348, threeStar: 95 },
 	{ num: '52', w: 20, h: 20, type: 'prims', twoStar: 368, threeStar: 98 },
 	{ num: '53', w: 20, h: 20, type: 'growingTree_50_50', twoStar: 372, threeStar: 98 },
-	{ num: '54', w: 21, h: 20, type: 'backtracking', twoStar: 382, threeStar: 100 },
-	{ num: '55', w: 21, h: 21, type: 'huntAndKill', twoStar: 402, threeStar: 102 },
+	{ num: '54', w: 21, h: 20, type: 'backtracking', twoStar: 382, threeStar: 100, reward: { type: 'powerup_hint', label: "Navigator's Compass", reward: { powerup: 'hint', powerupCount: 3 } } },
+	{ num: '55', w: 21, h: 21, type: 'huntAndKill', twoStar: 402, threeStar: 102, reward: { type: 'cloak', label: 'Shadow Cloak', reward: { skinId: 7 } } },
 
 	// Area 5 (Levels 56–67)
 	{ num: '56', w: 21, h: 21, type: 'growingTree_75_25', twoStar: 405, threeStar: 102, minStars: 120 },
@@ -142,7 +144,7 @@ const world1Defs: LevelDef[] = [
 	{ num: '64', w: 24, h: 24, type: 'prims', twoStar: 510, threeStar: 118 },
 	{ num: '65', w: 24, h: 24, type: 'growingTree_50_0', twoStar: 514, threeStar: 118 },
 	{ num: '66', w: 25, h: 24, type: 'backtracking', twoStar: 525, threeStar: 120 },
-	{ num: '67', w: 25, h: 25, type: 'huntAndKill', twoStar: 548, threeStar: 122, connects: [] }
+	{ num: '67', w: 25, h: 25, type: 'huntAndKill', twoStar: 548, threeStar: 122, connects: [], reward: { type: 'gem', label: 'Cyber Core Gem', reward: { coins: 1000 } } }
 ];
 
 // ---------------------------------------------------------------------------

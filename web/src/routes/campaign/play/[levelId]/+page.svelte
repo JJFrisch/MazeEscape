@@ -19,8 +19,8 @@
 	import TriMazeRenderer from '$lib/components/TriMazeRenderer.svelte';
 	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
 	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
-
-	// Parse route: "worldId-levelNumber" e.g. "1-5" or "2-3b"
+        import MapCollectiblePopup from '$lib/components/MapCollectiblePopup.svelte';
+        import type { MapCollectible, LevelReward } from '$lib/core/types';
 	const levelKey = $derived($page.params.levelId as string);
 	const worldId = $derived(Number((levelKey ?? '').split('-')[0]));
 	const levelNumber = $derived((levelKey ?? '').split('-').slice(1).join('-'));
@@ -90,6 +90,9 @@
 	let victoryStars = $state({ star1: false, star2: false, star3: false, total: 0 });
 	let coinsEarned = $state(0);
 	let visitedCells = $state(new Set<string>());
+        /** Set after level completion if this level has a reward; cleared when player collects it */
+        let pendingLevelReward = $state<LevelReward | null>(null);
+        let showLevelRewardPopup = $state(false);
 
 	function hasActiveGameState() {
 		return session !== null || hexState !== null || circState !== null || triState !== null;
@@ -275,37 +278,59 @@
 		};
 		gameStore.saveLevelProgress(worldId, updatedLevel);
 
-		showOutro = true;
-	}
+                // If this level has a reward and it hasn't been collected yet, show it first
+                const rewardKey = `level_reward_${worldId}_${levelDef.levelNumber}`;
+                if (levelDef.levelReward && !gameStore.isMapItemCollected(worldId, rewardKey)) {
+                        pendingLevelReward = levelDef.levelReward;
+                        showLevelRewardPopup = true;
+                } else {
+                        showOutro = true;
+                }
+        }
 
-	function useHint() {
-		if (!session || session.isComplete || !canAcceptInput || activeShape !== 'rectangular') return;
-		if (gameStore.usePowerup('hint')) {
-			const hintPath = getHint(session);
-			session = { ...session, hintPath };
-		}
-	}
+        function collectLevelReward() {
+                if (!pendingLevelReward || !levelDef) return;
+                const r = pendingLevelReward.reward;
+                const rewardKey = `level_reward_${worldId}_${levelDef.levelNumber}`;
+                gameStore.collectMapItem(worldId, rewardKey);
+                if (r.coins) gameStore.addCoins(r.coins);
+                if (r.powerup && r.powerupCount) {
+                        for (let i = 0; i < r.powerupCount; i++) gameStore.addPowerup(r.powerup!);
+                }
+                if (r.skinId != null) gameStore.unlockSkin(r.skinId);
+                if (r.keyItemId) gameStore.addKey(r.keyItemId);
+                pendingLevelReward = null;
+                showLevelRewardPopup = false;
+                showOutro = true;
+        }
 
-	function handleKeydown(e: KeyboardEvent) {
-		if (!canAcceptInput) return;
-		const dirMap: Record<string, Direction> = {
-			ArrowUp: 'up',
-			ArrowDown: 'down',
-			ArrowLeft: 'left',
-			ArrowRight: 'right',
-			w: 'up',
-			s: 'down',
-			a: 'left',
-			d: 'right'
-		};
-		const dir = dirMap[e.key];
-		if (dir) {
-			e.preventDefault();
-			dispatchMove(dir);
-		}
-	}
+        function useHint() {
+                if (!session || session.isComplete || !canAcceptInput || activeShape !== 'rectangular') return;
+                if (gameStore.usePowerup('hint')) {
+                        const hintPath = getHint(session);
+                        session = { ...session, hintPath };
+                }
+        }
 
-	// Swipe support
+        function handleKeydown(e: KeyboardEvent) {
+                if (!canAcceptInput) return;
+                const dirMap: Record<string, Direction> = {
+                        ArrowUp: 'up',
+                        ArrowDown: 'down',
+                        ArrowLeft: 'left',
+                        ArrowRight: 'right',
+                        w: 'up',
+                        s: 'down',
+                        a: 'left',
+                        d: 'right'
+                };
+                const dir = dirMap[e.key];
+                if (dir) {
+                        e.preventDefault();
+                        dispatchMove(dir);
+                }
+        }
+
 	let touchStartX = 0;
 	let touchStartY = 0;
 
@@ -493,6 +518,22 @@
 		accentColor={theme.accentColor}
 		ondismiss={startGameplay}
 	/>
+{/if}
+
+{#if showLevelRewardPopup && pendingLevelReward}
+        {@const pseudoCollectible = {
+                id: `level_reward_${worldId}_${levelDef?.levelNumber ?? ''}`,
+                type: pendingLevelReward.type,
+                tile: { col: 0, row: 0 },
+                area: 1,
+                label: pendingLevelReward.label,
+                reward: pendingLevelReward.reward
+        } satisfies import('$lib/core/types').MapCollectible}
+        <MapCollectiblePopup
+                collectible={pseudoCollectible}
+                onCollect={collectLevelReward}
+                onClose={collectLevelReward}
+        />
 {/if}
 
 {#if showOutro && gameIsActive && levelDef}

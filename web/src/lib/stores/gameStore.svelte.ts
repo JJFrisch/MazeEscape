@@ -15,6 +15,8 @@ const STORAGE_KEY = 'mazeescape_player';
 const LEVEL_STORAGE_KEY = 'mazeescape_levels';
 const DAILY_STORAGE_KEY = 'mazeescape_daily';
 const SYNC_METADATA_STORAGE_KEY = 'mazeescape_sync_metadata';
+const MAP_COLLECTIBLES_STORAGE_KEY = 'mazeescape_map_collectibles';
+const MAP_KEYS_STORAGE_KEY = 'mazeescape_map_keys';
 
 type CloudSyncStatus = 'offline' | 'syncing' | 'synced' | 'error';
 
@@ -249,6 +251,10 @@ function createGameStore() {
 	let worlds = $state<WorldDefinition[]>(getAllWorlds());
 	let levelProgress = $state<Record<string, CampaignLevel>>({});
 	let dailyResults = $state<Record<string, DailyMazeLevel>>({});
+	/** Map collectibles collected: key = `${worldId}:${collectibleId}` → true */
+	let mapCollectiblesCollected = $state<Record<string, boolean>>({});
+	/** Keys owned: key = keyItemId → true */
+	let mapKeysOwned = $state<Record<string, boolean>>({});
 	let syncMetadata = $state<SyncMetadata>({
 		playerUpdatedAt: 0,
 		levelUpdatedAt: {},
@@ -268,6 +274,8 @@ function createGameStore() {
 		player = loadFromStorage(STORAGE_KEY, defaultPlayerData());
 		levelProgress = loadFromStorage(LEVEL_STORAGE_KEY, {});
 		dailyResults = loadFromStorage(DAILY_STORAGE_KEY, {});
+		mapCollectiblesCollected = loadFromStorage(MAP_COLLECTIBLES_STORAGE_KEY, {});
+		mapKeysOwned = loadFromStorage(MAP_KEYS_STORAGE_KEY, {});
 		syncMetadata = normalizeSyncMetadata(loadFromStorage<SyncMetadata | null>(SYNC_METADATA_STORAGE_KEY, null), player, levelProgress, dailyResults);
 		worlds = getAllWorlds();
 		initialized = true;
@@ -277,6 +285,8 @@ function createGameStore() {
 		saveToStorage(STORAGE_KEY, player);
 		saveToStorage(LEVEL_STORAGE_KEY, levelProgress);
 		saveToStorage(DAILY_STORAGE_KEY, dailyResults);
+		saveToStorage(MAP_COLLECTIBLES_STORAGE_KEY, mapCollectiblesCollected);
+		saveToStorage(MAP_KEYS_STORAGE_KEY, mapKeysOwned);
 		saveToStorage(SYNC_METADATA_STORAGE_KEY, syncMetadata);
 		scheduleCloudPush();
 	}
@@ -688,6 +698,38 @@ function createGameStore() {
 		return w1l10?.star1 === true;
 	}
 
+	// --- Map collectibles ---
+
+	function isMapItemCollected(worldId: number, collectibleId: string): boolean {
+		return mapCollectiblesCollected[`${worldId}:${collectibleId}`] === true;
+	}
+
+	function collectMapItem(worldId: number, collectibleId: string): void {
+		mapCollectiblesCollected = { ...mapCollectiblesCollected, [`${worldId}:${collectibleId}`]: true };
+		save();
+	}
+
+	function hasKey(keyItemId: string): boolean {
+		return mapKeysOwned[keyItemId] === true;
+	}
+
+	function addKey(keyItemId: string): void {
+		mapKeysOwned = { ...mapKeysOwned, [keyItemId]: true };
+		save();
+	}
+
+	function getHighestAreaUnlocked(worldId: number): number {
+		const world = worlds.find((w) => w.worldId === worldId);
+		if (!world) return 1;
+		const stars = getWorldStarCount(worldId);
+		let area = 1;
+		for (const required of world.gateStarRequired) {
+			if (stars >= required) area++;
+			else break;
+		}
+		return area;
+	}
+
 	function getCloudSyncStatusLabel(): string {
 		if (cloudSyncStatus === 'offline') return cloudUserId ? 'Offline' : 'Local only';
 		if (cloudSyncStatus === 'syncing') return 'Syncing...';
@@ -730,6 +772,11 @@ function createGameStore() {
 		getWorldStarCount,
 		getDailyResult,
 		saveDailyResult,
-		isDailyMazeUnlocked
+		isDailyMazeUnlocked,
+		isMapItemCollected,
+		collectMapItem,
+		hasKey,
+		addKey,
+		getHighestAreaUnlocked
 	};
 }

@@ -393,10 +393,10 @@ public partial class CampaignLevelPage : ContentPage
             SwipeGestureRecognizer downSwipeGesture = new SwipeGestureRecognizer { Direction = SwipeDirection.Down };
             downSwipeGesture.Swiped += OnSwiped;
 
-            mazeGraphicsView.GestureRecognizers.Add(leftSwipeGesture);
-            mazeGraphicsView.GestureRecognizers.Add(rightSwipeGesture);
-            mazeGraphicsView.GestureRecognizers.Add(upSwipeGesture);
-            mazeGraphicsView.GestureRecognizers.Add(downSwipeGesture);
+            main_absolute_layout.GestureRecognizers.Add(leftSwipeGesture);
+            main_absolute_layout.GestureRecognizers.Add(rightSwipeGesture);
+            main_absolute_layout.GestureRecognizers.Add(upSwipeGesture);
+            main_absolute_layout.GestureRecognizers.Add(downSwipeGesture);
         }
     }
 
@@ -497,35 +497,19 @@ public partial class CampaignLevelPage : ContentPage
 
     public void OnUpArrowKeyPressed(KeyboardHookEventArgs args)
     {
-        //MoveUp();
-        if (MoveQueue.Count < MoveQueueLengthMax)
-        {
-            MoveQueue.Enqueue(new MoveDelegate(MoveUp));
-        }
+        Dispatcher.Dispatch(async () => { await MoveUp(); });
     }
     public void OnDownArrowKeyPressed(KeyboardHookEventArgs args)
     {
-        //MoveDown();
-        if (MoveQueue.Count < MoveQueueLengthMax)
-        {
-            MoveQueue.Enqueue(new MoveDelegate(MoveDown));
-        }
+        Dispatcher.Dispatch(async () => { await MoveDown(); });
     }
     public void OnLeftArrowKeyPressed(KeyboardHookEventArgs args)
     {
-        //MoveLeft();
-        if (MoveQueue.Count < MoveQueueLengthMax)
-        {
-            MoveQueue.Enqueue(new MoveDelegate(MoveLeft));
-        }
+        Dispatcher.Dispatch(async () => { await MoveLeft(); });
     }
     public void OnRightArrowKeyPressed(KeyboardHookEventArgs args)
     {
-        //MoveRight();
-        if (MoveQueue.Count < MoveQueueLengthMax)
-        {
-            MoveQueue.Enqueue(new MoveDelegate(MoveRight));
-        }
+        Dispatcher.Dispatch(async () => { await MoveRight(); });
     }
 
 

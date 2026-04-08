@@ -90,6 +90,7 @@ function defaultPlayerData(): PlayerData {
 		playerId: crypto.randomUUID(),
 		playerName: 'Player',
 		coinCount: 0,
+		gemCount: 0,
 		hintsOwned: 0,
 		extraTimesOwned: 0,
 		extraMovesOwned: 0,
@@ -201,6 +202,7 @@ function mapProfileRowToPlayerData(profile: ProfileRow | null, ownedSkins: Owned
 		playerId: profile.id,
 		playerName: profile.player_name,
 		coinCount: profile.coin_count,
+		gemCount: (player.gemCount ?? 0), // not in cloud profile, persist locally only
 		hintsOwned: profile.hints_owned,
 		extraTimesOwned: profile.extra_times_owned,
 		extraMovesOwned: profile.extra_moves_owned,
@@ -570,6 +572,20 @@ function createGameStore() {
 		save();
 	}
 
+	function addGems(amount: number) {
+		player.gemCount += amount;
+		touchPlayer();
+		save();
+	}
+
+	function spendGems(amount: number): boolean {
+		if (player.gemCount < amount) return false;
+		player.gemCount -= amount;
+		touchPlayer();
+		save();
+		return true;
+	}
+
 	function spendCoins(amount: number): boolean {
 		if (player.coinCount < amount) return false;
 		player.coinCount -= amount;
@@ -610,7 +626,11 @@ function createGameStore() {
 		const skin = SKIN_CATALOG.find((s) => s.id === skinId);
 		if (!skin || skin.isSpecialSkin) return false;
 		if (player.unlockedSkinIds.includes(skinId)) return false;
-		if (!spendCoins(skin.coinPrice)) return false;
+		if (skin.gemPrice > 0) {
+			if (!spendGems(skin.gemPrice)) return false;
+		} else if (!spendCoins(skin.coinPrice)) {
+			return false;
+		}
 		unlockSkin(skinId);
 		return true;
 	}
@@ -655,6 +675,8 @@ function createGameStore() {
 		const key = `${worldId}:${level.levelNumber}`;
 		const existing = levelProgress[key];
 
+		const wasAlreadyStar3 = existing?.star3 === true;
+
 		if (existing) {
 			// Only improve — never overwrite with worse stats
 			level.star1 = level.star1 || existing.star1;
@@ -667,6 +689,9 @@ function createGameStore() {
 		}
 
 		levelProgress[key] = { ...level };
+		if (level.star3 && !wasAlreadyStar3) {
+			addGems(1);
+		}
 		touchLevel(key);
 		save();
 	}
@@ -759,6 +784,8 @@ function createGameStore() {
 		handleAuthStateChanged,
 		syncNow,
 		addCoins,
+		addGems,
+		spendGems,
 		spendCoins,
 		setPlayerName,
 		setWallColor,

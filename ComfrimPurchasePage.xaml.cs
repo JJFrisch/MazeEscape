@@ -33,8 +33,9 @@ public partial class ComfrimPurchasePage : Popup
         this.Size = new Size(width, height);
 
         price = skin.CoinPrice;
-        itemPriceLabel.Text = price.ToString();  
+        itemPriceLabel.Text = price.ToString();
         if (skin.IsSpecialSkin) { itemPriceLabel.Text = "Special Unlock"; itemPriceLabel.FontSize = 12; }
+        if (skin.GemPrice > 0) { itemPriceLabel.Text = $"💎 {skin.GemPrice}"; itemPriceLabel.TextColor = Colors.MediumPurple; }
 
         Skin = skin;
 
@@ -42,7 +43,8 @@ public partial class ComfrimPurchasePage : Popup
         itemImage.Source = $"{skin.ImageUrl}_icon.png";
 
 
-        if (App.PlayerData.CoinCount >= price && !skin.IsSpecialSkin)
+        if ((skin.GemPrice > 0 && App.PlayerData.GemCount >= skin.GemPrice) ||
+            (App.PlayerData.CoinCount >= price && !skin.IsSpecialSkin && skin.GemPrice == 0))
         {
             itemPriceLabel.TextColor = Colors.Gold;
             itemPriceLabel.Opacity = 1;
@@ -78,7 +80,14 @@ public partial class ComfrimPurchasePage : Popup
 
     async Task PurchaseButton_Clicked(object sender, EventArgs e)
     {
-        App.PlayerData.CoinCount -= price;
+        if (Skin.GemPrice > 0)
+        {
+            App.PlayerData.GemCount -= Skin.GemPrice;
+        }
+        else
+        {
+            App.PlayerData.CoinCount -= price;
+        }
         Skin.IsUnlocked = true;
         App.PlayerData.Save();
 
@@ -93,7 +102,7 @@ public partial class ComfrimPurchasePage : Popup
     {
         itemPriceLabel.TextColor = Colors.Black;
         itemPriceLabel.FontSize = 12;
-        itemPriceLabel.Text = "Not Enough Coins";
+        itemPriceLabel.Text = Skin.GemPrice > 0 ? "Not Enough Gems" : "Not Enough Coins";
 
         _ = itemPriceLabel.ScaleTo(1.1, 200);
         await itemPriceLabel.TextColorTo(Colors.Black, 500, 500);

@@ -8,10 +8,12 @@
 	import { canMove, applyMove } from '$lib/core/maze';
 	import type { Direction, DailyMazeLevel } from '$lib/core/types';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
+	import { getSkinById } from '$lib/core/skins';
 	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
 	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
 
 	const today = new Date();
+	const skinImageUrl = $derived(getSkinById(gameStore.player.currentSkinId)?.imageUrl ?? 'player_image0');
 	let viewYear = $state(today.getFullYear());
 	let viewMonth = $state(today.getMonth());
 	let calendarDays = $derived(getDailyMazesForMonth(viewYear, viewMonth));
@@ -298,6 +300,7 @@
 				hintPath={session.hintPath}
 				showVisited={true}
 				{visitedCells}
+				{skinImageUrl}
 			/>
 		</div>
 

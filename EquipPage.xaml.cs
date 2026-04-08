@@ -16,6 +16,7 @@ public partial class EquipPage : ContentPage
 
         characterImage.Source = App.PlayerData.PlayerCurrentSkin.ImageUrl+"_icon.png";
         CoinCountLabel.Text = App.PlayerData.CoinCount.ToString();
+        GemCountLabel.Text = App.PlayerData.GemCount.ToString();
 
 
     }
@@ -194,6 +195,7 @@ public partial class EquipPage : ContentPage
 
         var result = await this.ShowPopupAsync(new ComfrimPurchasePage(skin, imageButton, label, lock_icon), CancellationToken.None);
         CoinCountLabel.Text = App.PlayerData.CoinCount.ToString();
+        GemCountLabel.Text = App.PlayerData.GemCount.ToString();
 
         if (result == "Purchased")
         {

@@ -5,6 +5,7 @@
 	import { onDestroy, tick, untrack } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
+	import { getSkinById } from '$lib/core/skins';
 	import { createGameSession, getHint, calculateStars } from '$lib/core/session';
 	import type { GameSessionState, GameSessionConfig } from '$lib/core/session';
 	import { canMove, applyMove } from '$lib/core/maze';
@@ -27,6 +28,7 @@
 	const worldDef = $derived(getAllWorlds().find((w) => w.worldId === worldId));
 	const levelDef = $derived(worldDef ? getLevelByNumber(worldDef, levelNumber) : undefined);
 	const theme = $derived(getWorldTheme(worldId));
+	const skinImageUrl = $derived(getSkinById(gameStore.player.currentSkinId)?.imageUrl ?? 'player_image0');
 
 	// Per-world intro phrases keyed by motif
 	const INTRO_PHRASES: Record<'tech' | 'space' | 'elemental', string[]> = {
@@ -450,6 +452,7 @@
 					hintPath={session.hintPath}
 					showVisited={true}
 					{visitedCells}
+					{skinImageUrl}
 				/>
 			{/if}
 		</div>

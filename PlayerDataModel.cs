@@ -36,6 +36,8 @@ namespace MazeEscape
 
         public int CoinCount { get; set; } = 0;
 
+        public int GemCount { get; set; } = 0;
+
         public int HintsOwned = 0;
 
         public int ExtraTimesOwned = 0;
@@ -634,14 +636,14 @@ namespace MazeEscape
             UnlockedSkins.Add(new SkinModel(3, "Pink Sunset", "player_image3", 2000));
             UnlockedSkins.Add(new SkinModel(4, "Diskes", "player_image4", 5000));
             UnlockedSkins.Add(new SkinModel(5, "Fireball", "player_image5", 22000));
-            UnlockedSkins.Add(new SkinModel(6, "Galaxy Ball", "player_image6", 50000));
+            UnlockedSkins.Add(new SkinModel(6, "Galaxy Ball", "player_image6", 0, 75));
             UnlockedSkins.Add(new SkinModel(7, "Elemental Mixer", "player_image7", 6500));
             UnlockedSkins.Add(new SkinModel(8, "Ivy Eye", "player_image8", 3400));
             UnlockedSkins.Add(new SkinModel(9, "Ruffles", "player_image9", 7120));
             UnlockedSkins.Add(new SkinModel(10, "Rocco", "player_image10", 3000));
             UnlockedSkins.Add(new SkinModel(11, "Pugsley", "player_image11", 4375));
             UnlockedSkins.Add(new SkinModel(12, "Kowalski", "player_image12", 9000));
-            UnlockedSkins.Add(new SkinModel(14, "Brain", "player_image14", 19000));
+            UnlockedSkins.Add(new SkinModel(14, "Brain", "player_image14", 0, 50));
             UnlockedSkins.Add(new SkinModel(16, "Fire Elemental", "player_image16", 8500));
             //UnlockedSkins.Add(new SkinModel(18, "Water Elemental", "player_image18", 8500));
 
@@ -663,6 +665,7 @@ namespace MazeEscape
                 PlayerName = PlayerName,
                 Worlds = Worlds,
                 CoinCount = CoinCount,
+                GemCount = GemCount,
                 HintsOwned = HintsOwned,
                 ExtraMovesOwned = ExtraMovesOwned,
                 ExtraTimesOwned = ExtraTimesOwned,
@@ -689,6 +692,7 @@ namespace MazeEscape
             PlayerName = data.PlayerName;
             Worlds = data.Worlds;
             CoinCount = data.CoinCount;
+            GemCount = data.GemCount;
             HintsOwned = data.HintsOwned;
             ExtraMovesOwned = data.ExtraMovesOwned;
             ExtraTimesOwned = data.ExtraTimesOwned;
@@ -753,6 +757,8 @@ namespace MazeEscape
         public int CurrentWorldIndex { get; set; }
 
         public int CoinCount { get; set; }
+
+        public int GemCount { get; set; }
 
         public int HintsOwned { get; set; }
 

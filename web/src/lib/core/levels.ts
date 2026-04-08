@@ -148,13 +148,14 @@ const world1Defs: LevelDef[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// World 2: Galactic Grids (abbreviated – same structure, larger mazes)
+// World 2: Galactic Grids (110 main levels, fully defined)
 // ---------------------------------------------------------------------------
 const world2Defs: LevelDef[] = [
+	// Area 1 (Levels 1–22)
 	{ num: '1', w: 3, h: 3, type: 'huntAndKill', twoStar: 14, threeStar: 14 },
 	{ num: '2', w: 3, h: 4, type: 'backtracking', twoStar: 17, threeStar: 16 },
 	{ num: '3', w: 4, h: 4, type: 'prims', twoStar: 22, threeStar: 18 },
-	{ num: '4', w: 4, h: 4, type: 'growingTree_50_50', twoStar: 24, threeStar: 18 },
+	{ num: '4', w: 4, h: 4, type: 'growingTree_50_0', twoStar: 24, threeStar: 18 },
 	{ num: '5', w: 5, h: 4, type: 'backtracking', twoStar: 28, threeStar: 20 },
 	{ num: '6', w: 5, h: 5, type: 'huntAndKill', twoStar: 35, threeStar: 22 },
 	{ num: '7', w: 5, h: 5, type: 'kruskals', twoStar: 36, threeStar: 22 },
@@ -173,24 +174,102 @@ const world2Defs: LevelDef[] = [
 	{ num: '20', w: 10, h: 9, type: 'backtracking', twoStar: 98, threeStar: 45 },
 	{ num: '21', w: 10, h: 10, type: 'prims', twoStar: 108, threeStar: 48 },
 	{ num: '22', w: 10, h: 10, type: 'growingTree_50_0', twoStar: 110, threeStar: 48, minStars: 20 },
-	// Continue with similar density through level 110...
-	// Abbreviated for size – full definitions mirror the C# originals
+
+	// Area 2 (Levels 23–45)
 	{ num: '23', w: 11, h: 10, type: 'backtracking', twoStar: 115, threeStar: 50, minStars: 30 },
 	{ num: '24', w: 11, h: 11, type: 'huntAndKill', twoStar: 125, threeStar: 52 },
 	{ num: '25', w: 11, h: 11, type: 'kruskals', twoStar: 128, threeStar: 52 },
-	// Hex & circular levels introduce new maze shapes
+	// Hex, circular & triangular maze shapes introduced
 	{ num: '26', w: 7, h: 6, type: 'backtracking', twoStar: 50, threeStar: 30, shape: 'hexagonal' },
 	{ num: '27', w: 5, h: 5, type: 'backtracking', twoStar: 30, threeStar: 25, shape: 'circular' },
 	{ num: '28', w: 8, h: 6, type: 'backtracking', twoStar: 55, threeStar: 32, shape: 'triangular' },
 	{ num: '29', w: 9, h: 7, type: 'backtracking', twoStar: 65, threeStar: 38, shape: 'hexagonal' },
 	{ num: '30', w: 13, h: 12, type: 'backtracking', twoStar: 155, threeStar: 60, minStars: 50 },
+	{ num: '31', w: 13, h: 13, type: 'huntAndKill', twoStar: 164, threeStar: 62 },
+	{ num: '32', w: 14, h: 13, type: 'kruskals', twoStar: 173, threeStar: 64 },
+	{ num: '33', w: 14, h: 14, type: 'prims', twoStar: 182, threeStar: 65 },
+	{ num: '34', w: 14, h: 14, type: 'growingTree_50_0', twoStar: 191, threeStar: 67 },
+	{ num: '35', w: 15, h: 14, type: 'growingTree_50_50', twoStar: 200, threeStar: 69 },
+	{ num: '36', w: 15, h: 15, type: 'growingTree_75_25', twoStar: 209, threeStar: 71 },
+	{ num: '37', w: 15, h: 15, type: 'growingTree_25_75', twoStar: 218, threeStar: 72 },
+	{ num: '38', w: 16, h: 15, type: 'backtracking', twoStar: 227, threeStar: 74 },
+	{ num: '39', w: 16, h: 15, type: 'prims', twoStar: 236, threeStar: 76 },
 	{ num: '40', w: 16, h: 16, type: 'growingTree_50_50', twoStar: 245, threeStar: 78, minStars: 60 },
+	{ num: '41', w: 16, h: 16, type: 'huntAndKill', twoStar: 254, threeStar: 79 },
+	{ num: '42', w: 17, h: 16, type: 'kruskals', twoStar: 263, threeStar: 81 },
+	{ num: '43', w: 17, h: 17, type: 'prims', twoStar: 272, threeStar: 82 },
+	{ num: '44', w: 17, h: 17, type: 'growingTree_50_0', twoStar: 281, threeStar: 84 },
+	{ num: '45', w: 18, h: 17, type: 'growingTree_50_50', twoStar: 290, threeStar: 85 },
+
+	// Area 3 (Levels 46–65)
+	{ num: '46', w: 18, h: 18, type: 'growingTree_75_25', twoStar: 299, threeStar: 87 },
+	{ num: '47', w: 18, h: 18, type: 'growingTree_25_75', twoStar: 308, threeStar: 88 },
+	{ num: '48', w: 19, h: 18, type: 'backtracking', twoStar: 317, threeStar: 90 },
+	{ num: '49', w: 19, h: 18, type: 'prims', twoStar: 326, threeStar: 91 },
 	{ num: '50', w: 19, h: 19, type: 'kruskals', twoStar: 338, threeStar: 92, minStars: 80 },
+	{ num: '51', w: 20, h: 19, type: 'huntAndKill', twoStar: 349, threeStar: 94 },
+	{ num: '52', w: 20, h: 20, type: 'kruskals', twoStar: 361, threeStar: 96 },
+	{ num: '53', w: 20, h: 20, type: 'prims', twoStar: 372, threeStar: 97 },
+	{ num: '54', w: 21, h: 20, type: 'growingTree_50_0', twoStar: 383, threeStar: 99 },
+	{ num: '55', w: 21, h: 21, type: 'growingTree_50_50', twoStar: 395, threeStar: 101 },
+	{ num: '56', w: 22, h: 21, type: 'growingTree_75_25', twoStar: 406, threeStar: 103 },
+	{ num: '57', w: 22, h: 21, type: 'growingTree_25_75', twoStar: 417, threeStar: 105 },
+	{ num: '58', w: 22, h: 22, type: 'backtracking', twoStar: 429, threeStar: 107 },
+	{ num: '59', w: 23, h: 22, type: 'prims', twoStar: 440, threeStar: 108 },
 	{ num: '60', w: 23, h: 22, type: 'backtracking', twoStar: 452, threeStar: 110, minStars: 100 },
+	{ num: '61', w: 23, h: 23, type: 'huntAndKill', twoStar: 462, threeStar: 111 },
+	{ num: '62', w: 23, h: 23, type: 'kruskals', twoStar: 471, threeStar: 112 },
+	{ num: '63', w: 24, h: 23, type: 'prims', twoStar: 481, threeStar: 114 },
+	{ num: '64', w: 24, h: 24, type: 'growingTree_50_0', twoStar: 490, threeStar: 115 },
+	{ num: '65', w: 24, h: 24, type: 'growingTree_50_50', twoStar: 500, threeStar: 116 },
+
+	// Area 4 (Levels 66–81)
+	{ num: '66', w: 25, h: 24, type: 'growingTree_75_25', twoStar: 510, threeStar: 117 },
+	{ num: '67', w: 25, h: 24, type: 'growingTree_25_75', twoStar: 519, threeStar: 118 },
+	{ num: '68', w: 25, h: 25, type: 'backtracking', twoStar: 529, threeStar: 120 },
+	{ num: '69', w: 25, h: 25, type: 'prims', twoStar: 538, threeStar: 121 },
 	{ num: '70', w: 25, h: 25, type: 'huntAndKill', twoStar: 548, threeStar: 122, minStars: 120 },
+	{ num: '71', w: 25, h: 25, type: 'huntAndKill', twoStar: 558, threeStar: 123 },
+	{ num: '72', w: 26, h: 25, type: 'kruskals', twoStar: 568, threeStar: 124 },
+	{ num: '73', w: 26, h: 26, type: 'prims', twoStar: 578, threeStar: 126 },
+	{ num: '74', w: 26, h: 26, type: 'growingTree_50_0', twoStar: 589, threeStar: 127 },
+	{ num: '75', w: 27, h: 26, type: 'growingTree_50_50', twoStar: 599, threeStar: 128 },
+	{ num: '76', w: 27, h: 26, type: 'growingTree_75_25', twoStar: 609, threeStar: 129 },
+	{ num: '77', w: 27, h: 27, type: 'growingTree_25_75', twoStar: 619, threeStar: 131 },
+	{ num: '78', w: 28, h: 27, type: 'backtracking', twoStar: 630, threeStar: 132 },
+	{ num: '79', w: 28, h: 27, type: 'prims', twoStar: 640, threeStar: 133 },
 	{ num: '80', w: 28, h: 27, type: 'prims', twoStar: 650, threeStar: 135, minStars: 150 },
+	{ num: '81', w: 28, h: 28, type: 'huntAndKill', twoStar: 663, threeStar: 137 },
+
+	// Area 5 (Levels 82–110)
+	{ num: '82', w: 28, h: 28, type: 'kruskals', twoStar: 676, threeStar: 138 },
+	{ num: '83', w: 29, h: 28, type: 'prims', twoStar: 689, threeStar: 140 },
+	{ num: '84', w: 29, h: 29, type: 'growingTree_50_0', twoStar: 702, threeStar: 141 },
+	{ num: '85', w: 29, h: 29, type: 'growingTree_50_50', twoStar: 715, threeStar: 143 },
+	{ num: '86', w: 30, h: 29, type: 'growingTree_75_25', twoStar: 728, threeStar: 144 },
+	{ num: '87', w: 30, h: 29, type: 'growingTree_25_75', twoStar: 741, threeStar: 146 },
+	{ num: '88', w: 30, h: 30, type: 'backtracking', twoStar: 754, threeStar: 147 },
+	{ num: '89', w: 30, h: 30, type: 'prims', twoStar: 767, threeStar: 149 },
 	{ num: '90', w: 30, h: 30, type: 'growingTree_75_25', twoStar: 780, threeStar: 150, minStars: 200 },
+	{ num: '91', w: 30, h: 30, type: 'huntAndKill', twoStar: 793, threeStar: 152 },
+	{ num: '92', w: 31, h: 30, type: 'kruskals', twoStar: 806, threeStar: 154 },
+	{ num: '93', w: 31, h: 31, type: 'prims', twoStar: 819, threeStar: 156 },
+	{ num: '94', w: 31, h: 31, type: 'growingTree_50_0', twoStar: 832, threeStar: 158 },
+	{ num: '95', w: 32, h: 31, type: 'growingTree_50_50', twoStar: 845, threeStar: 160 },
+	{ num: '96', w: 32, h: 31, type: 'growingTree_75_25', twoStar: 858, threeStar: 162 },
+	{ num: '97', w: 32, h: 32, type: 'growingTree_25_75', twoStar: 871, threeStar: 164 },
+	{ num: '98', w: 32, h: 32, type: 'backtracking', twoStar: 884, threeStar: 166 },
+	{ num: '99', w: 33, h: 32, type: 'prims', twoStar: 897, threeStar: 168 },
 	{ num: '100', w: 32, h: 32, type: 'backtracking', twoStar: 910, threeStar: 170, minStars: 230 },
+	{ num: '101', w: 33, h: 33, type: 'huntAndKill', twoStar: 927, threeStar: 173 },
+	{ num: '102', w: 33, h: 33, type: 'kruskals', twoStar: 944, threeStar: 176 },
+	{ num: '103', w: 34, h: 33, type: 'prims', twoStar: 961, threeStar: 179 },
+	{ num: '104', w: 34, h: 34, type: 'growingTree_50_0', twoStar: 978, threeStar: 182 },
+	{ num: '105', w: 34, h: 34, type: 'growingTree_50_50', twoStar: 995, threeStar: 185 },
+	{ num: '106', w: 35, h: 34, type: 'growingTree_75_25', twoStar: 1012, threeStar: 188 },
+	{ num: '107', w: 35, h: 34, type: 'growingTree_25_75', twoStar: 1029, threeStar: 191 },
+	{ num: '108', w: 35, h: 35, type: 'backtracking', twoStar: 1046, threeStar: 194 },
+	{ num: '109', w: 35, h: 35, type: 'prims', twoStar: 1063, threeStar: 197 },
 	{ num: '110', w: 35, h: 35, type: 'huntAndKill', twoStar: 1080, threeStar: 200, minStars: 250, connects: [] }
 ];
 
@@ -225,7 +304,7 @@ export function getWorld2(): WorldDefinition {
 		worldId: 2,
 		worldName: 'Galactic Grids',
 		imageUrl: 'space_background11',
-		numberOfLevels: 110,
+		numberOfLevels: world2Defs.length,
 		locked: true,
 		gateStarRequired: [20, 30, 50, 60, 80, 100, 120, 150, 230, 240, 250, 150, 230, 240, 250, 240, 250],
 		levels: world2Defs.map((d, i) => buildLevel(d, i + 1))

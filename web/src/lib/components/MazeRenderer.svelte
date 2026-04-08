@@ -3,6 +3,7 @@
   Supports: neon (default), classic, dotmatrix
 -->
 <script lang="ts">
+	import { base } from '$app/paths';
 	import type { MazeCell, MazeData, Position } from '$lib/core/types';
 
 	export type MazeVisualTheme = 'neon' | 'classic' | 'dotmatrix';
@@ -12,7 +13,7 @@
 		playerPos,
 		wallColor = '#38bdf8',
 		hintPath = null,
-		skinEmoji = '🟣',
+		skinImageUrl = 'player_image0',
 		showVisited = false,
 		visitedCells = new Set<string>(),
 		visualTheme = 'neon' as MazeVisualTheme
@@ -21,7 +22,7 @@
 		playerPos: Position;
 		wallColor?: string;
 		hintPath?: Position[] | null;
-		skinEmoji?: string;
+		skinImageUrl?: string;
 		showVisited?: boolean;
 		visitedCells?: Set<string>;
 		visualTheme?: MazeVisualTheme;
@@ -294,17 +295,15 @@
 			stroke={visualTheme === 'classic' ? '#312e81' : 'none'}
 			stroke-width={visualTheme === 'classic' ? 1.5 : 0}
 		/>
-		<!-- Player emoji (neon only) -->
-		{#if visualTheme === 'neon'}
-			<text
-				x={cx(playerPos.x)}
-				y={cy(playerPos.y) + 1}
-				text-anchor="middle"
-				dominant-baseline="middle"
-				font-size={CELL_SIZE * 0.42}
-				font-family="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif"
-			>{skinEmoji}</text>
-		{/if}
+		<!-- Player skin image -->
+		<image
+			href="{base}/images/{skinImageUrl}_icon.png"
+			x={cx(playerPos.x) - CELL_SIZE * 0.3}
+			y={cy(playerPos.y) - CELL_SIZE * 0.3}
+			width={CELL_SIZE * 0.6}
+			height={CELL_SIZE * 0.6}
+			class="player-skin"
+		/>
 	</svg>
 </div>
 
@@ -356,5 +355,11 @@
 	@keyframes player-breathe {
 		0%, 100% { opacity: 0.5; }
 		50%       { opacity: 1; }
+	}
+
+	/* Player skin image */
+	.player-skin {
+		pointer-events: none;
+		image-rendering: pixelated;
 	}
 </style>

@@ -502,6 +502,7 @@ public partial class CampaignLevelPage : ContentPage
             //Level.NumberOfStars++;
             World.StarCount++;
             coinsEarned += num;
+            App.PlayerData.GemCount += 1;
         }
 
 

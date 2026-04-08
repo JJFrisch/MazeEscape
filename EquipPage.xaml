@@ -63,6 +63,19 @@
                    AbsoluteLayout.LayoutBounds="1,40,80,100"
                    AbsoluteLayout.LayoutFlags="XProportional" TextColor="White"/>
 
+        <BoxView BackgroundColor="Gray" Opacity="0.6" CornerRadius="20,0,20,0"
+             AbsoluteLayout.LayoutBounds="1,83,100,40"
+             AbsoluteLayout.LayoutFlags="XProportional"/>
+
+            <Label Text="💎" FontSize="18"
+                   AbsoluteLayout.LayoutBounds="1,88,195,25"
+                   AbsoluteLayout.LayoutFlags="XProportional"
+                   HorizontalTextAlignment="Start" VerticalTextAlignment="Center"/>
+
+            <Label x:Name="GemCountLabel" HorizontalOptions="Center" VerticalOptions="Start" FontSize="18"
+                   AbsoluteLayout.LayoutBounds="1,87,80,80"
+                   AbsoluteLayout.LayoutFlags="XProportional" TextColor="White"/>
+
 
         <Image x:Name="characterImage" AbsoluteLayout.LayoutBounds="0.5,0.3,100,100"
                    AbsoluteLayout.LayoutFlags="PositionProportional"

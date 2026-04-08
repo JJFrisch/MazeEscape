@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { SKIN_CATALOG } from '$lib/core/skins';
 	import type { SkinModel } from '$lib/core/types';
@@ -13,7 +14,7 @@
 	function onSkinClick(skin: SkinModel) {
 		if (ownedIds.has(skin.id)) {
 			gameStore.equipSkin(skin.id);
-		} else if (skin.coinPrice > 0) {
+		} else if (skin.coinPrice > 0 || skin.gemPrice > 0) {
 			confirmSkin = skin;
 		}
 	}
@@ -36,6 +37,10 @@
 <div class="equip-page">
 	<h1 class="page-title">🎨 Skins</h1>
 	<p class="page-subtitle">Customize your maze runner. Tap to equip or purchase.</p>
+	<div class="balance-row">
+		<span class="balance-item">{gameStore.player.coinCount} 🪙</span>
+		<span class="balance-item gem">{gameStore.player.gemCount} 💎</span>
+	</div>
 
 	{#if buyMsg}
 		<div class="toast">{buyMsg}</div>
@@ -49,11 +54,15 @@
 				class="skin-card"
 				class:owned
 				class:equipped
-				class:locked={!owned && skin.coinPrice === 0 && skin.isSpecialSkin}
+				class:locked={!owned && skin.coinPrice === 0 && skin.gemPrice === 0 && skin.isSpecialSkin}
 				onclick={() => onSkinClick(skin)}
 			>
 				<div class="skin-preview">
-					<span class="skin-emoji">🟢</span>
+					<img
+						src="{base}/images/{skin.imageUrl}_icon.png"
+						alt={skin.name}
+						class="skin-img"
+					/>
 				</div>
 				<span class="skin-name">{skin.name}</span>
 				{#if equipped}
@@ -62,6 +71,8 @@
 					<span class="skin-badge owned-badge">Owned</span>
 				{:else if skin.coinPrice > 0}
 					<span class="skin-badge price-badge">{skin.coinPrice} 🪙</span>
+				{:else if skin.gemPrice > 0}
+					<span class="skin-badge gem-badge">{skin.gemPrice} 💎</span>
 				{:else}
 					<span class="skin-badge locked-badge">🔒 Special</span>
 				{/if}
@@ -74,19 +85,33 @@
 	{#if confirmSkin}
 		<div class="confirm-buy">
 			<div class="confirm-preview">
-				<span style="font-size: 3rem">🟢</span>
+				<img
+					src="{base}/images/{confirmSkin.imageUrl}_icon.png"
+					alt={confirmSkin.name}
+					class="confirm-skin-img"
+				/>
 			</div>
 			<h2>Buy {confirmSkin.name}?</h2>
+		{#if confirmSkin.gemPrice > 0}
+			<p class="confirm-price">{confirmSkin.gemPrice} 💎</p>
+			<p class="confirm-balance">Gems: {gameStore.player.gemCount} 💎</p>
+			{#if gameStore.player.gemCount < confirmSkin.gemPrice}
+				<p class="confirm-cant-afford">Not enough gems!</p>
+			{/if}
+		{:else}
 			<p class="confirm-price">{confirmSkin.coinPrice} 🪙</p>
 			<p class="confirm-balance">Balance: {gameStore.player.coinCount} 🪙</p>
 			{#if gameStore.player.coinCount < confirmSkin.coinPrice}
 				<p class="confirm-cant-afford">Not enough coins!</p>
 			{/if}
+			{/if}
 			<div class="confirm-actions">
 				<button class="btn btn-ghost" onclick={() => confirmSkin = null}>Cancel</button>
 				<button
 					class="btn btn-primary"
-					disabled={gameStore.player.coinCount < confirmSkin.coinPrice}
+					disabled={confirmSkin.gemPrice > 0
+						? gameStore.player.gemCount < confirmSkin.gemPrice
+						: gameStore.player.coinCount < confirmSkin.coinPrice}
 					onclick={confirmBuy}
 				>
 					Buy & Equip
@@ -157,7 +182,7 @@
 		justify-content: center;
 	}
 
-	.skin-emoji { font-size: 1.5rem; }
+	.skin-img { width: 48px; height: 48px; object-fit: contain; border-radius: var(--radius-sm); }
 
 	.skin-name {
 		font-size: var(--text-xs);
@@ -178,7 +203,22 @@
 	.equipped-badge { background: var(--color-accent-primary); color: white; }
 	.owned-badge { background: var(--color-accent-green); color: #000; }
 	.price-badge { background: var(--color-accent-gold); color: #000; font-weight: 600; }
+	.gem-badge { background: #7c3aed; color: white; font-weight: 600; }
 	.locked-badge { background: var(--color-bg-secondary); }
+
+	.balance-row {
+		display: flex;
+		gap: var(--space-4);
+		margin-bottom: var(--space-4);
+	}
+	.balance-item {
+		font-size: var(--text-sm);
+		font-weight: 600;
+		padding: var(--space-1) var(--space-3);
+		background: var(--color-bg-secondary);
+		border-radius: var(--radius-full);
+	}
+	.balance-item.gem { color: #7c3aed; }
 
 	.confirm-buy {
 		text-align: center;
@@ -196,6 +236,7 @@
 		align-items: center;
 		justify-content: center;
 	}
+	.confirm-skin-img { width: 72px; height: 72px; object-fit: contain; border-radius: var(--radius-sm); }
 
 	.confirm-price {
 		font-size: var(--text-xl);

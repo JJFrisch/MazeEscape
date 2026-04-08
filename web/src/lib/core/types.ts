@@ -119,6 +119,7 @@ export interface PlayerData {
 	playerId: string;
 	playerName: string;
 	coinCount: number;
+	gemCount: number;
 	hintsOwned: number;
 	extraTimesOwned: number;
 	extraMovesOwned: number;

@@ -425,6 +425,7 @@ public partial class World2CampaignLevelPage : ContentPage
             //Level.NumberOfStars++;
             World.StarCount++;
             coinsEarned += num;
+            App.PlayerData.GemCount += 1;
         }
 
 

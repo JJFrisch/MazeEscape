@@ -7,7 +7,7 @@ namespace MazeEscape;
 
 public partial class CampaignPage : ContentPage 
 {
-    static ObservableCollection<CampaignLevel> campaignLevels = new ObservableCollection<CampaignLevel>();
+    ObservableCollection<CampaignLevel> campaignLevels = new ObservableCollection<CampaignLevel>();
 
     public bool loading = false;
     ImageButton last_unlocked_level = new ImageButton();
@@ -71,6 +71,13 @@ public partial class CampaignPage : ContentPage
     {
         base.OnDisappearing();
         _pulseCts?.Cancel();
+        loading = false;
+        App.PlayerData.Save();
+
+        foreach (IReward chest in World.ChestModels)
+        {
+            chest.CancelAnimation();
+        }
     }
 
 
@@ -291,32 +298,35 @@ public partial class CampaignPage : ContentPage
         if (!loading)
         {
             loading = true;
+            try
+            {
+                _ = imageButton.FadeTo(1, 100);
+                await imageButton.ScaleTo(1, 100);
 
-            _ = imageButton.FadeTo(1, 100);
-            await imageButton.ScaleTo(1, 100);
+                _ = imageButton.FadeTo(0.5, 1000);
+                await imageButton.ScaleTo(1.2, 1000);
 
-            _ = imageButton.FadeTo(0.5, 1000);
-            await imageButton.ScaleTo(1.2, 1000);
-
-            var page = new CampaignLevelPage(level, World);
-            page.LevelSaved += async (obj, copyOfLevel) =>
-            { // Any variables that may be changed
-                level.BestTime = copyOfLevel.BestTime;
-                level.BestMoves = copyOfLevel.BestMoves;
-                level.Completed = copyOfLevel.Completed;
-                level.Star1 = copyOfLevel.Star1;
-                level.Star2 = copyOfLevel.Star2;
-                level.Star3 = copyOfLevel.Star3;
-                level.NumberOfStars = copyOfLevel.NumberOfStars;
-                await App.PlayerData.World1_LevelDatabase.SaveLevelAsync(level);
-            };
-            await Navigation.PushAsync(page);
+                var page = new CampaignLevelPage(level, World);
+                page.LevelSaved += async (obj, copyOfLevel) =>
+                { // Any variables that may be changed
+                    level.BestTime = copyOfLevel.BestTime;
+                    level.BestMoves = copyOfLevel.BestMoves;
+                    level.Completed = copyOfLevel.Completed;
+                    level.Star1 = copyOfLevel.Star1;
+                    level.Star2 = copyOfLevel.Star2;
+                    level.Star3 = copyOfLevel.Star3;
+                    level.NumberOfStars = copyOfLevel.NumberOfStars;
+                    await App.PlayerData.World1_LevelDatabase.SaveLevelAsync(level);
+                };
+                await Navigation.PushAsync(page);
+            }
+            finally
+            {
+                loading = false;
+                imageButton.Opacity = 1;
+                imageButton.Scale = 1;
+            }
         }
-
-
-        loading = false;
-        imageButton.Opacity = 1;
-        imageButton.Scale = 1;
     }
 
 
@@ -505,7 +515,7 @@ public partial class CampaignPage : ContentPage
 
     private async void BackButton_Clicked(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new WorldsPage());
+        await Navigation.PopAsync();
     }
 
     public async void OnShopButtonClicked(object sender, EventArgs e)
@@ -595,16 +605,5 @@ public partial class CampaignPage : ContentPage
 		}, null, 900, Timeout.Infinite);
     }
 
-    override protected void OnDisappearing()
-    {
-        base.OnDisappearing();
-        loading = false;
-        App.PlayerData.Save();
-
-        foreach (IReward chest in World.ChestModels)
-        {
-            chest.CancelAnimation();
-        }
-    }
 
 }

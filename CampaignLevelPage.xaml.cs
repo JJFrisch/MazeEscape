@@ -96,6 +96,7 @@ public partial class CampaignLevelPage : ContentPage
     {
         World = world;
 
+        BindingContext = stateContainerModel;
         InitializeComponent();
 
     #if IOS
@@ -109,9 +110,6 @@ public partial class CampaignLevelPage : ContentPage
         var screenHeight = di.Height / di.Density;
         MazeWindowWidth = screenWidth * 0.9;
         MazeWindowHeight = screenHeight * 0.8;
-
-        PageAbsoluteLayout.BindingContext = stateContainerModel;
-        stateContainerModel.CurrentState = "Loading";
 
         Level = level;
 
@@ -630,13 +628,12 @@ public partial class CampaignLevelPage : ContentPage
                 }
                 else if (result == "Close")
                 {
-                    await Navigation.PushAsync(new CampaignPage());
+                    await Navigation.PopAsync();
                 }
                 else if (result == "Shop")
                 {
-                    await Navigation.PushAsync(new CampaignPage());
+                    await Navigation.PopAsync();
                     await Navigation.PushAsync(new ShopPage());
-
                 }
                 else if (result == "Next Level")
                 {
@@ -667,7 +664,7 @@ public partial class CampaignLevelPage : ContentPage
     private async void BackButton_Clicked(object sender, EventArgs e)
     {
         hook?.Dispose();
-        await Navigation.PushAsync(new CampaignPage());
+        await Navigation.PopAsync();
     }
 
     public async void OnShopButtonClicked(object sender, EventArgs e)
@@ -761,17 +758,12 @@ public partial class CampaignLevelPage : ContentPage
         if (ans)
         {
             InitializeMaze();
-            UpdatePlayerDrawerPosition();
-            RedrawPlayer();
+            main_absolute_layout.Clear();
+            DrawMaze("line");
+            numberOfMoves = 0;
+            DrawPlayer();
         }
     }
-
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-        hook?.Dispose();
-    }
-
 
 }
 

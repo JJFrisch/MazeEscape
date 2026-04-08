@@ -80,6 +80,7 @@ public partial class World2CampaignLevelPage : ContentPage
     {
         World = App.PlayerData.Worlds[1];
 
+        BindingContext = stateContainerModel;
         InitializeComponent();
 
     #if IOS
@@ -93,9 +94,6 @@ public partial class World2CampaignLevelPage : ContentPage
         var screenHeight = di.Height / di.Density;
         MazeWindowWidth = screenWidth * 0.9;
         MazeWindowHeight = screenHeight * 0.8;
-
-        PageAbsoluteLayout.BindingContext = stateContainerModel;
-        stateContainerModel.CurrentState = "Loading";
 
         Level = level;
 
@@ -551,18 +549,17 @@ public partial class World2CampaignLevelPage : ContentPage
                 }
                 else if (result == "Close")
                 {
-                    await Navigation.PushAsync(new World2CampaignPage());
+                    await Navigation.PopAsync();
                 }
                 else if (result == "Shop")
                 {
-                    await Navigation.PushAsync(new World2CampaignPage());
+                    await Navigation.PopAsync();
                     await Navigation.PushAsync(new ShopPage());
-
                 }
                 else if (result == "Next Level")
                 {
                     CampaignLevel next_level = await App.PlayerData.World2_LevelDatabase.GetItemAsync(World.LevelConnectsToDictionary[Level.LevelNumber][0]);
-                    var page = new CampaignLevelPage(next_level, World);
+                    var page = new World2CampaignLevelPage(next_level);
                     page.LevelSaved += async (obj, copyOfLevel) =>
                     { // Any variables that may be changed
                         next_level.BestTime = copyOfLevel.BestTime;
@@ -588,7 +585,7 @@ public partial class World2CampaignLevelPage : ContentPage
     private async void BackButton_Clicked(object sender, EventArgs e)
     {
         hook?.Dispose();
-        await Navigation.PushAsync(new World2CampaignPage());
+        await Navigation.PopAsync();
     }
 
     public async void OnShopButtonClicked(object sender, EventArgs e)
@@ -690,13 +687,6 @@ public partial class World2CampaignLevelPage : ContentPage
             RedrawPlayer();
         }
     }
-
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-        hook?.Dispose();
-    }
-
 
 }
 

@@ -11,7 +11,7 @@
 		application at
 		<a href="https://mazeescapepathbound.com" class="policy-link">mazeescapepathbound.com</a>
 		and the downloadable desktop application, both created by
-		<a href="https://jakefrischman.me" target="_blank" rel="noopener noreferrer" class="policy-link">Jake Frischmann</a>.
+		<a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer" class="policy-link">Jake Frischmann</a>.
 		By accessing or playing the game, you agree to these terms.
 	</p>
 
@@ -82,7 +82,7 @@
 		<h2>8. Contact</h2>
 		<p>
 			For questions or concerns about these Terms, reach out via
-			<a href="https://jakefrischman.me" target="_blank" rel="noopener noreferrer" class="policy-link">jakefrischman.me</a>.
+			<a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer" class="policy-link">jakefrischmann.me</a>.
 		</p>
 	</section>
 </div>

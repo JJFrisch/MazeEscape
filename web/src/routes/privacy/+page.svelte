@@ -10,7 +10,7 @@
 		This Privacy Policy describes how <strong>Maze Escape: Pathbound</strong> (available at
 		<a href="https://mazeescapepathbound.com" class="policy-link">mazeescapepathbound.com</a>),
 		created and maintained by
-		<a href="https://jakefrischman.me" target="_blank" rel="noopener noreferrer" class="policy-link">Jake Frischmann</a>,
+		<a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer" class="policy-link">Jake Frischmann</a>,
 		handles information about visitors and players.
 	</p>
 
@@ -89,7 +89,7 @@
 		<h2>7. Contact</h2>
 		<p>
 			Questions about this Privacy Policy can be directed to Jake Frischmann via
-			<a href="https://jakefrischman.me" target="_blank" rel="noopener noreferrer" class="policy-link">jakefrischman.me</a>.
+			<a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer" class="policy-link">jakefrischmann.me</a>.
 		</p>
 	</section>
 </div>

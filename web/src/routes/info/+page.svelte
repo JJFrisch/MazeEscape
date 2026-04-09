@@ -66,7 +66,7 @@
 	<section class="info-section credits">
 		<h2>Credits</h2>
 		<p>Maze Escape: Pathbound – A maze puzzle game.</p>
-		<p>Game designed and developed by <a href="https://jakefrischman.me" target="_blank" rel="noopener noreferrer" class="credits-link">Jake Frischmann</a>.</p>
+		<p>Game designed and developed by <a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer" class="credits-link">Jake Frischmann</a>.</p>
 		<p class="credit-tech">Built with SvelteKit • TypeScript • Canvas</p>
 	</section>
 </div>

@@ -27,7 +27,7 @@
 				<span class="title-maze glitch-text" data-text="Maze">Maze</span><span class="title-escape"> Escape</span>
 				<span class="title-pathbound">Pathbound</span>
 			</h1>
-			<p class="hero-byline">A game by <a href="https://jakefrischman.me" target="_blank" rel="noopener noreferrer" class="hero-byline-link">Jake Frischmann</a></p>
+			<p class="hero-byline">A game by <a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer" class="hero-byline-link">Jake Frischmann</a></p>
 			<p class="hero-subtitle typewriter">
 				Navigate procedurally generated labyrinths across worlds, collect stars, and prove your puzzle mastery.
 			</p>

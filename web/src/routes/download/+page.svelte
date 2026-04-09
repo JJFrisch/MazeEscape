@@ -14,7 +14,7 @@
 		</p>
 		<p class="dl-byline">
 			Developed and maintained by
-			<a href="https://jakefrischman.me" target="_blank" rel="noopener noreferrer" class="dl-author-link">Jake Frischmann</a>
+			<a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer" class="dl-author-link">Jake Frischmann</a>
 		</p>
 
 		<a
@@ -98,7 +98,7 @@
 		</p>
 		<p>
 			This project is a solo effort by
-			<a href="https://jakefrischman.me" target="_blank" rel="noopener noreferrer" class="dl-link">Jake Frischmann</a>.
+			<a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer" class="dl-link">Jake Frischmann</a>.
 			If you enjoy the game, share it or leave a star on the repo.
 		</p>
 	</section>

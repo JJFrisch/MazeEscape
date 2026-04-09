@@ -91,7 +91,7 @@
 				<p class="footer-brand-desc">A procedural puzzle maze game.</p>
 				<p class="footer-credit">
 					Designed and built by
-					<a href="https://jakefrischman.me" class="footer-link" target="_blank" rel="noopener noreferrer">Jake Frischmann</a>.
+					<a href="https://jakefrischmann.me" class="footer-link" target="_blank" rel="noopener noreferrer">Jake Frischmann</a>.
 				</p>
 			</div>
 			<div class="footer-col">
@@ -108,12 +108,12 @@
 			</div>
 			<div class="footer-col">
 				<span class="footer-heading">About</span>
-				<a href="https://jakefrischman.me" class="footer-link" target="_blank" rel="noopener noreferrer">jakefrischman.me</a>
+				<a href="https://jakefrischmann.me" class="footer-link" target="_blank" rel="noopener noreferrer">jakefrischman.me</a>
 				<a href="https://github.com/JJFrisch/MazeEscape" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
 			</div>
 		</div>
 		<div class="footer-bottom">
-			<span>© 2026 Jake Frischmann · <a href="https://jakefrischman.me" class="footer-link-inline" target="_blank" rel="noopener noreferrer">jakefrischman.me</a></span>
+			<span>© 2026 Jake Frischmann · <a href="https://jakefrischmann.me" class="footer-link-inline" target="_blank" rel="noopener noreferrer">jakefrischman.me</a></span>
 			<span>mazeescapepathbound.com</span>
 		</div>
 	</footer>

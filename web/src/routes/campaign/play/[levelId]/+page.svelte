@@ -58,6 +58,18 @@
 	const introPhrases = $derived(INTRO_PHRASES[theme.motif]);
 	const ENABLE_LEVEL_INTRO = true;
 
+	// Algorithm display names and algorithm encyclopedia IDs
+	const ALGO_MAP: Record<string, { name: string; id: string }> = {
+		backtracking:        { name: 'Recursive Backtracking', id: 'backtracking' },
+		huntAndKill:         { name: 'Hunt and Kill',          id: 'huntAndKill' },
+		prims:               { name: "Prim's Algorithm",        id: 'prims' },
+		kruskals:            { name: "Kruskal's Algorithm",     id: 'kruskals' },
+		growingTree_50_50:   { name: 'Growing Tree (50/50)',   id: 'growingTree' },
+		growingTree_75_25:   { name: 'Growing Tree (75/25)',   id: 'growingTree' },
+		growingTree_25_75:   { name: 'Growing Tree (25/75)',   id: 'growingTree' },
+		growingTree_50_0:    { name: 'Growing Tree (50/0)',    id: 'growingTree' },
+	};
+
 	let session = $state<GameSessionState | null>(null);
 	// Non-rectangular maze state
 	let hexState = $state<{ maze: HexMazeData; pos: { col: number; row: number }; moves: number; isComplete: boolean } | null>(null);
@@ -91,6 +103,8 @@
 	let initializedLevelKey = $state('');
 	let victoryStars = $state({ star1: false, star2: false, star3: false, total: 0 });
 	let coinsEarned = $state(0);
+	let prevBestTime = $state(0);
+	let prevBestMoves = $state(0);
 	let visitedCells = $state(new Set<string>());
         /** Set after level completion if this level has a reward; cleared when player collects it */
         let pendingLevelReward = $state<LevelReward | null>(null);
@@ -267,6 +281,11 @@
 		coinsEarned = baseCoins + stars.total * 25;
 		gameStore.addCoins(coinsEarned);
 
+		// Capture personal bests before overwriting
+		const prev = gameStore.getLevelProgress(worldId, levelDef.levelNumber);
+		prevBestTime  = prev?.bestTime  ?? 0;
+		prevBestMoves = prev?.bestMoves ?? 0;
+
 		// Save progress
 		const updatedLevel = {
 			...levelDef,
@@ -366,6 +385,14 @@
 		} else {
 			goto(`${base}/campaign/worlds/${worldId}`);
 		}
+	}
+
+	function goHome() {
+		goto(`${base}/`);
+	}
+
+	function goShop() {
+		goto(`${base}/shop`);
 	}
 
 	onDestroy(() => {
@@ -550,10 +577,19 @@
 		threeStarTime={levelDef.threeStarTime}
 		coins={coinsEarned}
 		accentColor={theme.accentColor}
+		mazeWidth={levelDef.width}
+		mazeHeight={levelDef.height}
+		algoName={ALGO_MAP[levelDef.levelType]?.name ?? levelDef.levelType}
+		algoId={ALGO_MAP[levelDef.levelType]?.id ?? ''}
+		algoLinkBase={base}
+		bestTime={prevBestTime}
+		bestMoves={prevBestMoves}
 		actions={[
+			{ label: '🏠 Home', onclick: goHome },
+			{ label: '🛒 Shop', onclick: goShop },
 			{ label: 'Retry', onclick: () => { showOutro = false; startGame(); } },
 			{ label: levelDef.connectTo1 ? 'Next Level →' : 'Back to World', primary: true, onclick: goToNextLevel }
-		]} 
+		]}
 	/>
 {/if}
 

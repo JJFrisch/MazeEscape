@@ -23,6 +23,13 @@
 		threeStarTime = 0,
 		coins,
 		accentColor = '#38bdf8',
+		mazeWidth = 0,
+		mazeHeight = 0,
+		algoName = '',
+		algoId = '',
+		algoLinkBase = '',
+		bestTime = 0,
+		bestMoves = 0,
 		actions = []
 	}: {
 		open?: boolean;
@@ -36,10 +43,19 @@
 		threeStarTime?: number;
 		coins: number;
 		accentColor?: string;
+		mazeWidth?: number;
+		mazeHeight?: number;
+		algoName?: string;
+		algoId?: string;
+		algoLinkBase?: string;
+		bestTime?: number;
+		bestMoves?: number;
 		actions: OutroAction[];
 	} = $props();
 
 	const showStars = $derived(stars >= 0);
+	const showLevelInfo = $derived(mazeWidth > 0 && algoName.length > 0);
+	const algoHref = $derived(algoId ? `${algoLinkBase}/algorithms#${algoId}` : `${algoLinkBase}/algorithms`);
 
 	function fmtTime(s: number): string {
 		if (s < 60) return `${s.toFixed(1)}s`;
@@ -68,6 +84,23 @@
 				</div>
 			{/if}
 
+			<!-- Level info strip -->
+			{#if showLevelInfo}
+				<div class="level-info-strip">
+					<span class="level-info-size">{mazeWidth}×{mazeHeight}</span>
+					<span class="level-info-sep" aria-hidden="true">·</span>
+					<span class="level-info-algo">{algoName}</span>
+					<a
+						href={algoHref}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="level-info-link"
+						title="Learn about this algorithm"
+						aria-label="Learn about {algoName} (opens algorithm encyclopedia)"
+					>↗</a>
+				</div>
+			{/if}
+
 			<!-- Stats -->
 			<div class="stat-grid">
 				<div class="stat-card">
@@ -77,6 +110,9 @@
 					{#if threeStarTime > 0}
 						<span class="stat-goal">goal ≤ {threeStarTime}s</span>
 					{/if}
+					{#if bestTime > 0}
+						<span class="stat-best">best {fmtTime(bestTime)}</span>
+					{/if}
 				</div>
 
 				<div class="stat-card">
@@ -85,6 +121,9 @@
 					<span class="stat-label">Moves</span>
 					{#if twoStarMoves > 0}
 						<span class="stat-goal">goal ≤ {twoStarMoves}</span>
+					{/if}
+					{#if bestMoves > 0}
+						<span class="stat-best">best {bestMoves}</span>
 					{/if}
 				</div>
 
@@ -220,6 +259,49 @@
 		color: rgba(240, 246, 255, 0.28);
 		letter-spacing: 0.04em;
 	}
+
+	.stat-best {
+		font-size: 0.625rem;
+		color: rgba(240, 246, 255, 0.38);
+		letter-spacing: 0.04em;
+		font-style: italic;
+	}
+
+	/* ── Level info strip ────────────────────────── */
+	.level-info-strip {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		font-size: 0.75rem;
+		background: color-mix(in srgb, var(--accent) 8%, transparent);
+		border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+		border-radius: 9999px;
+		padding: 0.3rem 0.85rem;
+		color: rgba(240, 246, 255, 0.65);
+	}
+
+	.level-info-size {
+		font-family: var(--font-mono);
+		font-weight: 700;
+		color: var(--accent);
+	}
+
+	.level-info-sep {
+		opacity: 0.4;
+	}
+
+	.level-info-algo {
+		color: rgba(240, 246, 255, 0.75);
+	}
+
+	.level-info-link {
+		color: var(--accent);
+		text-decoration: none;
+		opacity: 0.75;
+		transition: opacity 0.15s;
+		font-size: 0.8rem;
+	}
+	.level-info-link:hover { opacity: 1; }
 
 	/* ── Actions ─────────────────────────────────── */
 	.outro-actions {

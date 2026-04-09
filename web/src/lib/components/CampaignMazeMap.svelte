@@ -14,6 +14,7 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import type { WorldMapLayout, MapNode, MapCollectible } from '$lib/core/types';
 	import MapCollectiblePopup from '$lib/components/MapCollectiblePopup.svelte';
@@ -205,6 +206,18 @@
 		isPanning = false;
 	}
 
+	// Attach wheel and touchmove with { passive: false } so e.preventDefault()
+	// actually suppresses native scroll/zoom (Svelte 5 inline directives are passive).
+	onMount(() => {
+		const el = containerEl!;
+		el.addEventListener('wheel', onWheel, { passive: false });
+		el.addEventListener('touchmove', onTouchMove, { passive: false });
+		return () => {
+			el.removeEventListener('wheel', onWheel);
+			el.removeEventListener('touchmove', onTouchMove);
+		};
+	});
+
 	// ---------------------------------------------------------------------------
 	// Node interaction
 	// ---------------------------------------------------------------------------
@@ -329,9 +342,7 @@
 	onpointermove={onPointerMove}
 	onpointerup={onPointerUp}
 	onpointercancel={onPointerUp}
-	onwheel={onWheel}
 	ontouchstart={onTouchStart}
-	ontouchmove={onTouchMove}
 	ontouchend={onTouchEnd}
 	role="application"
 	aria-label="Campaign map — pan and zoom to explore"

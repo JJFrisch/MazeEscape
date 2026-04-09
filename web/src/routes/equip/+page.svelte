@@ -31,7 +31,7 @@
 </script>
 
 <svelte:head>
-	<title>Equip – MazeEscape</title>
+	<title>Equip – Maze Escape: Pathbound</title>
 </svelte:head>
 
 <div class="equip-page">

@@ -219,7 +219,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <svelte:head>
-	<title>Daily Maze – MazeEscape</title>
+	<title>Daily Maze – Maze Escape: Pathbound</title>
 </svelte:head>
 
 {#if !unlocked}

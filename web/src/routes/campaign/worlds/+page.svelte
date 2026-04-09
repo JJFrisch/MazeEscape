@@ -8,7 +8,7 @@
 </script>
 
 <svelte:head>
-	<title>Campaign Worlds – MazeEscape</title>
+	<title>Campaign Worlds – Maze Escape: Pathbound</title>
 </svelte:head>
 
 <div class="worlds-page">

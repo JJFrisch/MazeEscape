@@ -38,7 +38,7 @@
 </script>
 
 <svelte:head>
-	<title>{worldDef?.worldName ?? 'World'} – MazeEscape</title>
+	<title>{worldDef?.worldName ?? 'World'} – Maze Escape: Pathbound</title>
 </svelte:head>
 
 {#if worldDef}

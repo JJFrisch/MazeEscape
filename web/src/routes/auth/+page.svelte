@@ -95,7 +95,7 @@
 </script>
 
 <svelte:head>
-	<title>Account - MazeEscape</title>
+	<title>Account – Maze Escape: Pathbound</title>
 </svelte:head>
 
 <section class="auth-page">

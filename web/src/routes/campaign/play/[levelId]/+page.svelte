@@ -384,7 +384,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <svelte:head>
-	<title>Level {levelNumber} – MazeEscape</title>
+	<title>Level {levelNumber} – Maze Escape: Pathbound</title>
 </svelte:head>
 
 {#if gameIsActive && levelDef}

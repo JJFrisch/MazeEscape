@@ -22,7 +22,7 @@
 </script>
 
 <svelte:head>
-	<title>Shop – MazeEscape</title>
+	<title>Shop – Maze Escape: Pathbound</title>
 </svelte:head>
 
 <div class="shop-page">

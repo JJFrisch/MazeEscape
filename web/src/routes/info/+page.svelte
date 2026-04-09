@@ -1,5 +1,5 @@
 <svelte:head>
-	<title>Info – MazeEscape</title>
+	<title>Info – Maze Escape: Pathbound</title>
 </svelte:head>
 
 <div class="info-page">
@@ -65,7 +65,8 @@
 
 	<section class="info-section credits">
 		<h2>Credits</h2>
-		<p>MazeEscape – A maze puzzle game.</p>
+		<p>Maze Escape: Pathbound – A maze puzzle game.</p>
+		<p>Game designed and developed by <a href="https://jakefrischman.me" target="_blank" rel="noopener noreferrer" class="credits-link">Jake Frischmann</a>.</p>
 		<p class="credit-tech">Built with SvelteKit • TypeScript • Canvas</p>
 	</section>
 </div>
@@ -152,6 +153,15 @@
 		border-top: 1px solid var(--color-border);
 		padding-top: var(--space-8);
 		text-align: center;
+	}
+
+	.credits-link {
+		color: var(--color-accent-primary);
+		text-decoration: none;
+	}
+
+	.credits-link:hover {
+		text-decoration: underline;
 	}
 
 	.credit-tech {

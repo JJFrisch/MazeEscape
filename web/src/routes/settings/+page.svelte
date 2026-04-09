@@ -36,7 +36,7 @@
 </script>
 
 <svelte:head>
-	<title>Settings – MazeEscape</title>
+	<title>Settings – Maze Escape: Pathbound</title>
 </svelte:head>
 
 <div class="settings-page">

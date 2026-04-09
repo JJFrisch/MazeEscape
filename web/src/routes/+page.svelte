@@ -8,7 +8,7 @@
 </script>
 
 <svelte:head>
-	<title>MazeEscape – Procedural Puzzle Mazes</title>
+	<title>Maze Escape: Pathbound – Procedural Puzzle Mazes</title>
 </svelte:head>
 
 <div class="landing">
@@ -24,8 +24,10 @@
 		<div class="hero-content">
 			<span class="hero-badge">Procedural Puzzle Game <span class="cursor-blink">|</span></span>
 			<h1 class="hero-title">
-				<span class="title-maze glitch-text" data-text="Maze">Maze</span><span class="title-escape">Escape</span>
+				<span class="title-maze glitch-text" data-text="Maze">Maze</span><span class="title-escape"> Escape</span>
+				<span class="title-pathbound">Pathbound</span>
 			</h1>
+			<p class="hero-byline">A game by <a href="https://jakefrischman.me" target="_blank" rel="noopener noreferrer" class="hero-byline-link">Jake Frischmann</a></p>
 			<p class="hero-subtitle typewriter">
 				Navigate procedurally generated labyrinths across worlds, collect stars, and prove your puzzle mastery.
 			</p>
@@ -136,12 +138,18 @@
 			</svg>
 			<span class="nav-card-label">How to Play</span>
 			<span class="nav-card-desc">Controls & rules</span>
-		</a>
-	</section>
+		</a>		<a href="{base}/download" class="nav-card">
+			<svg class="nav-card-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+				<path d="M12 3v12M7 11l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+				<rect x="3" y="18" width="18" height="3" rx="1.5" stroke="currentColor" stroke-width="2"/>
+			</svg>
+			<span class="nav-card-label">Download</span>
+			<span class="nav-card-desc">Desktop app</span>
+		</a>	</section>
 
 	{#if gameStore.player.playerName === 'Player'}
 		<div class="welcome-prompt">
-			<p>Welcome to MazeEscape! Set your name in <a href="{base}/settings">Settings</a> to get started.</p>
+			<p>Welcome to Maze Escape: Pathbound! Set your name in <a href="{base}/settings">Settings</a> to get started.</p>
 		</div>
 	{/if}
 </div>
@@ -283,6 +291,34 @@
 	.title-escape {
 		color: #f8fafc;
 		text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+	}
+
+	.title-pathbound {
+		display: block;
+		color: #d97706;
+		text-shadow: 0 0 32px rgba(217, 119, 6, 0.5);
+		font-size: 0.72em;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		line-height: 1.1;
+	}
+
+	.hero-byline {
+		font-size: var(--text-sm);
+		color: rgba(203, 213, 225, 0.55);
+		letter-spacing: 0.04em;
+		margin-bottom: var(--space-5);
+	}
+
+	.hero-byline-link {
+		color: #d97706;
+		text-decoration: none;
+		transition: color var(--transition-fast);
+	}
+
+	.hero-byline-link:hover {
+		color: #fbbf24;
+		text-decoration: underline;
 	}
 
 	.hero-subtitle.typewriter {

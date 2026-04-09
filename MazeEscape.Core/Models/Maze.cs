@@ -21,7 +21,8 @@ namespace MazeEscape.Models
         // Types so far: GenerateBacktracking, GenerateHuntAndKill
         public List<string> MazeTypes = new List<string> { "GenerateBacktracking", "GenerateHuntAndKill", "GeneratePrims", 
             "GenerateGrowingTree_50_50", "GenerateGrowingTree_75_25", "GenerateGrowingTree_25_75", "GenerateGrowingTree_50_0", 
-            "GenerateKruskals"};
+            "GenerateKruskals", "GenerateWilsons", "GenerateAldousBroder", "GenerateBinaryTree",
+            "GenerateSidewinder", "GenerateEllers", "GenerateRecursiveDivision", "GenerateSpiralBacktracker"};
         public delegate void MazeGenerationDelegate (int width, int height);
         public Dictionary<string, MazeGenerationDelegate> MazeGenerationDelegateList;
 
@@ -41,6 +42,13 @@ namespace MazeEscape.Models
             MazeGenerationDelegateList.Add("GenerateGrowingTree_25_75", GenerateGrowingTree_25_75);
             MazeGenerationDelegateList.Add("GenerateGrowingTree_50_0", GenerateGrowingTree_50_0);
             MazeGenerationDelegateList.Add("GenerateKruskals", GenerateKruskals);
+            MazeGenerationDelegateList.Add("GenerateWilsons", GenerateWilsons);
+            MazeGenerationDelegateList.Add("GenerateAldousBroder", GenerateAldousBroder);
+            MazeGenerationDelegateList.Add("GenerateBinaryTree", GenerateBinaryTree);
+            MazeGenerationDelegateList.Add("GenerateSidewinder", GenerateSidewinder);
+            MazeGenerationDelegateList.Add("GenerateEllers", GenerateEllers);
+            MazeGenerationDelegateList.Add("GenerateRecursiveDivision", GenerateRecursiveDivision);
+            MazeGenerationDelegateList.Add("GenerateSpiralBacktracker", GenerateSpiralBacktracker);
 
 
         }
@@ -622,15 +630,351 @@ namespace MazeEscape.Models
             OptimizeMaze();
         }
 
-        
+        public void GenerateWilsons(int width, int height)
+        {
+            Cells = InitializeMaze(width, height, 0);
+            Width = width;
+            Height = height;
 
-    }
+            var visited = new System.Collections.Generic.HashSet<(int, int)>();
+            var remaining = new List<(int, int)>();
+            for (int row = 0; row < height; row++)
+                for (int col = 0; col < width; col++)
+                    remaining.Add((col, row));
 
+            (int, int) seed = RandomStart();
+            visited.Add(seed);
+            remaining.Remove(seed);
 
-    public class PlayerModel
-    {
-        public int X { get; set; }
-        public int Y { get; set; }
+            Start = (seed.Item1, seed.Item2);
+            Player.X = seed.Item1;
+            Player.Y = seed.Item2;
+            Cells[seed.Item2][seed.Item1].Value = 2;
+
+            while (remaining.Count > 0)
+            {
+                (int, int) walkStart = remaining[rnd.Next(remaining.Count)];
+                var path = new List<(int, int)> { walkStart };
+                var pathIndex = new Dictionary<(int, int), int> { { walkStart, 0 } };
+                (int, int) current = walkStart;
+
+                while (!visited.Contains(current))
+                {
+                    var allNeighbors = new List<(int, int)> { North(current), South(current), East(current), West(current) }
+                        .Where(n => InBounds(n)).ToList();
+                    (int, int) next = allNeighbors[rnd.Next(allNeighbors.Count)];
+
+                    if (pathIndex.ContainsKey(next))
+                    {
+                        int loopStart = pathIndex[next] + 1;
+                        for (int i = loopStart; i < path.Count; i++)
+                            pathIndex.Remove(path[i]);
+                        path.RemoveRange(loopStart, path.Count - loopStart);
+                    }
+                    else
+                    {
+                        pathIndex[next] = path.Count;
+                        path.Add(next);
+                    }
+                    current = next;
+                }
+
+                for (int i = 0; i < path.Count - 1; i++)
+                {
+                    LinkCells(path[i], path[i + 1]);
+                    visited.Add(path[i]);
+                    remaining.Remove(path[i]);
+                }
+            }
+
+            OptimizeMaze();
+        }
+
+        public void GenerateAldousBroder(int width, int height)
+        {
+            Cells = InitializeMaze(width, height, 0);
+            Width = width;
+            Height = height;
+
+            var visited = new System.Collections.Generic.HashSet<(int, int)>();
+            (int, int) current = RandomStart();
+            visited.Add(current);
+            int totalCells = width * height;
+
+            Start = (current.Item1, current.Item2);
+            Player.X = current.Item1;
+            Player.Y = current.Item2;
+            Cells[current.Item2][current.Item1].Value = 2;
+
+            while (visited.Count < totalCells)
+            {
+                var neighbors = new List<(int, int)> { North(current), South(current), East(current), West(current) }
+                    .Where(n => InBounds(n)).ToList();
+                (int, int) next = neighbors[rnd.Next(neighbors.Count)];
+
+                if (!visited.Contains(next))
+                {
+                    LinkCells(current, next);
+                    visited.Add(next);
+                }
+                current = next;
+            }
+
+            OptimizeMaze();
+        }
+
+        public void GenerateBinaryTree(int width, int height)
+        {
+            Cells = InitializeMaze(width, height, 0);
+            Width = width;
+            Height = height;
+
+            (int, int) startCell = RandomStart();
+            Start = (startCell.Item1, startCell.Item2);
+            Player.X = startCell.Item1;
+            Player.Y = startCell.Item2;
+            Cells[startCell.Item2][startCell.Item1].Value = 2;
+
+            for (int row = 0; row < height; row++)
+            {
+                for (int col = 0; col < width; col++)
+                {
+                    var options = new List<(int, int)>();
+                    if (row > 0) options.Add(North((col, row)));
+                    if (col < width - 1) options.Add(East((col, row)));
+
+                    if (options.Count > 0)
+                        LinkCells((col, row), options[rnd.Next(options.Count)]);
+                }
+            }
+
+            OptimizeMaze();
+        }
+
+        public void GenerateSidewinder(int width, int height)
+        {
+            Cells = InitializeMaze(width, height, 0);
+            Width = width;
+            Height = height;
+
+            (int, int) startCell = RandomStart();
+            Start = (startCell.Item1, startCell.Item2);
+            Player.X = startCell.Item1;
+            Player.Y = startCell.Item2;
+            Cells[startCell.Item2][startCell.Item1].Value = 2;
+
+            // Top row: link all east
+            for (int col = 0; col < width - 1; col++)
+                LinkCells((col, 0), East((col, 0)));
+
+            for (int row = 1; row < height; row++)
+            {
+                var run = new List<(int, int)>();
+                for (int col = 0; col < width; col++)
+                {
+                    run.Add((col, row));
+                    bool atEastBoundary = col == width - 1;
+                    bool closeRun = atEastBoundary || rnd.Next(2) == 0;
+
+                    if (closeRun)
+                    {
+                        var northCell = run[rnd.Next(run.Count)];
+                        LinkCells(northCell, North(northCell));
+                        run.Clear();
+                    }
+                    else
+                    {
+                        LinkCells((col, row), East((col, row)));
+                    }
+                }
+            }
+
+            OptimizeMaze();
+        }
+
+        public void GenerateEllers(int width, int height)
+        {
+            Cells = InitializeMaze(width, height, 0);
+            Width = width;
+            Height = height;
+
+            (int, int) startCell = RandomStart();
+            Start = (startCell.Item1, startCell.Item2);
+            Player.X = startCell.Item1;
+            Player.Y = startCell.Item2;
+            Cells[startCell.Item2][startCell.Item1].Value = 2;
+
+            int nextSetId = 0;
+            int[] rowSets = new int[width];
+            for (int col = 0; col < width; col++)
+                rowSets[col] = nextSetId++;
+
+            for (int row = 0; row < height; row++)
+            {
+                bool isLastRow = row == height - 1;
+
+                // Step 1: merge adjacent cells from different sets
+                for (int col = 0; col < width - 1; col++)
+                {
+                    if (rowSets[col] != rowSets[col + 1] && (isLastRow || rnd.Next(2) == 0))
+                    {
+                        int mergeFrom = rowSets[col + 1];
+                        int mergeTo = rowSets[col];
+                        for (int c = 0; c < width; c++)
+                            if (rowSets[c] == mergeFrom) rowSets[c] = mergeTo;
+                        LinkCells((col, row), East((col, row)));
+                    }
+                }
+
+                if (!isLastRow)
+                {
+                    // Step 2: for each set ensure at least 1 south connection
+                    var sets = new Dictionary<int, List<int>>();
+                    for (int col = 0; col < width; col++)
+                    {
+                        if (!sets.ContainsKey(rowSets[col])) sets[rowSets[col]] = new List<int>();
+                        sets[rowSets[col]].Add(col);
+                    }
+
+                    int[] nextRowSets = new int[width];
+                    for (int i = 0; i < width; i++) nextRowSets[i] = -1;
+
+                    foreach (var kv in sets)
+                    {
+                        var shuffledCols = kv.Value.OrderBy(_ => rnd.Next()).ToList();
+                        bool hasConnected = false;
+                        for (int i = 0; i < shuffledCols.Count; i++)
+                        {
+                            int col = shuffledCols[i];
+                            bool isLastInSet = i == shuffledCols.Count - 1;
+                            bool connectSouth = (!hasConnected && isLastInSet) || rnd.Next(2) == 0;
+                            if (connectSouth)
+                            {
+                                LinkCells((col, row), South((col, row)));
+                                nextRowSets[col] = kv.Key;
+                                hasConnected = true;
+                            }
+                        }
+                    }
+
+                    for (int col = 0; col < width; col++)
+                        if (nextRowSets[col] == -1) nextRowSets[col] = nextSetId++;
+
+                    rowSets = nextRowSets;
+                }
+            }
+
+            OptimizeMaze();
+        }
+
+        private void RecursiveDivide(int colStart, int colEnd, int rowStart, int rowEnd)
+        {
+            int w = colEnd - colStart + 1;
+            int h = rowEnd - rowStart + 1;
+            if (w < 2 || h < 2) return;
+
+            bool horizontal;
+            if (h > w) horizontal = true;
+            else if (w > h) horizontal = false;
+            else horizontal = rnd.Next(2) == 0;
+
+            if (horizontal)
+            {
+                int wallRow = rnd.Next(rowStart, rowEnd);
+                int gapCol = rnd.Next(colStart, colEnd + 1);
+                for (int col = colStart; col <= colEnd; col++)
+                    if (col != gapCol)
+                        Cells[wallRow + 1][col].North = true;
+                RecursiveDivide(colStart, colEnd, rowStart, wallRow);
+                RecursiveDivide(colStart, colEnd, wallRow + 1, rowEnd);
+            }
+            else
+            {
+                int wallCol = rnd.Next(colStart, colEnd);
+                int gapRow = rnd.Next(rowStart, rowEnd + 1);
+                for (int row = rowStart; row <= rowEnd; row++)
+                    if (row != gapRow)
+                        Cells[row][wallCol].East = true;
+                RecursiveDivide(colStart, wallCol, rowStart, rowEnd);
+                RecursiveDivide(wallCol + 1, colEnd, rowStart, rowEnd);
+            }
+        }
+
+        public void GenerateRecursiveDivision(int width, int height)
+        {
+            Cells = InitializeMaze(width, height, 0);
+            Width = width;
+            Height = height;
+
+            // Open all interior walls — start with a completely open grid
+            for (int row = 0; row < height; row++)
+                for (int col = 0; col < width; col++)
+                {
+                    if (col < width - 1) Cells[row][col].East = false;
+                    if (row > 0) Cells[row][col].North = false;
+                }
+
+            (int, int) startCell = RandomStart();
+            Start = (startCell.Item1, startCell.Item2);
+            Player.X = startCell.Item1;
+            Player.Y = startCell.Item2;
+            Cells[startCell.Item2][startCell.Item1].Value = 2;
+
+            RecursiveDivide(0, width - 1, 0, height - 1);
+            OptimizeMaze();
+        }
+
+        public void GenerateSpiralBacktracker(int width, int height)
+        {
+            Cells = InitializeMaze(width, height, 0);
+            Width = width;
+            Height = height;
+
+            var visited = new Dictionary<(int, int), bool>();
+            for (int row = 0; row < height; row++)
+                for (int col = 0; col < width; col++)
+                    visited[(col, row)] = false;
+
+            (int, int) startCell = RandomStart();
+            Start = (startCell.Item1, startCell.Item2);
+            Player.X = startCell.Item1;
+            Player.Y = startCell.Item2;
+            Cells[startCell.Item2][startCell.Item1].Value = 2;
+
+            visited[startCell] = true;
+            var stack = new System.Collections.Generic.Stack<(int, int)>();
+            stack.Push(startCell);
+            (int, int) lastDir = (0, 0);
+            const int SPIRAL_WEIGHT = 70;
+
+            while (stack.Count > 0)
+            {
+                (int, int) current = stack.Peek();
+                var unvisited = AdjacentNotVisited(visited, current);
+
+                if (unvisited.Count == 0)
+                {
+                    stack.Pop();
+                    lastDir = (0, 0);
+                    continue;
+                }
+
+                (int, int) next;
+                (int, int) preferred = (current.Item1 + lastDir.Item1, current.Item2 + lastDir.Item2);
+                if (lastDir != (0, 0) && unvisited.Contains(preferred) && rnd.Next(100) < SPIRAL_WEIGHT)
+                    next = preferred;
+                else
+                    next = unvisited[rnd.Next(unvisited.Count)];
+
+                lastDir = (next.Item1 - current.Item1, next.Item2 - current.Item2);
+                LinkCells(current, next);
+                visited[next] = true;
+                stack.Push(next);
+            }
+
+            OptimizeMaze();
+        }
+
 
         public PlayerModel(int x, int y)
         {

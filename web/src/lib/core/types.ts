@@ -140,7 +140,14 @@ export type MazeAlgorithm =
 	| 'growingTree_50_50'
 	| 'growingTree_75_25'
 	| 'growingTree_25_75'
-	| 'growingTree_50_0';
+	| 'growingTree_50_0'
+	| 'wilsons'
+	| 'aldousBroder'
+	| 'binaryTree'
+	| 'sidewinder'
+	| 'ellers'
+	| 'recursiveDivision'
+	| 'spiralBacktracker';
 
 /** Shape of the maze grid topology */
 export type MazeShape = 'rectangular' | 'hexagonal' | 'circular' | 'triangular';

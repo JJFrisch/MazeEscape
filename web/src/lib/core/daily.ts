@@ -14,7 +14,14 @@ const ALGORITHMS: MazeAlgorithm[] = [
 	'growingTree_50_50',
 	'growingTree_75_25',
 	'growingTree_25_75',
-	'growingTree_50_0'
+	'growingTree_50_0',
+	'wilsons',
+	'aldousBroder',
+	'binaryTree',
+	'sidewinder',
+	'ellers',
+	'recursiveDivision',
+	'spiralBacktracker'
 ];
 
 /**

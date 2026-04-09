@@ -1,11 +1,11 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { env } from '$env/dynamic/public';
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_PUBLISHABLE_KEY } from '$env/static/public';
 
 let browserClient: SupabaseClient | null = null;
 
 export function getSupabaseBrowserClient(): SupabaseClient {
-	const supabaseUrl = env.PUBLIC_SUPABASE_URL;
-	const supabasePublishableKey = env.PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+	const supabaseUrl = PUBLIC_SUPABASE_URL;
+	const supabasePublishableKey = PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 	if (!supabaseUrl || !supabasePublishableKey) {
 		throw new Error('Supabase env vars are missing. Check web/.env.local.');

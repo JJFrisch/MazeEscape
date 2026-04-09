@@ -1,0 +1,23 @@
+name: NuGet Dependency Submission
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  nuget-dependency-submission:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Install MAUI workloads
+        run: dotnet workload install maui-android maui-ios
+
+      - uses: actions/nuget-dependency-submission@v1

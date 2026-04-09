@@ -22,7 +22,7 @@ const config = {
 			strict: false
 		}),
 		paths: {
-			base: dev ? '' : '/MazeEscape'
+			base: ''
 		}
 	}
 };

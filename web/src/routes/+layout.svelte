@@ -33,12 +33,12 @@
 </script>
 
 <svelte:head>
-	<title>MazeEscape</title>
+	<title>Maze Escape: Pathbound</title>
 </svelte:head>
 
 <div class="app-shell">
 	<header class="app-header">
-		<a href="{base}/" class="logo" aria-label="MazeEscape Home">
+		<a href="{base}/" class="logo" aria-label="Maze Escape: Pathbound Home">
 			<!-- Inline maze-fragment SVG icon -->
 			<svg class="logo-icon" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
 				<rect x="1.5" y="1.5" width="25" height="25" rx="4" stroke="var(--color-accent-primary)" stroke-width="2"/>
@@ -49,7 +49,7 @@
 				<!-- Gold centre dot (exit) -->
 				<circle cx="19" cy="20" r="2" fill="var(--color-accent-gold)"/>
 			</svg>
-			<span class="logo-text">MazeEscape</span>
+			<span class="logo-text">Maze Escape: Pathbound</span>
 		</a>
 
 		<nav class="header-nav" aria-label="Main navigation">
@@ -60,6 +60,7 @@
 			<a href="{base}/equip" class="nav-link" class:active={isActive(`${base}/equip`)}>Equip</a>
 			<a href="{base}/settings" class="nav-link" class:active={isActive(`${base}/settings`)}>Settings</a>
 			<a href="{base}/auth" class="nav-link" class:active={isActive(`${base}/auth`)}>{authStore.isAuthenticated ? 'Account' : 'Sign In'}</a>
+			<a href="{base}/download" class="nav-link nav-link-download" class:active={isActive(`${base}/download`)}>Download</a>
 		</nav>
 
 		<div class="header-stats">
@@ -82,6 +83,40 @@
 	<main class="app-main">
 		{@render children()}
 	</main>
+
+	<footer class="app-footer">
+		<div class="footer-inner">
+			<div class="footer-col footer-col-brand">
+				<span class="footer-brand-name">Maze Escape: Pathbound</span>
+				<p class="footer-brand-desc">A procedural puzzle maze game.</p>
+				<p class="footer-credit">
+					Designed and built by
+					<a href="https://jakefrischman.me" class="footer-link" target="_blank" rel="noopener noreferrer">Jake Frischmann</a>.
+				</p>
+			</div>
+			<div class="footer-col">
+				<span class="footer-heading">Play</span>
+				<a href="{base}/" class="footer-link">Home</a>
+				<a href="{base}/campaign/worlds" class="footer-link">Campaign</a>
+				<a href="{base}/daily" class="footer-link">Daily Maze</a>
+				<a href="{base}/download" class="footer-link">Download Desktop App</a>
+			</div>
+			<div class="footer-col">
+				<span class="footer-heading">Legal</span>
+				<a href="{base}/privacy" class="footer-link">Privacy Policy</a>
+				<a href="{base}/terms" class="footer-link">Terms of Service</a>
+			</div>
+			<div class="footer-col">
+				<span class="footer-heading">About</span>
+				<a href="https://jakefrischman.me" class="footer-link" target="_blank" rel="noopener noreferrer">jakefrischman.me</a>
+				<a href="https://github.com/JJFrisch/MazeEscape" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+			</div>
+		</div>
+		<div class="footer-bottom">
+			<span>© 2026 Jake Frischmann · <a href="https://jakefrischman.me" class="footer-link-inline" target="_blank" rel="noopener noreferrer">jakefrischman.me</a></span>
+			<span>mazeescapepathbound.com</span>
+		</div>
+	</footer>
 </div>
 
 <style>
@@ -216,6 +251,115 @@
 		max-width: var(--max-width);
 		margin: 0 auto;
 		padding: var(--space-6);
+	}
+
+	/* ── Footer ─────────────────────────────────── */
+	.app-footer {
+		background: #060d1a;
+		border-top: 1px solid rgba(56, 189, 248, 0.12);
+		padding: var(--space-10) var(--space-6) var(--space-6);
+		margin-top: auto;
+	}
+
+	.footer-inner {
+		display: grid;
+		grid-template-columns: 2fr 1fr 1fr 1fr;
+		gap: var(--space-8);
+		max-width: var(--max-width);
+		margin: 0 auto var(--space-8);
+	}
+
+	.footer-col {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+
+	.footer-brand-name {
+		font-family: var(--font-display);
+		font-weight: 700;
+		font-size: var(--text-base);
+		color: #f0f6ff;
+		margin-bottom: var(--space-1);
+	}
+
+	.footer-brand-desc {
+		font-size: var(--text-sm);
+		color: rgba(255, 255, 255, 0.4);
+		line-height: 1.5;
+	}
+
+	.footer-credit {
+		font-size: var(--text-sm);
+		color: rgba(255, 255, 255, 0.35);
+		line-height: 1.5;
+		margin-top: var(--space-1);
+	}
+
+	.footer-heading {
+		font-family: var(--font-display);
+		font-size: var(--text-xs);
+		font-weight: 700;
+		letter-spacing: 0.10em;
+		text-transform: uppercase;
+		color: rgba(255, 255, 255, 0.3);
+		margin-bottom: var(--space-1);
+	}
+
+	.footer-link {
+		font-size: var(--text-sm);
+		color: rgba(255, 255, 255, 0.5);
+		text-decoration: none;
+		transition: color var(--transition-fast);
+		width: fit-content;
+	}
+
+	.footer-link:hover {
+		color: #38bdf8;
+	}
+
+	.footer-bottom {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		max-width: var(--max-width);
+		margin: 0 auto;
+		padding-top: var(--space-6);
+		border-top: 1px solid rgba(255, 255, 255, 0.06);
+		font-size: var(--text-xs);
+		color: rgba(255, 255, 255, 0.25);
+		flex-wrap: wrap;
+		gap: var(--space-2);
+	}
+
+	.footer-link-inline {
+		color: rgba(56, 189, 248, 0.6);
+		text-decoration: none;
+		transition: color var(--transition-fast);
+	}
+
+	.footer-link-inline:hover {
+		color: #38bdf8;
+	}
+
+	.nav-link-download {
+		color: #d97706 !important;
+		border: 1px solid rgba(217, 119, 6, 0.35);
+		border-radius: var(--radius-md);
+	}
+
+	.nav-link-download:hover {
+		background: rgba(217, 119, 6, 0.12);
+		color: #fbbf24 !important;
+	}
+
+	@media (max-width: 768px) {
+		.footer-inner {
+			grid-template-columns: 1fr 1fr;
+		}
+		.footer-col-brand {
+			grid-column: 1 / -1;
+		}
 	}
 
 	/* ── Responsive ─────────────────────────────── */

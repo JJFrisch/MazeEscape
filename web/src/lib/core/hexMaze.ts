@@ -154,3 +154,157 @@ export function keyToHexDir(key: 'up' | 'down' | 'left' | 'right'): HexDirection
 		case 'right': return ['ne', 'se'];
 	}
 }
+
+// ---------------------------------------------------------------------------
+// Internal helper: remove wall between two adjacent hex cells
+// ---------------------------------------------------------------------------
+function hexLinkCells(cells: Map<string, HexCell>, c1: number, r1: number, c2: number, r2: number): void {
+	for (const dir of DIRECTIONS) {
+		const n = getNeighbor(c1, r1, dir);
+		if (n.col === c2 && n.row === r2) {
+			cells.get(cellKey(c1, r1))!.walls[DIR_INDEX[dir]] = false;
+			cells.get(cellKey(c2, r2))!.walls[DIR_INDEX[OPPOSITE[dir]]] = false;
+			return;
+		}
+	}
+}
+
+function initHexGrid(cols: number, rows: number): Map<string, HexCell> {
+	const cells = new Map<string, HexCell>();
+	for (let r = 0; r < rows; r++)
+		for (let c = 0; c < cols; c++)
+			cells.set(cellKey(c, r), { col: c, row: r, value: 0, walls: [true, true, true, true, true, true] });
+	return cells;
+}
+
+function hexBfsExit(
+	cells: Map<string, HexCell>,
+	start: { col: number; row: number }
+): { col: number; row: number } {
+	const bfsQueue = [start];
+	const bfsVisited = new Set<string>([cellKey(start.col, start.row)]);
+	let furthest = start;
+	while (bfsQueue.length > 0) {
+		const curr = bfsQueue.shift()!;
+		furthest = curr;
+		const cell = cells.get(cellKey(curr.col, curr.row))!;
+		for (const dir of DIRECTIONS) {
+			if (!cell.walls[DIR_INDEX[dir]]) {
+				const n = getNeighbor(curr.col, curr.row, dir);
+				const nk = cellKey(n.col, n.row);
+				if (!bfsVisited.has(nk) && cells.has(nk)) {
+					bfsVisited.add(nk);
+					bfsQueue.push(n);
+				}
+			}
+		}
+	}
+	return furthest;
+}
+
+// ---------------------------------------------------------------------------
+// Prim's on hexagonal grid
+// ---------------------------------------------------------------------------
+export function generateHexMazePrims(cols: number, rows: number, seed: number): HexMazeData {
+	const rng = new SeededRandom(seed);
+	const cells = initHexGrid(cols, rows);
+
+	const startCol = rng.nextInt(0, cols);
+	const startRow = rng.nextInt(0, rows);
+	const visited = new Set<string>([cellKey(startCol, startRow)]);
+
+	const frontier: { col: number; row: number }[] = [];
+	for (const dir of DIRECTIONS) {
+		const n = getNeighbor(startCol, startRow, dir);
+		if (cells.has(cellKey(n.col, n.row))) frontier.push(n);
+	}
+
+	while (frontier.length > 0) {
+		const idx = rng.nextInt(0, frontier.length);
+		const cell = frontier.splice(idx, 1)[0];
+		const ck = cellKey(cell.col, cell.row);
+		if (visited.has(ck)) continue;
+
+		// Link to a random visited neighbor
+		const visitedNeighbors: { col: number; row: number }[] = [];
+		for (const dir of DIRECTIONS) {
+			const n = getNeighbor(cell.col, cell.row, dir);
+			if (cells.has(cellKey(n.col, n.row)) && visited.has(cellKey(n.col, n.row)))
+				visitedNeighbors.push(n);
+		}
+		const link = visitedNeighbors[rng.nextInt(0, visitedNeighbors.length)];
+		hexLinkCells(cells, link.col, link.row, cell.col, cell.row);
+		visited.add(ck);
+
+		for (const dir of DIRECTIONS) {
+			const n = getNeighbor(cell.col, cell.row, dir);
+			const nk = cellKey(n.col, n.row);
+			if (cells.has(nk) && !visited.has(nk)) frontier.push(n);
+		}
+	}
+
+	const start = { col: startCol, row: startRow };
+	const end = hexBfsExit(cells, start);
+	cells.get(cellKey(start.col, start.row))!.value = 2;
+	cells.get(cellKey(end.col, end.row))!.value = 3;
+	return { shape: 'hexagonal', cells, cols, rows, start, end };
+}
+
+// ---------------------------------------------------------------------------
+// Kruskal's on hexagonal grid
+// ---------------------------------------------------------------------------
+export function generateHexMazeKruskals(cols: number, rows: number, seed: number): HexMazeData {
+	const rng = new SeededRandom(seed);
+	const cells = initHexGrid(cols, rows);
+
+	// Union-Find
+	const parent = new Map<string, string>();
+	const rank = new Map<string, number>();
+	for (const k of cells.keys()) { parent.set(k, k); rank.set(k, 0); }
+
+	function find(k: string): string {
+		if (parent.get(k) !== k) parent.set(k, find(parent.get(k)!));
+		return parent.get(k)!;
+	}
+	function union(a: string, b: string): boolean {
+		const ra = find(a), rb = find(b);
+		if (ra === rb) return false;
+		const rankA = rank.get(ra)!, rankB = rank.get(rb)!;
+		if (rankA < rankB) parent.set(ra, rb);
+		else if (rankA > rankB) parent.set(rb, ra);
+		else { parent.set(rb, ra); rank.set(ra, rankA + 1); }
+		return true;
+	}
+
+	// Collect unique edges via string-sorted key pairs
+	const edgeSet = new Set<string>();
+	const edges: [number, number, number, number][] = [];
+	for (let r = 0; r < rows; r++) {
+		for (let c = 0; c < cols; c++) {
+			for (const dir of DIRECTIONS) {
+				const n = getNeighbor(c, r, dir);
+				if (!cells.has(cellKey(n.col, n.row))) continue;
+				const k1 = cellKey(c, r);
+				const k2 = cellKey(n.col, n.row);
+				const ek = k1 < k2 ? `${k1}|${k2}` : `${k2}|${k1}`;
+				if (!edgeSet.has(ek)) {
+					edgeSet.add(ek);
+					edges.push([c, r, n.col, n.row]);
+				}
+			}
+		}
+	}
+	rng.shuffle(edges);
+	for (const [c1, r1, c2, r2] of edges) {
+		if (union(cellKey(c1, r1), cellKey(c2, r2)))
+			hexLinkCells(cells, c1, r1, c2, r2);
+	}
+
+	const startCol = rng.nextInt(0, cols);
+	const startRow = rng.nextInt(0, rows);
+	const start = { col: startCol, row: startRow };
+	const end = hexBfsExit(cells, start);
+	cells.get(cellKey(start.col, start.row))!.value = 2;
+	cells.get(cellKey(end.col, end.row))!.value = 3;
+	return { shape: 'hexagonal', cells, cols, rows, start, end };
+}

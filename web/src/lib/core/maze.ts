@@ -315,6 +315,302 @@ function generateGrowingTree(
 }
 
 // ---------------------------------------------------------------------------
+// Additional generation algorithms (7 new)
+// ---------------------------------------------------------------------------
+
+function generateWilsons(
+	cells: MazeCell[][],
+	width: number,
+	height: number,
+	rng: SeededRandom,
+	startPos: Position
+): void {
+	const visited = new Set<CellKey>();
+	visited.add(key(startPos.x, startPos.y));
+
+	// Track unvisited as a list for O(1) random pick; remove lazily via the set
+	const unvisited: Position[] = [];
+	for (let y = 0; y < height; y++)
+		for (let x = 0; x < width; x++)
+			if (!(x === startPos.x && y === startPos.y)) unvisited.push({ x, y });
+
+	while (unvisited.length > 0) {
+		// Pick a random unvisited cell (skip already-visited ones)
+		let walkStart: Position | null = null;
+		while (unvisited.length > 0) {
+			const idx = rng.nextInt(0, unvisited.length);
+			const candidate = unvisited[idx];
+			if (!visited.has(key(candidate.x, candidate.y))) {
+				walkStart = candidate;
+				break;
+			}
+			// lazy removal of visited cells
+			unvisited[idx] = unvisited[unvisited.length - 1];
+			unvisited.pop();
+		}
+		if (!walkStart) break;
+
+		// Loop-erased random walk from walkStart until hitting visited
+		const pathOrder: Position[] = [{ ...walkStart }];
+		const pathIndex = new Map<CellKey, number>();
+		pathIndex.set(key(walkStart.x, walkStart.y), 0);
+		let current = { ...walkStart };
+
+		while (!visited.has(key(current.x, current.y))) {
+			const dirs = [
+				[0, -1], [0, 1], [1, 0], [-1, 0]
+			].filter(([dx, dy]) => inBounds(current.x + dx, current.y + dy, width, height));
+			const [dx, dy] = dirs[rng.nextInt(0, dirs.length)];
+			const nx = current.x + dx;
+			const ny = current.y + dy;
+			const nk = key(nx, ny);
+
+			if (pathIndex.has(nk)) {
+				// Erase loop: keep path up to (and including) re-visited cell
+				const loopStart = pathIndex.get(nk)! + 1;
+				for (let i = loopStart; i < pathOrder.length; i++)
+					pathIndex.delete(key(pathOrder[i].x, pathOrder[i].y));
+				pathOrder.splice(loopStart);
+			} else {
+				pathIndex.set(nk, pathOrder.length);
+				pathOrder.push({ x: nx, y: ny });
+			}
+			current = { x: nx, y: ny };
+		}
+
+		// Carve path (all except last cell which is already in visited)
+		for (let i = 0; i < pathOrder.length - 1; i++) {
+			linkCells(cells, pathOrder[i], pathOrder[i + 1]);
+			visited.add(key(pathOrder[i].x, pathOrder[i].y));
+		}
+	}
+}
+
+function generateAldousBroder(
+	cells: MazeCell[][],
+	width: number,
+	height: number,
+	rng: SeededRandom,
+	startPos: Position
+): void {
+	const visited = new Set<CellKey>();
+	visited.add(key(startPos.x, startPos.y));
+	let current = { ...startPos };
+	const totalCells = width * height;
+
+	while (visited.size < totalCells) {
+		const dirs = [
+			[0, -1], [0, 1], [1, 0], [-1, 0]
+		].filter(([dx, dy]) => inBounds(current.x + dx, current.y + dy, width, height));
+		const [dx, dy] = dirs[rng.nextInt(0, dirs.length)];
+		const next = { x: current.x + dx, y: current.y + dy };
+		const nk = key(next.x, next.y);
+
+		if (!visited.has(nk)) {
+			linkCells(cells, current, next);
+			visited.add(nk);
+		}
+		current = next;
+	}
+}
+
+function generateBinaryTree(
+	cells: MazeCell[][],
+	width: number,
+	height: number,
+	rng: SeededRandom,
+	_startPos: Position
+): void {
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			const options: Position[] = [];
+			if (y > 0) options.push({ x, y: y - 1 }); // north
+			if (x < width - 1) options.push({ x: x + 1, y }); // east
+			if (options.length > 0)
+				linkCells(cells, { x, y }, options[rng.nextInt(0, options.length)]);
+		}
+	}
+}
+
+function generateSidewinder(
+	cells: MazeCell[][],
+	width: number,
+	height: number,
+	rng: SeededRandom,
+	_startPos: Position
+): void {
+	// Top row: open all east walls
+	for (let x = 0; x < width - 1; x++) linkCells(cells, { x, y: 0 }, { x: x + 1, y: 0 });
+
+	for (let y = 1; y < height; y++) {
+		let run: Position[] = [];
+		for (let x = 0; x < width; x++) {
+			run.push({ x, y });
+			const atEast = x === width - 1;
+			const closeRun = atEast || rng.nextInt(0, 2) === 0;
+
+			if (closeRun) {
+				const northCell = run[rng.nextInt(0, run.length)];
+				linkCells(cells, northCell, { x: northCell.x, y: northCell.y - 1 });
+				run = [];
+			} else {
+				linkCells(cells, { x, y }, { x: x + 1, y });
+			}
+		}
+	}
+}
+
+function generateEllers(
+	cells: MazeCell[][],
+	width: number,
+	height: number,
+	rng: SeededRandom,
+	_startPos: Position
+): void {
+	let nextSetId = 0;
+	let rowSets: number[] = Array.from({ length: width }, () => nextSetId++);
+
+	for (let y = 0; y < height; y++) {
+		const isLastRow = y === height - 1;
+
+		// Step 1: merge adjacent cells from different sets (always on last row)
+		for (let x = 0; x < width - 1; x++) {
+			if (rowSets[x] !== rowSets[x + 1] && (isLastRow || rng.nextInt(0, 2) === 0)) {
+				const mergeFrom = rowSets[x + 1];
+				const mergeTo = rowSets[x];
+				for (let c = 0; c < width; c++)
+					if (rowSets[c] === mergeFrom) rowSets[c] = mergeTo;
+				linkCells(cells, { x, y }, { x: x + 1, y });
+			}
+		}
+
+		if (!isLastRow) {
+			// Step 2: for each set ensure at least 1 south connection
+			const setColumns = new Map<number, number[]>();
+			for (let x = 0; x < width; x++) {
+				if (!setColumns.has(rowSets[x])) setColumns.set(rowSets[x], []);
+				setColumns.get(rowSets[x])!.push(x);
+			}
+
+			const nextRowSets: number[] = new Array(width).fill(-1);
+
+			for (const [setId, cols] of setColumns) {
+				const shuffled = [...cols];
+				rng.shuffle(shuffled);
+				let connectedAny = false;
+
+				for (let i = 0; i < shuffled.length; i++) {
+					const x = shuffled[i];
+					const isLastInSet = i === shuffled.length - 1;
+					const shouldConnect = (!connectedAny && isLastInSet) || rng.nextInt(0, 2) === 0;
+					if (shouldConnect) {
+						linkCells(cells, { x, y }, { x, y: y + 1 });
+						nextRowSets[x] = setId;
+						connectedAny = true;
+					}
+				}
+			}
+
+			// Cells without south connection get fresh set IDs
+			for (let x = 0; x < width; x++)
+				if (nextRowSets[x] === -1) nextRowSets[x] = nextSetId++;
+
+			rowSets = nextRowSets;
+		}
+	}
+}
+
+function generateRecursiveDivision(
+	cells: MazeCell[][],
+	width: number,
+	height: number,
+	rng: SeededRandom,
+	_startPos: Position
+): void {
+	// Open all interior walls first
+	for (let y = 0; y < height; y++)
+		for (let x = 0; x < width; x++) {
+			if (x < width - 1) cells[y][x].east = false;
+			if (y > 0) cells[y][x].north = false;
+		}
+
+	function divide(x0: number, x1: number, y0: number, y1: number): void {
+		const w = x1 - x0 + 1;
+		const h = y1 - y0 + 1;
+		if (w < 2 || h < 2) return;
+
+		let horizontal: boolean;
+		if (h > w) horizontal = true;
+		else if (w > h) horizontal = false;
+		else horizontal = rng.nextInt(0, 2) === 0;
+
+		if (horizontal) {
+			const wallY = rng.nextInt(y0, y1); // y0 <= wallY < y1
+			const gapX = rng.nextInt(x0, x1 + 1);
+			for (let x = x0; x <= x1; x++)
+				if (x !== gapX) cells[wallY + 1][x].north = true;
+			divide(x0, x1, y0, wallY);
+			divide(x0, x1, wallY + 1, y1);
+		} else {
+			const wallX = rng.nextInt(x0, x1); // x0 <= wallX < x1
+			const gapY = rng.nextInt(y0, y1 + 1);
+			for (let y = y0; y <= y1; y++)
+				if (y !== gapY) cells[y][wallX].east = true;
+			divide(x0, wallX, y0, y1);
+			divide(wallX + 1, x1, y0, y1);
+		}
+	}
+
+	divide(0, width - 1, 0, height - 1);
+}
+
+function generateSpiralBacktracker(
+	cells: MazeCell[][],
+	width: number,
+	height: number,
+	rng: SeededRandom,
+	startPos: Position
+): void {
+	const visited = new Set<CellKey>();
+	visited.add(key(startPos.x, startPos.y));
+	const stack: Position[] = [{ ...startPos }];
+	let lastDx = 0;
+	let lastDy = 0;
+	const SPIRAL_WEIGHT = 70;
+
+	while (stack.length > 0) {
+		const current = stack[stack.length - 1];
+		const neighbours = adjacentUnvisited(current.x, current.y, visited, width, height);
+
+		if (neighbours.length === 0) {
+			stack.pop();
+			lastDx = 0;
+			lastDy = 0;
+			continue;
+		}
+
+		let next: Position;
+		if (lastDx !== 0 || lastDy !== 0) {
+			const px = current.x + lastDx;
+			const py = current.y + lastDy;
+			const pk = key(px, py);
+			if (inBounds(px, py, width, height) && !visited.has(pk) && rng.nextInt(0, 100) < SPIRAL_WEIGHT)
+				next = { x: px, y: py };
+			else
+				next = neighbours[rng.nextInt(0, neighbours.length)];
+		} else {
+			next = neighbours[rng.nextInt(0, neighbours.length)];
+		}
+
+		lastDx = next.x - current.x;
+		lastDy = next.y - current.y;
+		linkCells(cells, current, next);
+		visited.add(key(next.x, next.y));
+		stack.push(next);
+	}
+}
+
+// ---------------------------------------------------------------------------
 // Post-generation optimization (BFS for longest path)
 // ---------------------------------------------------------------------------
 
@@ -443,7 +739,14 @@ const algorithmMap: Record<
 	growingTree_25_75: (cells, w, h, rng, start) =>
 		generateGrowingTree(cells, w, h, rng, start, 25, 75),
 	growingTree_50_0: (cells, w, h, rng, start) =>
-		generateGrowingTree(cells, w, h, rng, start, 50, 0)
+		generateGrowingTree(cells, w, h, rng, start, 50, 0),
+	wilsons: generateWilsons,
+	aldousBroder: generateAldousBroder,
+	binaryTree: generateBinaryTree,
+	sidewinder: generateSidewinder,
+	ellers: generateEllers,
+	recursiveDivision: generateRecursiveDivision,
+	spiralBacktracker: generateSpiralBacktracker
 };
 
 /**

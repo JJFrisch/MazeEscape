@@ -58,6 +58,7 @@
 			<a href="{base}/daily" class="nav-link" class:active={isActive(`${base}/daily`)}>Daily</a>
 			<a href="{base}/shop" class="nav-link" class:active={isActive(`${base}/shop`)}>Shop</a>
 			<a href="{base}/equip" class="nav-link" class:active={isActive(`${base}/equip`)}>Equip</a>
+			<a href="{base}/algorithms" class="nav-link" class:active={isActive(`${base}/algorithms`)}>Algorithms</a>
 			<a href="{base}/settings" class="nav-link" class:active={isActive(`${base}/settings`)}>Settings</a>
 			<a href="{base}/auth" class="nav-link" class:active={isActive(`${base}/auth`)}>{authStore.isAuthenticated ? 'Account' : 'Sign In'}</a>
 			<a href="{base}/download" class="nav-link nav-link-download" class:active={isActive(`${base}/download`)}>Download</a>

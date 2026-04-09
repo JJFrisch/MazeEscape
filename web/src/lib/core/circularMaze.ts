@@ -221,3 +221,104 @@ export function keyToCircularDir(
 		case 'right': return ['cw'];
 	}
 }
+
+// ---------------------------------------------------------------------------
+// Prim's on circular (polar) grid
+// ---------------------------------------------------------------------------
+export function generateCircularMazePrims(numRings: number, seed: number): CircularMazeData {
+	const rng = new SeededRandom(seed);
+	const rings: RingCell[][] = [];
+
+	for (let r = 0; r < numRings; r++) {
+		const numSectors = sectorsForRing(r);
+		const ring: RingCell[] = [];
+		for (let s = 0; s < numSectors; s++)
+			ring.push({ ring: r, sector: s, value: 0, wallCW: true, wallOut: true });
+		rings.push(ring);
+	}
+
+	function getNeighbors(r: number, s: number): { ring: number; sector: number; type: 'cw' | 'ccw' | 'in' | 'out' }[] {
+		const neighbors: { ring: number; sector: number; type: 'cw' | 'ccw' | 'in' | 'out' }[] = [];
+		const numSectors = rings[r].length;
+		neighbors.push({ ring: r, sector: (s + 1) % numSectors, type: 'cw' });
+		neighbors.push({ ring: r, sector: (s - 1 + numSectors) % numSectors, type: 'ccw' });
+		if (r > 0) {
+			const innerSectors = rings[r - 1].length;
+			neighbors.push({ ring: r - 1, sector: Math.floor(s * innerSectors / numSectors), type: 'in' });
+		}
+		if (r < numRings - 1) {
+			const outerSectors = rings[r + 1].length;
+			const startSector = Math.floor(s * outerSectors / numSectors);
+			const endSector = Math.floor((s + 1) * outerSectors / numSectors);
+			for (let os = startSector; os < endSector; os++)
+				neighbors.push({ ring: r + 1, sector: os, type: 'out' });
+			if (startSector === endSector)
+				neighbors.push({ ring: r + 1, sector: startSector, type: 'out' });
+		}
+		return neighbors;
+	}
+
+	function linkCells(r1: number, s1: number, r2: number, s2: number): void {
+		if (r1 === r2) {
+			if ((s1 + 1) % rings[r1].length === s2) rings[r1][s1].wallCW = false;
+			else if ((s2 + 1) % rings[r1].length === s1) rings[r1][s2].wallCW = false;
+		} else {
+			const inner = r1 < r2 ? { r: r1, s: s1 } : { r: r2, s: s2 };
+			rings[inner.r][inner.s].wallOut = false;
+		}
+	}
+
+	const ck = (r: number, s: number) => `${r},${s}`;
+	const visited = new Set<string>([ck(0, 0)]);
+
+	type FrontierCell = { ring: number; sector: number };
+	const frontier: FrontierCell[] = [];
+	for (const n of getNeighbors(0, 0)) frontier.push({ ring: n.ring, sector: n.sector });
+
+	while (frontier.length > 0) {
+		const idx = rng.nextInt(0, frontier.length);
+		const cell = frontier.splice(idx, 1)[0];
+		if (visited.has(ck(cell.ring, cell.sector))) continue;
+
+		// Link to a random visited neighbor
+		const visitedNeighbors = getNeighbors(cell.ring, cell.sector)
+			.filter(n => visited.has(ck(n.ring, n.sector)));
+		if (visitedNeighbors.length === 0) continue;
+		const link = visitedNeighbors[rng.nextInt(0, visitedNeighbors.length)];
+		linkCells(link.ring, link.sector, cell.ring, cell.sector);
+		visited.add(ck(cell.ring, cell.sector));
+
+		for (const n of getNeighbors(cell.ring, cell.sector))
+			if (!visited.has(ck(n.ring, n.sector)))
+				frontier.push({ ring: n.ring, sector: n.sector });
+	}
+
+	// BFS for exit from center
+	const bfsQueue = [{ ring: 0, sector: 0 }];
+	const bfsVisited = new Set<string>([ck(0, 0)]);
+	let furthest = { ring: 0, sector: 0 };
+	while (bfsQueue.length > 0) {
+		const curr = bfsQueue.shift()!;
+		furthest = curr;
+		for (const n of getNeighbors(curr.ring, curr.sector)) {
+			if (bfsVisited.has(ck(n.ring, n.sector))) continue;
+			let hasPassage = false;
+			if (curr.ring === n.ring) {
+				const s1 = curr.sector, s2 = n.sector;
+				if ((s1 + 1) % rings[curr.ring].length === s2) hasPassage = !rings[curr.ring][s1].wallCW;
+				else if ((s2 + 1) % rings[curr.ring].length === s1) hasPassage = !rings[curr.ring][s2].wallCW;
+			} else {
+				const innerR = Math.min(curr.ring, n.ring);
+				const innerS = curr.ring < n.ring ? curr.sector : n.sector;
+				hasPassage = !rings[innerR][innerS].wallOut;
+			}
+			if (hasPassage) { bfsVisited.add(ck(n.ring, n.sector)); bfsQueue.push(n); }
+		}
+	}
+
+	const start = { ring: 0, sector: 0 };
+	const end = furthest;
+	rings[start.ring][start.sector].value = 2;
+	rings[end.ring][end.sector].value = 3;
+	return { shape: 'circular', rings, numRings, start, end };
+}

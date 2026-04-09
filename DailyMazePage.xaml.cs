@@ -416,6 +416,50 @@ public partial class DailyMazePage : ContentPage
             " it backtracks to the last cell with available paths and continues. This process repeats until all cells are visited. The result is a maze with long, winding corridors and " +
             "few short cycles, often featuring a bias toward deep, snaking paths rather than evenly distributed branching structures." },
 
+        {"GenerateWilsons", "Wilson's algorithm builds a maze through loop-erased random walks. Starting from a random seed cell, it picks any unvisited cell and begins a random walk. " +
+            "Whenever the walk revisits a cell already on its own current path, the resulting loop is erased and only the path from the revisit point onward is retained. When the walk reaches " +
+            "a cell already incorporated into the maze, the surviving path is carved in and the process repeats. Because every possible perfect maze is produced with equal probability " +
+            "(a provably uniform spanning tree), Wilson's mazes have balanced, unbiased branching with evenly distributed dead ends throughout. Visually there are no dominant corridors " +
+            "and no directional bias, making every region of the maze equally complex. Designed by David Bruce Wilson (1996)." },
+
+        {"GenerateAldousBroder", "The Aldous-Broder algorithm produces a uniform random spanning tree through pure random wandering. Starting from a random cell, the algorithm walks " +
+            "to any neighbor at random. If that neighbor is unvisited, a passage is carved and the cell is marked visited. The walk always moves to the neighbor regardless of whether it was " +
+            "already visited. This continues until every cell has been visited. Because the algorithm makes no directional decisions, every possible perfect maze is equally likely, " +
+            "identical in distribution to Wilson's and Kruskal's. The result is a balanced, unbiased maze with even dead-end density and no structural shortcuts. " +
+            "Independently developed by David Aldous and Andrei Broder around 1990." },
+
+        {"GenerateBinaryTree", "Binary Tree is the simplest possible maze algorithm: for every cell in the grid, flip a coin and carve either north or east (ignoring directions that go out of bounds). " +
+            "No visited set, no stack, no bookkeeping beyond the grid itself. Each cell is processed exactly once. The simplicity comes at the cost of a pronounced structural bias: " +
+            "the top row becomes one unbroken east corridor and the right column becomes one unbroken north shaft. The maze has a strong northeast-grain texture " +
+            "because every passage flows north or east. Solving is almost trivial once this bias is recognized. Popularized by Jamis Buck in Mazes for Programmers (2015)." },
+
+        {"GenerateSidewinder", "Sidewinder processes the grid row by row, left to right. It accumulates a run of cells along the current row. At each step it either extends the run eastward " +
+            "or closes the run by carving north from one randomly chosen cell within the run. The top row is always a full east corridor since no north carving is possible there. " +
+            "The result has a distinctive horizontal banding texture: passages form left-right clusters each with exactly one northern exit. Visually similar to a river delta " +
+            "when viewed from above. Sidewinder eliminates the unbroken top-row bias of Binary Tree while retaining row-based structure, making it slightly harder to solve. " +
+            "Popularized by Jamis Buck; no single inventor is known." },
+
+        {"GenerateEllers", "Eller's algorithm generates a maze one row at a time using only O(width) memory, making it the first known algorithm capable of generating " +
+            "arbitrarily tall mazes in streaming fashion. Each cell in a row belongs to a numbered connected-component set. Adjacent cells from different sets are randomly merged " +
+            "(east wall removed). Then, for each set, at least one cell must receive a south-opening passage; others may be chosen randomly. " +
+            "Cells without south openings begin fresh sets in the next row. The final row merges all remaining different adjacent sets. " +
+            "Despite working one row at a time, the output is statistically indistinguishable from a global minimum spanning tree: balanced branching, no bias, even dead-end density. " +
+            "Invented by Marlin Eller in 1982; unpublished until rediscovered in his archive." },
+
+        {"GenerateRecursiveDivision", "Recursive Division is the only algorithm here that adds walls rather than removes them. The grid starts as a completely open floor plan. " +
+            "A rectangular region is split by a wall running the full width or height of the region, with exactly one gap left for passage. Both sub-regions are then subdivided recursively. " +
+            "Region orientation is chosen based on aspect ratio: tall regions are split horizontally, wide regions vertically, square regions randomly. " +
+            "The result is a fractal maze structure with characteristically long straight walls, rectangular chambers nested within chambers, and a small number of mandatory bottleneck passages. " +
+            "Solving strategy: identify the gap in each dividing wall and trace the tree of regions from exit back to start. Conceptually related to BSP tree generation; " +
+            "popularized for mazes by Jamis Buck." },
+
+        {"GenerateSpiralBacktracker", "The Spiral Backtracker is a directionally biased variant of recursive backtracking designed by Jake Frischmann. " +
+            "Standard DFS picks a completely random unvisited neighbor at each step. The Spiral Backtracker instead gives a 70% probability to continuing in the same direction " +
+            "as the previous move, causing the path to spiral outward in long looping corridors rather than wandering erratically. When the preferred direction is blocked or " +
+            "the 30% random chance triggers, a new direction is chosen and becomes the next preference. Backtracking resets the direction. " +
+            "The result is a maze dominated by sweeping curved corridors that loop and wrap around themselves, creating a distinctive pinwheel appearance. " +
+            "The spiraling structure means the exit may appear visually close but be many corridor-lengths away. Designed by Jake Frischmann." },
+
     };
 
     public async void DisplayInfoOnMaze()

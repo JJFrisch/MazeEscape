@@ -21,8 +21,13 @@
 	import EncounterCard from '$lib/components/EncounterCard.svelte';
 	import { WORLD_THEMES } from '$lib/worldThemes';
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
+	import { getDeityByAlgorithm } from '$lib/core/deities';
 
 	let { worldId, layout }: { worldId: number; layout: WorldMapLayout } = $props();
+
+	// Filter bar state
+	type MapFilter = 'all' | 'incomplete' | 'bonus' | 'collectibles';
+	let activeFilter = $state<MapFilter>('all');
 
 	const T = $derived(layout.tileSize);
 	const svgWidth = $derived(layout.cols * T);
@@ -344,6 +349,58 @@
 		return gameStore.getLevelProgress(worldId, levelNumber)?.numberOfStars ?? 0;
 	}
 
+	/** Returns the deity accent color for a level node, or null if not found */
+	function deityColorForLevel(levelNumber: string): string | null {
+		const worldDef = getAllWorlds().find(w => w.worldId === worldId);
+		if (!worldDef) return null;
+		const levelDef = getLevelByNumber(worldDef, levelNumber);
+		if (!levelDef) return null;
+		const deity = getDeityByAlgorithm(levelDef.levelType);
+		return deity?.color ?? null;
+	}
+
+	function levelNodeFillDeity(node: MapNode): string {
+		const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
+		if (prog?.completed) {
+			if (node.type === 'bonus_level') return ACCENT_GOLD;
+			return deityColorForLevel(node.levelNumber ?? '') ?? worldTheme.accentColor;
+		}
+		if (isLevelUnlocked(node.levelNumber ?? '')) return '#0f2a44';
+		return '#0a1628';
+	}
+
+	function levelNodeStrokeDeity(node: MapNode): string {
+		const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
+		if (prog?.completed) {
+			if (node.type === 'bonus_level') return ACCENT_GOLD;
+			return deityColorForLevel(node.levelNumber ?? '') ?? worldTheme.accentColor;
+		}
+		if (isLevelUnlocked(node.levelNumber ?? '')) return worldTheme.accentColor;
+		return '#1e3a5c';
+	}
+
+	/** Whether a node passes the active filter (for dimming unmatched nodes) */
+	function nodeMatchesFilter(node: MapNode): boolean {
+		if (activeFilter === 'all') return true;
+		if (activeFilter === 'bonus') return node.type === 'bonus_level';
+		if (activeFilter === 'incomplete') {
+			if (node.type !== 'level' && node.type !== 'bonus_level') return false;
+			const unlocked = isLevelUnlocked(node.levelNumber ?? '');
+			const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
+			return unlocked && !prog?.completed;
+		}
+		// collectibles — handled in collectible layer; for nodes always match
+		return true;
+	}
+
+	/** Whether a collectible passes the active filter */
+	function collectibleMatchesFilter(item: MapCollectible): boolean {
+		if (activeFilter === 'collectibles') {
+			return !gameStore.isMapItemCollected(worldId, item.id);
+		}
+		return activeFilter === 'all';
+	}
+
 	function collectibleColor(type: MapCollectible['type']): string {
 		switch (type) {
 			case 'chest': return ACCENT_GOLD;
@@ -368,6 +425,27 @@
 	role="application"
 	aria-label="Campaign map — pan and zoom to explore"
 >
+	<!-- Filter bar overlay -->
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<div class="filter-bar" role="group" aria-label="Map filter" onpointerdown={(e) => e.stopPropagation()}>
+		{#each ([
+			{ id: 'all',          label: 'All',         icon: '🗺️' },
+			{ id: 'incomplete',   label: 'Incomplete',  icon: '⬡'  },
+			{ id: 'bonus',        label: 'Bonus',       icon: '✦'  },
+			{ id: 'collectibles', label: 'Collectibles',icon: '📦' },
+		] as const) as f}
+			<button
+				class="filter-pill"
+				class:active={activeFilter === f.id}
+				onclick={() => { activeFilter = activeFilter === f.id ? 'all' : f.id; }}
+				aria-pressed={activeFilter === f.id}
+			>
+				<span class="filter-icon">{f.icon}</span>
+				<span class="filter-label">{f.label}</span>
+			</button>
+		{/each}
+	</div>
+
 	<div
 		class="map-canvas"
 		style="transform: translate({panX}px, {panY}px) scale({scale}); transform-origin: 0 0; width: {svgWidth}px; height: {svgHeight}px;"
@@ -629,10 +707,12 @@
 					{@const px = cx(item.tile.col)}
 					{@const py = cy(item.tile.row)}
 					{@const color = collected ? '#374151' : collectibleColor(item.type)}
+					{@const collectibleMatched = activeFilter === 'all' || collectibleMatchesFilter(item)}
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<g
 						class="collectible"
 						class:collected
+						opacity={collectibleMatched ? 1 : 0.15}
 						onclick={(e) => onCollectibleClick(e, item)}
 						role="button"
 						aria-label={collected ? `${item.label} (collected)` : item.label}
@@ -678,26 +758,31 @@
 					{@const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '')}
 					{@const stars = starCountForNode(node.levelNumber ?? '')}
 					{@const visible = isAreaVisible(node.area)}
+					{@const matched = nodeMatchesFilter(node)}
+					{@const nodeFill = levelNodeFillDeity(node)}
+					{@const nodeStroke = levelNodeStrokeDeity(node)}
 					{#if visible}
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
 						<g
 							class="level-node"
 							class:unlocked
 							class:completed={!!prog?.completed}
+							class:filter-dim={!matched}
 							onclick={(e) => onNodeClick(e, node)}
 							onmouseenter={(e) => onNodeHover(e, node)}
 							onmouseleave={() => { tooltip = null; }}
 							role="button"
 							aria-label="Level {node.levelNumber}{prog?.completed ? ' (completed)' : unlocked ? ' (unlocked)' : ' (locked)'}"
 							tabindex={unlocked ? 0 : undefined}
-							filter={unlocked && !prog?.completed ? 'url(#node-glow)' : undefined}
+							filter={unlocked && !prog?.completed && matched ? 'url(#node-glow)' : undefined}
+							opacity={matched ? 1 : 0.18}
 						>
-							<!-- Outer ring (completed = filled accent) -->
+							<!-- Outer ring (completed = filled deity color) -->
 							<circle
 								cx={px} cy={py}
 								r={node.type === 'bonus_level' ? T * 0.32 : T * 0.36}
-								fill={levelNodeFill(node)}
-								stroke={levelNodeStroke(node)}
+								fill={nodeFill}
+								stroke={nodeStroke}
 								stroke-width={prog?.completed ? 0 : 2}
 								opacity={unlocked ? 1 : 0.45}
 							/>
@@ -1031,6 +1116,50 @@
 		border-color: #38bdf8;
 		color: #e0f2fe;
 	}
+
+	/* Filter bar */
+	.filter-bar {
+		position: absolute;
+		top: 0.9rem;
+		left: 50%;
+		transform: translateX(-50%);
+		z-index: 20;
+		display: flex;
+		gap: 0.35rem;
+		background: rgba(5, 12, 28, 0.88);
+		border: 1px solid rgba(56, 189, 248, 0.2);
+		border-radius: 99px;
+		padding: 0.3rem 0.45rem;
+		backdrop-filter: blur(8px);
+		box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+		pointer-events: all;
+	}
+	.filter-pill {
+		display: flex;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 0.28rem 0.65rem;
+		border-radius: 99px;
+		border: 1px solid transparent;
+		background: transparent;
+		color: #64748b;
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 0.03em;
+		cursor: pointer;
+		transition: background 0.15s, color 0.15s, border-color 0.15s;
+		white-space: nowrap;
+	}
+	.filter-pill:hover {
+		background: rgba(56, 189, 248, 0.1);
+		color: #93c5fd;
+	}
+	.filter-pill.active {
+		background: rgba(56, 189, 248, 0.18);
+		border-color: rgba(56, 189, 248, 0.5);
+		color: #e0f2fe;
+	}
+	.filter-icon { font-size: 0.8rem; }
 
 	/* Tooltip */
 	.map-tooltip {

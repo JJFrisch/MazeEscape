@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { gameStore } from '$lib/stores/gameStore.svelte';
-	import { POWERUP_COSTS } from '$lib/core/types';
 	import type { PowerupName } from '$lib/core/types';
 
 	let buyMsg = $state('');
@@ -23,6 +22,10 @@
 	function buyItem(name: PowerupName, cost: number) {
 		if (gameStore.spendCoins(cost)) {
 			gameStore.addPowerup(name);
+			const purchased = gameStore.shopCatalog.find((item) => item.name === name);
+			if (purchased?.tags?.includes('event') && gameStore.activeEvent) {
+				gameStore.incrementEventProgress(gameStore.activeEvent.id, 1);
+			}
 			clearTimeout(buyTimeout);
 			buyMsg = `Purchased!`;
 			buyTimeout = setTimeout(() => (buyMsg = ''), 2000);
@@ -86,6 +89,15 @@
 	</div>
 
 	<!-- Active effects banner -->
+	{#if gameStore.activeEvent}
+		<div class="event-banner" style="--event-accent:{gameStore.activeEvent.themeAccent}">
+			<div>
+				<strong>{gameStore.activeEvent.name}</strong>
+				<span>{gameStore.activeEvent.description}</span>
+			</div>
+		</div>
+	{/if}
+
 	{#if gameStore.player.doubleCoinsActive}
 		<div class="active-effect-banner">
 			<span class="effect-icon">🪙🪙</span>
@@ -103,7 +115,7 @@
 	</div>
 
 	<div class="items-grid">
-		{#each POWERUP_COSTS as item}
+		{#each gameStore.shopCatalog as item}
 			{@const rs = RARITY_STYLES[item.rarity]}
 			{@const owned = getOwned(item.name)}
 			{@const canAfford = gameStore.player.coinCount >= item.cost}
@@ -157,6 +169,29 @@
 	@keyframes shimmer {
 		0%   { background-position: -200% 0; }
 		100% { background-position:  200% 0; }
+	}
+
+	.event-banner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+		padding: var(--space-4) var(--space-5);
+		margin-bottom: var(--space-5);
+		border-radius: var(--radius-xl);
+		background: linear-gradient(135deg, color-mix(in srgb, var(--event-accent) 18%, transparent), rgba(15, 23, 42, 0.75));
+		border: 1px solid color-mix(in srgb, var(--event-accent) 35%, transparent);
+	}
+
+	.event-banner strong {
+		display: block;
+		margin-bottom: 0.25rem;
+		color: #f8fafc;
+	}
+
+	.event-banner span {
+		color: var(--color-text-secondary);
+		font-size: var(--text-sm);
 	}
 
 	.shop-page {

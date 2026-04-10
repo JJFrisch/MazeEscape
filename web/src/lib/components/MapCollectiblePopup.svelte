@@ -22,7 +22,8 @@
 		cloak: '🧥',
 		powerup_hint: '💡',
 		powerup_time: '⏱️',
-		powerup_moves: '👟'
+		powerup_moves: '👟',
+		boss_relic: '🜂'
 	};
 
 	const COLOR: Record<MapCollectible['type'], string> = {
@@ -32,13 +33,15 @@
 		cloak: '#fb923c',
 		powerup_hint: '#4ade80',
 		powerup_time: '#4ade80',
-		powerup_moves: '#4ade80'
+		powerup_moves: '#4ade80',
+		boss_relic: '#f97316'
 	};
 
 	function rewardLabel(): string {
 		const r = collectible.reward;
 		if (r.keyItemId) return `You found a key! It unlocks a sealed gate ahead.`;
 		if (r.skinId != null) return `Unlocks a new player skin!`;
+		if (r.specialItemId) return `A boss relic has been claimed and added to your archive.`;
 		if (r.powerup && r.powerupCount) {
 			const name = r.powerup === 'hint' ? 'Hint' : r.powerup === 'extraTime' ? 'Extra Time' : 'Extra Moves';
 			return `+${r.powerupCount} ${name} powerup${r.powerupCount > 1 ? 's' : ''}!`;

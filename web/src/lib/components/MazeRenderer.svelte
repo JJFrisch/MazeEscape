@@ -10,6 +10,7 @@
 	let {
 		maze,
 		playerPos,
+			ghostPos = null,
 		wallColor = '#38bdf8',
 		visualTheme = 'neon',
 		hintPath = null,
@@ -19,6 +20,7 @@
 	}: {
 		maze: MazeData;
 		playerPos: Position;
+		ghostPos?: Position | null;
 		wallColor?: string;
 		visualTheme?: MazeVisualTheme;
 		hintPath?: Position[] | null;
@@ -134,6 +136,10 @@
 				<feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="blur" />
 				<feComposite in="SourceGraphic" in2="blur" operator="over" />
 			</filter>
+			<filter id="mglow-ghost" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+				<feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
+				<feComposite in="SourceGraphic" in2="blur" operator="over" />
+			</filter>
 			<!-- Exit glow -->
 			<filter id="mglow-exit" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
 				<feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
@@ -236,6 +242,24 @@
 		</g>
 
 		<!-- Player glow halo -->
+		{#if ghostPos}
+			<circle
+				class="ghost-halo"
+				cx={cx(ghostPos.x)}
+				cy={cy(ghostPos.y)}
+				r={CELL_SIZE * 0.34}
+				fill="rgba(226,232,240,0.12)"
+				filter="url(#mglow-ghost)"
+			/>
+			<circle
+				class="ghost-body"
+				cx={cx(ghostPos.x)}
+				cy={cy(ghostPos.y)}
+				r={CELL_SIZE * 0.2}
+				fill="rgba(226,232,240,0.45)"
+			/>
+		{/if}
+
 		<circle
 			class="player-halo"
 			cx={cx(playerPos.x)}
@@ -309,8 +333,22 @@
 		animation: player-breathe 2s ease-in-out infinite;
 	}
 
+	.ghost-halo,
+	.ghost-body {
+		pointer-events: none;
+	}
+
+	.ghost-body {
+		animation: ghost-drift 1.4s ease-in-out infinite;
+	}
+
 	@keyframes player-breathe {
 		0%, 100% { opacity: 0.5; }
 		50%       { opacity: 1; }
+	}
+
+	@keyframes ghost-drift {
+		0%, 100% { opacity: 0.28; }
+		50% { opacity: 0.52; }
 	}
 </style>

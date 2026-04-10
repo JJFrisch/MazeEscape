@@ -119,3 +119,18 @@ export function getMoveThresholdsForOptimalPath(optimalPathLength: number): { tw
 		fiveStarMoves: optimalMoves + Math.max(0, Math.ceil(optimalMoves * 0.08))
 	};
 }
+
+export function buildReplayPositions(maze: MazeData, moves: Direction[]): Position[] {
+	const positions: Position[] = [{ ...maze.start }];
+	let current = { ...maze.start };
+
+	for (const move of moves) {
+		if (!canMove(maze.cells, current, move, maze.width, maze.height)) {
+			break;
+		}
+		current = applyMove(current, move);
+		positions.push({ ...current });
+	}
+
+	return positions;
+}

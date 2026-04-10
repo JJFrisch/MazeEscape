@@ -5,17 +5,18 @@
 	import { onDestroy, untrack } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
-	import { createGameSession, getHint, getCompassPath, calculateStars } from '$lib/core/session';
+	import { createGameSession, getHint, getCompassPath, calculateStars, buildReplayPositions } from '$lib/core/session';
 	import type { GameSessionState, GameSessionConfig } from '$lib/core/session';
 	import type { MasteryRewardUnlock } from '$lib/core/deities';
 	import { canMove, applyMove } from '$lib/core/maze';
-	import type { Direction } from '$lib/core/types';
+	import type { Direction, MapCollectible } from '$lib/core/types';
 	import { getWorldTheme } from '$lib/worldThemes';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
 	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
 	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
 	import AchievementUnlockPopup from '../../../../lib/components/AchievementUnlockPopup.svelte';
 	import MasteryRewardPopup from '$lib/components/MasteryRewardPopup.svelte';
+	import MapCollectiblePopup from '$lib/components/MapCollectiblePopup.svelte';
 
 	// Parse route: "worldId-levelNumber" e.g. "1-5" or "2-3b"
 	const levelKey = $derived($page.params.levelId as string);
@@ -65,6 +66,12 @@
 	let visitedCells = $state(new Set<string>());
 	let moveQueue: Direction[] = [];
 	const MOVE_QUEUE_MAX = 2;
+	let currentRunMoves = $state<Direction[]>([]);
+	let ghostPositions = $state<{ x: number; y: number }[]>([]);
+	let ghostIndex = $state(0);
+	let ghostPos = $state<{ x: number; y: number } | null>(null);
+	let ghostTimer: ReturnType<typeof setInterval> | undefined;
+	let rewardPopup = $state<MapCollectible | null>(null);
 	// Powerup state
 	let hourglassFrozen = $state(false);
 	let hourglassTimer: ReturnType<typeof setTimeout> | undefined;
@@ -79,8 +86,10 @@
 		hourglassFrozen = false;
 		clearTimeout(hourglassTimer);
 		clearTimeout(compassTimer);
+		clearInterval(ghostTimer);
 		masteryUnlocks = [];
 		newlyUnlocked = [];
+		rewardPopup = null;
 		if (!levelDef) {
 			loadError = `Level ${levelNumber} could not be loaded.`;
 			session = null;
@@ -108,6 +117,11 @@
 			showOutro = false;
 			visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
 			moveQueue = [];
+			currentRunMoves = [];
+			const savedGhost = gameStore.getGhostRun(worldId, levelDef.levelNumber);
+			ghostPositions = savedGhost?.moves?.length ? buildReplayPositions(session.maze, savedGhost.moves) : [];
+			ghostIndex = 0;
+			ghostPos = ghostPositions[0] ?? null;
 			clearInterval(timerInterval);
 			showIntro = ENABLE_LEVEL_INTRO;
 
@@ -127,11 +141,19 @@
 		if (!session) return;
 		showIntro = false;
 		clearInterval(timerInterval);
+		clearInterval(ghostTimer);
 		timerInterval = setInterval(() => {
 			if (session && !session.isComplete && !hourglassFrozen) {
 				elapsed += 0.01;
 			}
 		}, 10);
+		if (ghostPositions.length > 1) {
+			ghostTimer = setInterval(() => {
+				if (showOutro) return;
+				ghostIndex = (ghostIndex + 1) % ghostPositions.length;
+				ghostPos = ghostPositions[ghostIndex] ?? ghostPositions[ghostPositions.length - 1] ?? null;
+			}, 180);
+		}
 	}
 
 	function handleMove(direction: Direction) {
@@ -142,9 +164,13 @@
 		}
 
 		const newPos = applyMove(session.playerPos, direction);
-		session.playerPos = newPos;
-		session.moves += 1;
-		session.hintPath = null;
+		currentRunMoves = [...currentRunMoves, direction];
+		session = {
+			...session,
+			playerPos: newPos,
+			moves: session.moves + 1,
+			hintPath: null
+		};
 
 		visitedCells = new Set([...visitedCells, `${newPos.x},${newPos.y}`]);
 
@@ -171,6 +197,7 @@
 
 	function onLevelComplete() {
 		clearInterval(timerInterval);
+		clearInterval(ghostTimer);
 		clearTimeout(hourglassTimer);
 		clearTimeout(compassTimer);
 		hourglassFrozen = false;
@@ -220,7 +247,26 @@
 			bestMoves: session.moves,
 			bestTime: elapsed
 		};
-		gameStore.saveLevelProgress(worldId, updatedLevel);
+		const wasCompleted = !!gameStore.getLevelProgress(worldId, levelDef.levelNumber)?.completed;
+		gameStore.saveLevelProgress(worldId, updatedLevel, currentRunMoves);
+
+		if (!wasCompleted && levelDef.levelReward?.reward.specialItemId) {
+			const granted = gameStore.awardSpecialItem(levelDef.levelReward.reward.specialItemId);
+			if (granted) {
+				rewardPopup = {
+					id: `reward-${levelDef.levelNumber}`,
+					type: levelDef.levelReward.type,
+					tile: { col: 0, row: 0 },
+					area: 0,
+					label: levelDef.levelReward.label,
+					reward: levelDef.levelReward.reward
+				};
+			}
+		}
+
+		if (gameStore.activeEvent) {
+			gameStore.incrementEventProgress(gameStore.activeEvent.id, 1);
+		}
 
 		// Check achievements and queue popups
 		const unlocked = gameStore.checkAchievements();
@@ -340,6 +386,7 @@
 
 	onDestroy(() => {
 		clearInterval(timerInterval);
+		clearInterval(ghostTimer);
 		clearTimeout(hourglassTimer);
 		clearTimeout(compassTimer);
 	});
@@ -373,6 +420,9 @@
 
 			<div class="hud-center">
 				<span class="hud-label">Level {levelNumber}</span>
+				{#if levelDef.levelKind === 'boss'}
+					<span class="boss-badge">Boss</span>
+				{/if}
 				{#if levelDef.levelNumber.includes('b')}
 					<span class="bonus-badge">Bonus</span>
 				{/if}
@@ -405,6 +455,7 @@
 			<MazeRenderer
 				maze={session.maze}
 				playerPos={session.playerPos}
+				ghostPos={ghostPos}
 				wallColor={gameStore.player.wallColor}
 				hintPath={session.hintPath}
 				showVisited={true}
@@ -470,6 +521,13 @@
 				</button>
 			</div>
 		</div>
+
+		{#if ghostPositions.length > 1}
+			<div class="ghost-banner">
+				<span class="ghost-label">Ghost mode</span>
+				<span class="ghost-copy">Best run replaying in the background</span>
+			</div>
+		{/if}
 	</div>
 
 
@@ -528,6 +586,14 @@
 	/>
 {/if}
 
+{#if rewardPopup}
+	<MapCollectiblePopup
+		collectible={rewardPopup}
+		onClose={() => { rewardPopup = null; }}
+		onCollect={() => { rewardPopup = null; }}
+	/>
+{/if}
+
 <style>
 	.gameplay {
 		display: flex;
@@ -578,9 +644,44 @@
 		font-weight: 600;
 	}
 
+	.boss-badge {
+		font-size: var(--text-xs);
+		background: rgba(249, 115, 22, 0.22);
+		color: #fdba74;
+		padding: 1px 7px;
+		border-radius: var(--radius-full);
+		font-weight: 700;
+		border: 1px solid rgba(249, 115, 22, 0.45);
+	}
+
 	.hud-stats {
 		display: flex;
 		gap: var(--space-4);
+	}
+
+	.ghost-banner {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		align-self: center;
+		padding: 0.45rem 0.8rem;
+		margin-top: calc(var(--space-2) * -1);
+		border-radius: var(--radius-full);
+		background: rgba(148, 163, 184, 0.1);
+		border: 1px solid rgba(148, 163, 184, 0.25);
+	}
+
+	.ghost-label {
+		font-size: var(--text-xs);
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: #e2e8f0;
+	}
+
+	.ghost-copy {
+		font-size: var(--text-xs);
+		color: var(--color-text-muted);
 	}
 
 	.hud-stat {

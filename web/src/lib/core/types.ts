@@ -38,6 +38,7 @@ export interface MazeData {
 export interface CampaignLevel {
 	levelId: number;
 	levelNumber: string;
+	levelKind?: 'standard' | 'boss';
 	width: number;
 	height: number;
 	levelType: MazeAlgorithm;
@@ -60,6 +61,7 @@ export interface CampaignLevel {
 	star5: boolean;
 	bestMoves: number;
 	bestTime: number; // seconds
+	bossFlavor?: string;
 }
 
 export interface CampaignWorld {
@@ -163,6 +165,20 @@ export interface PlayerData {
 	crystalShards: number;
 	// Total mazes completed (campaign + daily)
 	mazesCompleted: number;
+	// Boss rewards / relic inventory
+	specialItemIds: string[];
+}
+
+export interface GhostRunData {
+	moves: Direction[];
+	updatedAt?: number;
+}
+
+export interface EventProgress {
+	eventId: string;
+	progress: number;
+	completedMilestones: number[];
+	updatedAt?: number;
 }
 
 export type MazeAlgorithm =
@@ -277,6 +293,7 @@ export interface PowerupCost {
 	flavorText: string;
 	rarity: 'common' | 'uncommon' | 'rare';
 	accentColor: string;
+	tags?: string[];
 }
 
 export const POWERUP_COSTS: PowerupCost[] = [
@@ -373,10 +390,10 @@ export interface MapTile {
 }
 
 /** Types of nodes placed on the campaign map */
-export type MapNodeType = 'level' | 'bonus_level' | 'bonus_end' | 'star_gate' | 'key_gate' | 'portal';
+export type MapNodeType = 'level' | 'bonus_level' | 'bonus_end' | 'star_gate' | 'key_gate' | 'portal' | 'boss';
 
 /** Collectible type — items the player can pick up on or off the map */
-export type MapCollectibleType = 'chest' | 'key' | 'gem' | 'cloak' | 'powerup_hint' | 'powerup_time' | 'powerup_moves';
+export type MapCollectibleType = 'chest' | 'key' | 'gem' | 'cloak' | 'powerup_hint' | 'powerup_time' | 'powerup_moves' | 'boss_relic';
 
 /** A level or gate node on the campaign map */
 export interface MapNode {
@@ -389,6 +406,12 @@ export interface MapNode {
 	starsRequired?: number;
 	/** For key_gate nodes: id of the key item required */
 	keyItemId?: string;
+	/** Boss levels reuse the ordinary play page via level number */
+	bossLevelNumber?: string;
+	/** Optional custom title on the encounter card */
+	encounterTitle?: string;
+	/** Optional boss flavor text */
+	bossFlavor?: string;
 	/** Area index (1–5); gates belong to the area they open */
 	area: number;
 }
@@ -430,6 +453,7 @@ export interface MapCollectibleReward {
 	powerupCount?: number;
 	/** If this collectible grants a key, the key item id */
 	keyItemId?: string;
+	specialItemId?: string;
 }
 
 /** Full layout definition for one world's campaign map */

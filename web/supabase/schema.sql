@@ -21,6 +21,7 @@ create table if not exists profiles (
   month_prize1_achieved boolean not null default false,
   month_prize2_achieved boolean not null default false,
   most_recent_month text not null default '',
+  special_item_ids text[] not null default '{}',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -52,6 +53,7 @@ create table if not exists level_progress (
   star3 boolean not null default false,
   best_moves integer not null default 0,
   best_time_seconds numeric not null default 0,
+  best_run_moves text[] null,
   updated_at timestamptz not null default now(),
 
   unique(user_id, world_id, level_number)
@@ -67,6 +69,32 @@ create policy "Users can upsert own progress"
 
 create policy "Users can update own progress"
   on level_progress for update using (auth.uid() = user_id);
+
+-- ============================================================================
+-- Seasonal Event Progress
+-- ============================================================================
+
+create table if not exists event_progress (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid not null references profiles(id) on delete cascade,
+  event_id text not null,
+  progress_value integer not null default 0,
+  completed_milestones integer[] not null default '{}',
+  updated_at timestamptz not null default now(),
+
+  unique(user_id, event_id)
+);
+
+alter table event_progress enable row level security;
+
+create policy "Users can read own event progress"
+  on event_progress for select using (auth.uid() = user_id);
+
+create policy "Users can upsert own event progress"
+  on event_progress for insert with check (auth.uid() = user_id);
+
+create policy "Users can update own event progress"
+  on event_progress for update using (auth.uid() = user_id);
 
 -- ============================================================================
 -- Daily Maze Results
@@ -240,4 +268,7 @@ create trigger daily_maze_results_updated_at before update on daily_maze_results
   for each row execute function update_updated_at_column();
 
 create trigger world_progress_updated_at before update on world_progress
+  for each row execute function update_updated_at_column();
+
+create trigger event_progress_updated_at before update on event_progress
   for each row execute function update_updated_at_column();

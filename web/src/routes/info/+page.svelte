@@ -1,3 +1,10 @@
+<script lang="ts">
+	import { gameStore } from '$lib/stores/gameStore.svelte';
+
+	const activeEvent = $derived(gameStore.activeEvent);
+	const activeEventProgress = $derived(activeEvent ? gameStore.getEventProgress(activeEvent.id) : undefined);
+</script>
+
 <svelte:head>
 	<title>Info – Maze Escape: Pathbound</title>
 </svelte:head>
@@ -42,12 +49,26 @@
 	<section class="info-section">
 		<h2>🗺️ Campaign</h2>
 		<p>Three worlds of increasing difficulty, each with main and bonus levels. Earn enough stars to unlock gates and progress to new areas.</p>
+		<p>Some gate transitions now hide <strong>World Boss</strong> encounters, extra-large mazes with one-time relic rewards.</p>
+	</section>
+
+	<section class="info-section">
+		<h2>👻 Ghost Mode</h2>
+		<p>Your best completed run on a level is recorded as a move sequence. When you retry that level, a faint ghost replays the saved route in real time.</p>
 	</section>
 
 	<section class="info-section">
 		<h2>📅 Daily Maze</h2>
 		<p>A unique maze generated each day. Complete daily mazes to build your streak and earn coins. Unlocked after completing World 1, Level 10.</p>
 	</section>
+
+	{#if activeEvent}
+		<section class="info-section event-section" style="--event-accent:{activeEvent.themeAccent}">
+			<h2>🌿 Active Event</h2>
+			<p><strong>{activeEvent.name}</strong> is live. {activeEvent.description}</p>
+			<p>{activeEvent.trackerLabel}: {activeEventProgress?.progress ?? 0} / {activeEvent.milestones[activeEvent.milestones.length - 1]?.at ?? 0}</p>
+		</section>
+	{/if}
 
 	<section class="info-section">
 		<h2>💡 Powerups</h2>
@@ -173,5 +194,12 @@
 		color: var(--color-text-muted) !important;
 		font-size: var(--text-xs) !important;
 		margin-top: var(--space-2);
+	}
+
+	.event-section {
+		padding: var(--space-4);
+		border-radius: var(--radius-lg);
+		background: linear-gradient(135deg, color-mix(in srgb, var(--event-accent) 14%, transparent), color-mix(in srgb, var(--color-bg-card) 96%, transparent));
+		border: 1px solid color-mix(in srgb, var(--event-accent) 28%, transparent);
 	}
 </style>

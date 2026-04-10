@@ -17,12 +17,14 @@ interface LevelDef {
 	w: number;
 	h: number;
 	type: MazeAlgorithm;
+	kind?: 'standard' | 'boss';
 	twoStar: number;
 	threeStar: number;
 	connects?: string[];
 	minStars?: number;
 	shape?: MazeShape;
 	reward?: LevelReward;
+	bossFlavor?: string;
 }
 
 function buildLevel(def: LevelDef, id: number): CampaignLevel {
@@ -35,6 +37,7 @@ function buildLevel(def: LevelDef, id: number): CampaignLevel {
 	return {
 		levelId: id,
 		levelNumber: def.num,
+		levelKind: def.kind ?? 'standard',
 		width: def.w,
 		height: def.h,
 		levelType: def.type,
@@ -55,7 +58,8 @@ function buildLevel(def: LevelDef, id: number): CampaignLevel {
 		star4: false,
 		star5: false,
 		bestMoves: 0,
-		bestTime: 0
+		bestTime: 0,
+		bossFlavor: def.bossFlavor
 	};
 }
 
@@ -82,6 +86,7 @@ const world1Defs: LevelDef[] = [
 	{ num: '12', w: 7, h: 6, type: 'binaryTree', twoStar: 41, threeStar: 24 },
 	{ num: '13', w: 7, h: 7, type: 'growingTree_50_50', twoStar: 45, threeStar: 26 },
 { num: '14', w: 7, h: 7, type: 'prims', twoStar: 47, threeStar: 26, reward: { type: 'key', label: 'Rusted Gate Key', reward: { keyItemId: 'key_area2' } } },
+	{ num: '14-boss', w: 20, h: 20, type: 'recursiveDivision', kind: 'boss', twoStar: 150, threeStar: 70, connects: ['15'], reward: { type: 'boss_relic', label: 'Labyrinth Core', reward: { specialItemId: 'labyrinth_core' } }, bossFlavor: 'A sentinel intellect folds the corridors into a single war chamber.' },
 
 	// Area 2 (Levels 15–28 + Bonus 5b–7b)
 	{ num: '15', w: 8, h: 7, type: 'wilsons', twoStar: 49, threeStar: 28, minStars: 20 },
@@ -178,6 +183,7 @@ const world2Defs: LevelDef[] = [
 	{ num: '20', w: 10, h: 9, type: 'recursiveDivision', twoStar: 74, threeStar: 36 },
 	{ num: '21', w: 10, h: 10, type: 'prims', twoStar: 81, threeStar: 39 },
 	{ num: '22', w: 10, h: 10, type: 'growingTree_50_0', twoStar: 83, threeStar: 39, minStars: 20 },
+	{ num: '22-boss', w: 24, h: 24, type: 'recursiveDivision', kind: 'boss', twoStar: 220, threeStar: 92, connects: ['23'], reward: { type: 'boss_relic', label: 'Starforged Crown', reward: { specialItemId: 'starforged_crown' } }, bossFlavor: 'A celestial war engine seals the next sector behind a living lattice.' },
 
 	// Area 2 (Levels 23–45)
 	{ num: '23', w: 11, h: 10, type: 'recursiveDivision', twoStar: 87, threeStar: 40, minStars: 30 },

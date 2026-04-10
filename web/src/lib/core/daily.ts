@@ -5,6 +5,7 @@
 
 import type { DailyMazeLevel, MazeAlgorithm } from './types';
 import { dateSeed, SeededRandom } from './random';
+import { getActiveEvent } from './events';
 
 export interface DailyMazeViewport {
 	width: number;
@@ -65,7 +66,8 @@ function getDailyMazeDimensions(
 export function getDailyMazeForDate(date: Date, viewport?: DailyMazeViewport): DailyMazeLevel {
 	const shortDate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
 	const monthYear = `${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
-	const seed = dateSeed(shortDate);
+	const activeEvent = getActiveEvent(date);
+	const seed = dateSeed(activeEvent ? `${activeEvent.id}:${shortDate}` : shortDate);
 	const rng = new SeededRandom(seed);
 
 	// Scale difficulty with day of month (days 1-10 easier, 20-31 harder)
@@ -78,7 +80,8 @@ export function getDailyMazeForDate(date: Date, viewport?: DailyMazeViewport): D
 	const maxSize = Math.min(70, minSize + variance); // 30–70 cap with gentler late-month growth
 	const { width, height } = getDailyMazeDimensions(rng, smoothDifficulty, minSize, maxSize, viewport);
 
-	const algorithm = ALGORITHMS[rng.nextInt(0, ALGORITHMS.length)];
+	const algorithmPool = activeEvent?.dailyAlgorithmPool?.length ? activeEvent.dailyAlgorithmPool : ALGORITHMS;
+	const algorithm = algorithmPool[rng.nextInt(0, algorithmPool.length)];
 
 	// Thresholds scale with maze size
 	const area = width * height;
@@ -120,5 +123,6 @@ export function getDailyMazesForMonth(year: number, month: number, viewport?: Da
  */
 export function getDailyMazeSeed(date: Date): number {
 	const shortDate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
-	return dateSeed(shortDate);
+	const activeEvent = getActiveEvent(date);
+	return dateSeed(activeEvent ? `${activeEvent.id}:${shortDate}` : shortDate);
 }

@@ -107,6 +107,14 @@
 		return false;
 	}
 
+	function isNodeUnlocked(node: MapNode): boolean {
+		if (node.type === 'boss') {
+			const stars = gameStore.getWorldStarCount(worldId);
+			return stars >= (node.starsRequired ?? 0);
+		}
+		return isLevelUnlocked(node.levelNumber ?? '');
+	}
+
 	function isGateOpen(node: MapNode): boolean {
 		if (node.type === 'star_gate') {
 			const stars = gameStore.getWorldStarCount(worldId);
@@ -126,7 +134,7 @@
 	const playerMarkerNode = $derived((() => {
 		let best: MapNode | null = null;
 		for (const node of [...layout.nodes].reverse()) {
-			if (node.type !== 'level' && node.type !== 'bonus_level') continue;
+			if (node.type !== 'level' && node.type !== 'bonus_level' && node.type !== 'boss') continue;
 			const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
 			if (prog?.completed) { best = node; break; }
 		}
@@ -276,8 +284,8 @@
 		// Prevent triggering pan
 		if (Math.abs((e.clientX - panStartX)) > 6 || Math.abs(e.clientY - panStartY) > 6) return;
 
-		if (node.type === 'level' || node.type === 'bonus_level') {
-			if (!isLevelUnlocked(node.levelNumber ?? '')) return;
+		if (node.type === 'level' || node.type === 'bonus_level' || node.type === 'boss') {
+			if (!isNodeUnlocked(node)) return;
 			// Open Encounter Card instead of direct navigate
 			activeEncounterNode = node;
 			return;
@@ -308,7 +316,7 @@
 		} else if (node.type === 'key_gate') {
 			const name = node.keyItemId?.replace(/_/g, ' ') ?? 'key';
 			showTooltip(e, `Key Gate — requires "${name}"`);
-		} else if ((node.type === 'level' || node.type === 'bonus_level') && !isLevelUnlocked(node.levelNumber ?? '')) {
+		} else if ((node.type === 'level' || node.type === 'bonus_level' || node.type === 'boss') && !isNodeUnlocked(node)) {
 			const worldDef = gameStore.worlds.find((w) => w.worldId === worldId);
 			const lvl = worldDef?.levels.find((l) => l.levelNumber === node.levelNumber);
 			const minStars = lvl?.minimumStarsToUnlock ?? 0;
@@ -366,15 +374,15 @@
 
 	function levelNodeFill(node: MapNode): string {
 		const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
-		if (prog?.completed) return node.type === 'bonus_level' ? ACCENT_GOLD : worldTheme.accentColor;
-		if (isLevelUnlocked(node.levelNumber ?? '')) return '#0f2a44';
+		if (prog?.completed) return node.type === 'bonus_level' ? ACCENT_GOLD : node.type === 'boss' ? '#f97316' : worldTheme.accentColor;
+		if (isNodeUnlocked(node)) return node.type === 'boss' ? '#3a1708' : '#0f2a44';
 		return '#0a1628';
 	}
 
 	function levelNodeStroke(node: MapNode): string {
 		const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
-		if (prog?.completed) return node.type === 'bonus_level' ? ACCENT_GOLD : worldTheme.accentColor;
-		if (isLevelUnlocked(node.levelNumber ?? '')) return worldTheme.accentColor;
+		if (prog?.completed) return node.type === 'bonus_level' ? ACCENT_GOLD : node.type === 'boss' ? '#fdba74' : worldTheme.accentColor;
+		if (isNodeUnlocked(node)) return node.type === 'boss' ? '#fb923c' : worldTheme.accentColor;
 		return '#1e3a5c';
 	}
 
@@ -393,7 +401,7 @@
 	}
 
 	function deityForNode(node: MapNode) {
-		if ((node.type !== 'level' && node.type !== 'bonus_level') || !node.levelNumber || !worldDef) return null;
+		if ((node.type !== 'level' && node.type !== 'bonus_level' && node.type !== 'boss') || !node.levelNumber || !worldDef) return null;
 		const levelDef = getLevelByNumber(worldDef, node.levelNumber);
 		if (!levelDef) return null;
 		return getDeityByAlgorithm(levelDef.levelType) ?? null;
@@ -403,9 +411,10 @@
 		const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
 		if (prog?.completed) {
 			if (node.type === 'bonus_level') return ACCENT_GOLD;
+			if (node.type === 'boss') return '#f97316';
 			return deityColorForLevel(node.levelNumber ?? '') ?? worldTheme.accentColor;
 		}
-		if (isLevelUnlocked(node.levelNumber ?? '')) return '#0f2a44';
+		if (isNodeUnlocked(node)) return node.type === 'boss' ? '#3a1708' : '#0f2a44';
 		return '#0a1628';
 	}
 
@@ -413,24 +422,25 @@
 		const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
 		if (prog?.completed) {
 			if (node.type === 'bonus_level') return ACCENT_GOLD;
+			if (node.type === 'boss') return '#fdba74';
 			return deityColorForLevel(node.levelNumber ?? '') ?? worldTheme.accentColor;
 		}
-		if (isLevelUnlocked(node.levelNumber ?? '')) return worldTheme.accentColor;
+		if (isNodeUnlocked(node)) return node.type === 'boss' ? '#fb923c' : worldTheme.accentColor;
 		return '#1e3a5c';
 	}
 
 	/** Whether a node passes the active filter (for dimming unmatched nodes) */
 	function nodeMatchesFilter(node: MapNode): boolean {
 		if (activeFilter === 'all') return true;
-		if (activeFilter === 'bonus') return node.type === 'bonus_level';
+		if (activeFilter === 'bonus') return node.type === 'bonus_level' || node.type === 'boss';
 		if (activeFilter === 'deity') {
 			if (selectedDeityAlgorithm === 'all') return true;
 			const deity = deityForNode(node);
 			return deity?.algorithm === selectedDeityAlgorithm;
 		}
 		if (activeFilter === 'incomplete') {
-			if (node.type !== 'level' && node.type !== 'bonus_level') return false;
-			const unlocked = isLevelUnlocked(node.levelNumber ?? '');
+			if (node.type !== 'level' && node.type !== 'bonus_level' && node.type !== 'boss') return false;
+			const unlocked = isNodeUnlocked(node);
 			const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
 			return unlocked && !prog?.completed;
 		}
@@ -452,6 +462,7 @@
 			case 'key': return '#facc15';
 			case 'gem': return GEM_COLOR;
 			case 'cloak': return CLOAK_COLOR;
+			case 'boss_relic': return '#fb923c';
 			default: return '#86efac'; // powerups → green
 		}
 	}
@@ -523,11 +534,11 @@
 				/>
 			{/each}
 			{#each layout.nodes as node}
-				{#if node.type === 'level' || node.type === 'bonus_level' || node.type === 'portal'}
+				{#if node.type === 'level' || node.type === 'bonus_level' || node.type === 'boss' || node.type === 'portal'}
 					<circle
 						cx={cx(node.tile.col)}
 						cy={cy(node.tile.row)}
-						r={node.type === 'portal' ? T * 0.18 : T * 0.14}
+						r={node.type === 'portal' ? T * 0.18 : node.type === 'boss' ? T * 0.16 : T * 0.14}
 						fill={node.type === 'portal' ? '#c084fc' : levelNodeFillDeity(node)}
 						opacity={nodeMatchesFilter(node) ? 0.9 : 0.25}
 					/>
@@ -846,6 +857,8 @@
 								d="M {px - T*0.15} {py + T*0.12} Q {px} {py - T*0.22} {px + T*0.15} {py + T*0.12} Z"
 								fill={color} opacity={collected ? 0.3 : 1}
 							/>
+						{:else if item.type === 'boss_relic'}
+							<text x={px} y={py + 5} text-anchor="middle" font-size={T * 0.26} fill={color}>🜂</text>
 						{:else}
 							<!-- Powerup: lightning bolt / star -->
 							<text x={px} y={py + 5} text-anchor="middle" font-size={T * 0.26} fill={color}>⚡</text>
@@ -856,10 +869,10 @@
 
 			<!-- ── Layer 5: Level nodes ──────────────────────────────── -->
 			{#each layout.nodes as node}
-				{#if node.type === 'level' || node.type === 'bonus_level'}
+				{#if node.type === 'level' || node.type === 'bonus_level' || node.type === 'boss'}
 					{@const px = cx(node.tile.col)}
 					{@const py = cy(node.tile.row)}
-					{@const unlocked = isLevelUnlocked(node.levelNumber ?? '')}
+					{@const unlocked = isNodeUnlocked(node)}
 					{@const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '')}
 					{@const stars = starCountForNode(node.levelNumber ?? '')}
 					{@const visible = isAreaVisible(node.area)}
@@ -877,7 +890,7 @@
 							onmouseenter={(e) => onNodeHover(e, node)}
 							onmouseleave={() => { tooltip = null; }}
 							role="button"
-							aria-label="Level {node.levelNumber}{prog?.completed ? ' (completed)' : unlocked ? ' (unlocked)' : ' (locked)'}"
+							aria-label="{node.type === 'boss' ? 'Boss encounter' : `Level ${node.levelNumber}`}{prog?.completed ? ' (completed)' : unlocked ? ' (unlocked)' : ' (locked)'}"
 							tabindex={unlocked ? 0 : undefined}
 							filter={unlocked && !prog?.completed && matched ? 'url(#node-glow)' : undefined}
 							opacity={matched ? 1 : 0.18}
@@ -885,21 +898,24 @@
 							<!-- Outer ring (completed = filled deity color) -->
 							<circle
 								cx={px} cy={py}
-								r={node.type === 'bonus_level' ? T * 0.32 : T * 0.36}
+								r={node.type === 'bonus_level' ? T * 0.32 : node.type === 'boss' ? T * 0.4 : T * 0.36}
 								fill={nodeFill}
 								stroke={nodeStroke}
 								stroke-width={prog?.completed ? 0 : 2}
 								opacity={unlocked ? 1 : 0.45}
 							/>
-							<!-- Level number -->
-							<text
-								x={px} y={py + 5}
-								text-anchor="middle"
-								font-size={node.levelNumber!.length > 2 ? T * 0.18 : T * 0.22}
-								font-weight="700"
-								fill={prog?.completed ? '#0a0f1a' : unlocked ? '#e2f4ff' : '#4b6278'}
-								font-family="monospace"
-							>{node.levelNumber}</text>
+							{#if node.type === 'boss'}
+								<text x={px} y={py + 7} text-anchor="middle" font-size={T * 0.34} fill={unlocked ? '#fdba74' : '#7c2d12'}>☠</text>
+							{:else}
+								<text
+									x={px} y={py + 5}
+									text-anchor="middle"
+									font-size={node.levelNumber!.length > 2 ? T * 0.18 : T * 0.22}
+									font-weight="700"
+									fill={prog?.completed ? '#0a0f1a' : unlocked ? '#e2f4ff' : '#4b6278'}
+									font-family="monospace"
+								>{node.levelNumber}</text>
+							{/if}
 							<!-- Lock icon if locked -->
 							{#if !unlocked}
 								<text x={px} y={py + T * 0.48} text-anchor="middle" font-size={T * 0.2} fill="#4b6278">🔒</text>

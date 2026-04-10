@@ -51,6 +51,8 @@
 
 	// Check if daily unlocked (requires World 1 Level 10 completed)
 	const unlocked = $derived(gameStore.isDailyMazeUnlocked());
+	const activeEvent = $derived(gameStore.activeEvent);
+	const activeEventProgress = $derived(activeEvent ? gameStore.getEventProgress(activeEvent.id) : undefined);
 	const canAcceptInput = $derived(playing && session !== null && !session.isComplete && !showIntro && !showOutro);
 	const selectedDateLabel = $derived(selectedDate ? formatDisplayDate(selectedDate) : '');
 
@@ -224,6 +226,9 @@
 			completionMoves: session.moves
 		};
 		gameStore.saveDailyResult(result);
+		if (activeEvent) {
+			gameStore.incrementEventProgress(activeEvent.id, 1);
+		}
 
 		const unlockedAchievements = gameStore.checkAchievements();
 		if (unlockedAchievements.length > 0) {
@@ -401,6 +406,23 @@
 				{/if}
 			</div>
 		</div>
+
+		{#if activeEvent}
+			<div class="event-panel" style="--event-accent:{activeEvent.themeAccent}">
+				<div class="event-copy">
+					<span class="event-eyebrow">Seasonal event</span>
+					<h2>{activeEvent.name}</h2>
+					<p>{activeEvent.description}</p>
+				</div>
+				<div class="event-progress">
+					<span class="event-progress-label">{activeEvent.trackerLabel}</span>
+					<span class="event-progress-value">{activeEventProgress?.progress ?? 0} / {activeEvent.milestones[activeEvent.milestones.length - 1]?.at ?? 0}</span>
+					<div class="event-progress-track">
+						<div class="event-progress-fill" style="width:{Math.min(((activeEventProgress?.progress ?? 0) / (activeEvent.milestones[activeEvent.milestones.length - 1]?.at ?? 1)) * 100, 100)}%;"></div>
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		<!-- Streak milestone hint -->
 		{#if (gameStore.player.currentStreak ?? 0) > 0}
@@ -626,6 +648,68 @@
 		backdrop-filter: blur(20px);
 		box-shadow: 0 8px 48px rgba(0,0,0,0.5);
 		animation: fade-up 0.5s ease both;
+	}
+
+	.event-panel {
+		display: grid;
+		grid-template-columns: minmax(0, 1.6fr) minmax(220px, 1fr);
+		gap: var(--space-4);
+		padding: var(--space-5);
+		margin-bottom: var(--space-6);
+		border-radius: var(--radius-xl);
+		background: linear-gradient(135deg, color-mix(in srgb, var(--event-accent) 15%, transparent), rgba(15, 23, 42, 0.84));
+		border: 1px solid color-mix(in srgb, var(--event-accent) 32%, transparent);
+	}
+
+	.event-eyebrow {
+		display: inline-block;
+		font-size: var(--text-xs);
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		margin-bottom: 0.5rem;
+		color: color-mix(in srgb, var(--event-accent) 78%, white 22%);
+	}
+
+	.event-copy h2 {
+		margin-bottom: 0.35rem;
+		font-family: var(--font-display);
+	}
+
+	.event-copy p {
+		color: var(--color-text-secondary);
+		font-size: var(--text-sm);
+	}
+
+	.event-progress {
+		display: grid;
+		align-content: center;
+		gap: 0.45rem;
+	}
+
+	.event-progress-label,
+	.event-progress-value {
+		font-size: var(--text-sm);
+	}
+
+	.event-progress-track {
+		height: 10px;
+		border-radius: 999px;
+		background: rgba(15, 23, 42, 0.7);
+		overflow: hidden;
+		border: 1px solid rgba(148, 163, 184, 0.16);
+	}
+
+	.event-progress-fill {
+		height: 100%;
+		border-radius: inherit;
+		background: linear-gradient(90deg, color-mix(in srgb, var(--event-accent) 70%, white 30%), var(--event-accent));
+	}
+
+	@media (max-width: 720px) {
+		.event-panel {
+			grid-template-columns: 1fr;
+		}
 	}
 	@keyframes fade-up { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
 

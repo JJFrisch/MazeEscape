@@ -78,6 +78,7 @@ const world1Nodes: MapNode[] = [
 
 	// Star gate between area 1 and area 2 (20 stars)
 	{ id: 'sg1', type: 'star_gate', tile: tile(2, 7), starsRequired: 35, area: 2 },
+	{ id: 'boss1', type: 'boss', tile: tile(5, 7), levelNumber: '14-boss', starsRequired: 35, encounterTitle: 'World Boss', bossFlavor: 'The Labyrinth Core bends the corridors into a war machine.', area: 2 },
 
 	// ── Area 2: levels 15–28, bonus 5b–7b ─────────────────────────────────
 
@@ -200,6 +201,7 @@ const world1Paths: MapPathSegment[] = [
 	seg(20, 5, 17, 5), seg(17, 5, 14, 5), seg(14, 5, 11, 5), seg(11, 5, 8, 5), seg(8, 5, 5, 5), seg(5, 5, 2, 5),
 	// l14 → sg1  (down)
 	seg(2, 5, 2, 7),
+	seg(2, 7, 5, 7, true),
 	// sg1 → l15  (down)
 	seg(2, 7, 2, 9),
 
@@ -467,6 +469,7 @@ const world2Nodes: MapNode[] = [
 	{ id: 'w2l22', type: 'level', tile: tile(20, 11), levelNumber: '22', area: 2 },
 	// sg2: 30★ — gates l23 (minStars:30); inline between l22(20,11) and l23(17,11)
 	{ id: 'w2sg2', type: 'star_gate', tile: tile(19, 11), starsRequired: 55, area: 2 },
+	{ id: 'w2boss1', type: 'boss', tile: tile(19, 13), levelNumber: '22-boss', starsRequired: 55, encounterTitle: 'World Boss', bossFlavor: 'The Starforged Crown guards the second sector with a living lattice.', area: 2 },
 	{ id: 'w2l23', type: 'level', tile: tile(17, 11), levelNumber: '23', area: 2 },
 	{ id: 'w2l24', type: 'level', tile: tile(14, 11), levelNumber: '24', area: 2 },
 	{ id: 'w2l25', type: 'level', tile: tile(11, 11), levelNumber: '25', area: 2 },
@@ -618,6 +621,7 @@ const world2Paths: MapPathSegment[] = [
 	seg(20,8,20,10), seg(20,10,20,11),
 	// ── Leg 4 (←, row 11): l22 → sg2 → l23 … l28 ──
 	seg(20,11,19,11), seg(19,11,17,11), seg(17,11,14,11), seg(14,11,11,11), seg(11,11,8,11), seg(8,11,5,11), seg(5,11,2,11),
+	seg(19,11,19,13,true),
 	// connector leg 4→5
 	seg(2,11,2,14),
 	// ── Leg 5 (→, row 14): l29 → sg3 → l30 … l35 ──

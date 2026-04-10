@@ -22,8 +22,10 @@
 		onclose: () => void;
 	} = $props();
 
+	const isBoss = $derived(node.type === 'boss' || levelDef?.levelKind === 'boss');
+
 	const deity = $derived(levelDef ? getDeityByAlgorithm(levelDef.levelType) : undefined);
-	const levelName = $derived(levelDef ? generateLevelName(levelDef.levelType, node.levelNumber ?? '') : '???');
+	const levelName = $derived(levelDef ? (node.encounterTitle ?? generateLevelName(levelDef.levelType, node.levelNumber ?? '')) : '???');
 	const progress = $derived(gameStore.getLevelProgress(worldId, node.levelNumber ?? ''));
 
 	const shapeLabel: Record<string, string> = {
@@ -77,7 +79,8 @@
 
 <!-- Backdrop -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="backdrop" onclick={handleBackdropClick} role="dialog" aria-modal="true" aria-label="Level encounter">
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<div class="backdrop" onclick={handleBackdropClick} role="dialog" aria-modal="true" aria-label="Level encounter" tabindex="-1">
 	<div
 		class="card"
 		style="--deity-color:{deity?.color ?? '#38bdf8'}; --deity-dim:{deity?.colorDim ?? 'rgba(56,189,248,0.15)'};"
@@ -93,7 +96,13 @@
 		<!-- Header -->
 		<div class="card-header">
 			<div class="level-badge">
-				{node.type === 'bonus_level' ? '★ Bonus' : `Level ${node.levelNumber}`}
+				{#if isBoss}
+					World Boss
+				{:else if node.type === 'bonus_level'}
+					★ Bonus
+				{:else}
+					Level {node.levelNumber}
+				{/if}
 			</div>
 			<h2 class="level-name">{levelName}</h2>
 
@@ -132,9 +141,16 @@
 		<!-- Deity quote -->
 		{#if deity}
 			<blockquote class="deity-quote" style="border-color:{deity.colorDim};">
-				"{deity.quote}"
+				"{node.bossFlavor ?? levelDef?.bossFlavor ?? deity.quote}"
 				<cite>— {deity.name}</cite>
 			</blockquote>
+		{/if}
+
+		{#if isBoss}
+			<div class="boss-warning">
+				<span>Boss maze</span>
+				<span>{levelDef?.width}×{levelDef?.height} arena, first clear grants a relic.</span>
+			</div>
 		{/if}
 
 		<!-- Player best -->
@@ -286,6 +302,17 @@
 		color: var(--color-text-primary);
 		letter-spacing: -0.02em;
 		line-height: 1.2;
+	}
+
+	.boss-warning {
+		display: grid;
+		gap: 0.35rem;
+		padding: 0.8rem 0.9rem;
+		border-radius: var(--radius-xl);
+		background: rgba(249, 115, 22, 0.1);
+		border: 1px solid rgba(249, 115, 22, 0.28);
+		color: #fed7aa;
+		font-size: var(--text-sm);
 	}
 
 	.deity-tag {

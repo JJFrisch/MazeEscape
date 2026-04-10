@@ -5,7 +5,8 @@
  */
 
 import { browser } from '$app/environment';
-import type { PlayerData, CampaignLevel, DailyMazeLevel, MazeAlgorithm, MasteryRewardClaimState, PowerupName } from '$lib/core/types';
+import type { PlayerData, CampaignLevel, DailyMazeLevel, MazeAlgorithm, MasteryRewardClaimState, PowerupName, Direction, GhostRunData, EventProgress } from '$lib/core/types';
+import { getActiveEvent, getEventPowerupCatalog } from '$lib/core/events';
 import { ACHIEVEMENT_CATALOG } from '$lib/core/achievements';
 import { SKIN_CATALOG } from '$lib/core/skins';
 import { getDeityMasteryRewards, type MasteryRewardUnlock } from '$lib/core/deities';
@@ -16,6 +17,8 @@ import { getSupabaseBrowserClient } from '$lib/supabase/client';
 const STORAGE_KEY = 'mazeescape_player';
 const LEVEL_STORAGE_KEY = 'mazeescape_levels';
 const DAILY_STORAGE_KEY = 'mazeescape_daily';
+const GHOST_STORAGE_KEY = 'mazeescape_level_ghosts';
+const EVENT_PROGRESS_STORAGE_KEY = 'mazeescape_event_progress';
 const SYNC_METADATA_STORAGE_KEY = 'mazeescape_sync_metadata';
 
 type CloudSyncStatus = 'offline' | 'syncing' | 'synced' | 'error';
@@ -25,6 +28,7 @@ interface SyncMetadata {
 	levelUpdatedAt: Record<string, number>;
 	dailyUpdatedAt: Record<string, number>;
 	skinUpdatedAt: Record<string, number>;
+	eventUpdatedAt: Record<string, number>;
 }
 
 interface ProfileRow {
@@ -39,6 +43,7 @@ interface ProfileRow {
 	month_prize1_achieved: boolean;
 	month_prize2_achieved: boolean;
 	most_recent_month: string;
+	special_item_ids?: string[];
 	updated_at?: string;
 }
 
@@ -52,6 +57,15 @@ interface LevelProgressRow {
 	star3: boolean;
 	best_moves: number;
 	best_time_seconds: number;
+	best_run_moves?: Direction[] | null;
+	updated_at?: string;
+}
+
+interface EventProgressRow {
+	user_id: string;
+	event_id: string;
+	progress_value: number;
+	completed_milestones: number[];
 	updated_at?: string;
 }
 
@@ -123,6 +137,7 @@ function defaultPlayerData(): PlayerData {
 		crystalShards: 0,
 		// Total mazes completed
 		mazesCompleted: 0,
+		specialItemIds: [],
 	};
 }
 
@@ -134,6 +149,7 @@ function normalizePlayerData(value: Partial<PlayerData> | null | undefined): Pla
 		...defaults,
 		...value,
 		unlockedSkinIds: Array.from(new Set([0, ...(value.unlockedSkinIds ?? defaults.unlockedSkinIds)])).sort((a, b) => a - b),
+		specialItemIds: Array.from(new Set(value.specialItemIds ?? defaults.specialItemIds)).sort(),
 		algoMasteryCount: value.algoMasteryCount ?? defaults.algoMasteryCount,
 		masteryRewardsClaimed: value.masteryRewardsClaimed ?? defaults.masteryRewardsClaimed,
 		achievements: value.achievements ?? defaults.achievements
@@ -185,7 +201,8 @@ function createDefaultSyncMetadata(
 		playerUpdatedAt: now,
 		levelUpdatedAt: Object.fromEntries(Object.keys(levels).map((key) => [key, now])),
 		dailyUpdatedAt: Object.fromEntries(Object.keys(dailies).map((key) => [key, now])),
-		skinUpdatedAt: Object.fromEntries(playerData.unlockedSkinIds.map((skinId) => [String(skinId), now]))
+		skinUpdatedAt: Object.fromEntries(playerData.unlockedSkinIds.map((skinId) => [String(skinId), now])),
+		eventUpdatedAt: {}
 	};
 }
 
@@ -200,7 +217,8 @@ function normalizeSyncMetadata(
 		playerUpdatedAt: metadata?.playerUpdatedAt ?? fallback.playerUpdatedAt,
 		levelUpdatedAt: { ...(metadata?.levelUpdatedAt ?? {}) },
 		dailyUpdatedAt: { ...(metadata?.dailyUpdatedAt ?? {}) },
-		skinUpdatedAt: { ...(metadata?.skinUpdatedAt ?? {}) }
+		skinUpdatedAt: { ...(metadata?.skinUpdatedAt ?? {}) },
+		eventUpdatedAt: { ...(metadata?.eventUpdatedAt ?? {}) }
 	};
 
 	for (const key of Object.keys(levels)) {
@@ -253,7 +271,8 @@ function mapProfileRowToPlayerData(
 		wallColor: profile.wall_color,
 		monthPrize1Achieved: profile.month_prize1_achieved,
 		monthPrize2Achieved: profile.month_prize2_achieved,
-		mostRecentMonth: profile.most_recent_month
+		mostRecentMonth: profile.most_recent_month,
+		specialItemIds: Array.from(new Set(profile.special_item_ids ?? fallback.specialItemIds)).sort()
 	};
 }
 
@@ -270,6 +289,15 @@ function mapLevelRowToCampaignLevel(row: LevelProgressRow): CampaignLevel | unde
 		numberOfStars: (row.star1 ? 1 : 0) + (row.star2 ? 1 : 0) + (row.star3 ? 1 : 0),
 		bestMoves: row.best_moves,
 		bestTime: Number(row.best_time_seconds)
+	};
+}
+
+function mapEventRowToEventProgress(row: EventProgressRow): EventProgress {
+	return {
+		eventId: row.event_id,
+		progress: row.progress_value,
+		completedMilestones: [...(row.completed_milestones ?? [])],
+		updatedAt: timestampFromIso(row.updated_at)
 	};
 }
 
@@ -294,11 +322,14 @@ function createGameStore() {
 	let worlds = $state<WorldDefinition[]>(getAllWorlds());
 	let levelProgress = $state<Record<string, CampaignLevel>>({});
 	let dailyResults = $state<Record<string, DailyMazeLevel>>({});
+	let ghostRuns = $state<Record<string, GhostRunData>>({});
+	let eventProgress = $state<Record<string, EventProgress>>({});
 	let syncMetadata = $state<SyncMetadata>({
 		playerUpdatedAt: 0,
 		levelUpdatedAt: {},
 		dailyUpdatedAt: {},
-		skinUpdatedAt: {}
+		skinUpdatedAt: {},
+		eventUpdatedAt: {}
 	});
 	let initialized = $state(false);
 	let cloudUserId = $state<string | null>(null);
@@ -313,6 +344,8 @@ function createGameStore() {
 		player = normalizePlayerData(loadFromStorage<Partial<PlayerData>>(STORAGE_KEY, defaultPlayerData()));
 		levelProgress = loadFromStorage(LEVEL_STORAGE_KEY, {});
 		dailyResults = loadFromStorage(DAILY_STORAGE_KEY, {});
+		ghostRuns = loadFromStorage(GHOST_STORAGE_KEY, {});
+		eventProgress = loadFromStorage(EVENT_PROGRESS_STORAGE_KEY, {});
 		const retroactiveMasteryRewards = reconcileAllMasteryRewards(false);
 		syncMetadata = normalizeSyncMetadata(loadFromStorage<SyncMetadata | null>(SYNC_METADATA_STORAGE_KEY, null), player, levelProgress, dailyResults);
 		worlds = getAllWorlds();
@@ -326,6 +359,8 @@ function createGameStore() {
 		saveToStorage(STORAGE_KEY, player);
 		saveToStorage(LEVEL_STORAGE_KEY, levelProgress);
 		saveToStorage(DAILY_STORAGE_KEY, dailyResults);
+		saveToStorage(GHOST_STORAGE_KEY, ghostRuns);
+		saveToStorage(EVENT_PROGRESS_STORAGE_KEY, eventProgress);
 		saveToStorage(SYNC_METADATA_STORAGE_KEY, syncMetadata);
 		scheduleCloudPush();
 	}
@@ -336,6 +371,10 @@ function createGameStore() {
 
 	function touchLevel(key: string, timestamp = Date.now()) {
 		syncMetadata.levelUpdatedAt[key] = timestamp;
+	}
+
+	function touchEvent(eventId: string, timestamp = Date.now()) {
+		syncMetadata.eventUpdatedAt[eventId] = timestamp;
 	}
 
 	function touchDaily(key: string, timestamp = Date.now()) {
@@ -397,14 +436,15 @@ function createGameStore() {
 
 		try {
 			const supabase = getSupabaseBrowserClient();
-			const [profileResult, levelResult, dailyResult, skinResult] = await Promise.all([
+			const [profileResult, levelResult, dailyResult, skinResult, eventResult] = await Promise.all([
 				supabase.from('profiles').select('*').eq('id', cloudUserId).maybeSingle<ProfileRow>(),
 				supabase.from('level_progress').select('*').eq('user_id', cloudUserId).returns<LevelProgressRow[]>(),
 				supabase.from('daily_maze_results').select('*').eq('user_id', cloudUserId).returns<DailyMazeResultRow[]>(),
-				supabase.from('owned_skins').select('user_id, skin_id, acquired_at').eq('user_id', cloudUserId).returns<OwnedSkinRow[]>()
+				supabase.from('owned_skins').select('user_id, skin_id, acquired_at').eq('user_id', cloudUserId).returns<OwnedSkinRow[]>(),
+				supabase.from('event_progress').select('*').eq('user_id', cloudUserId).returns<EventProgressRow[]>()
 			]);
 
-			const errors = [profileResult.error, levelResult.error, dailyResult.error, skinResult.error].filter(Boolean);
+			const errors = [profileResult.error, levelResult.error, dailyResult.error, skinResult.error, eventResult.error].filter(Boolean);
 			if (errors.length > 0) {
 				throw new Error(errors[0]?.message ?? 'Failed to load cloud save.');
 			}
@@ -442,6 +482,12 @@ function createGameStore() {
 				if (mapped) {
 					const key = `${row.world_id}:${row.level_number}`;
 					remoteLevelMap[key] = mapped;
+					if (row.best_run_moves?.length) {
+						ghostRuns[key] = {
+							moves: [...row.best_run_moves],
+							updatedAt: timestampFromIso(row.updated_at)
+						};
+					}
 					remoteLevelTimestamps[key] = timestampFromIso(row.updated_at);
 				}
 			}
@@ -488,9 +534,34 @@ function createGameStore() {
 			}
 			dailyResults = mergedDailyResults;
 
+			const remoteEventMap: Record<string, EventProgress> = {};
+			for (const row of eventResult.data ?? []) {
+				const mapped = mapEventRowToEventProgress(row);
+				remoteEventMap[row.event_id] = mapped;
+			}
+			const mergedEventKeys = new Set([...Object.keys(eventProgress), ...Object.keys(remoteEventMap)]);
+			const mergedEventProgress: Record<string, EventProgress> = {};
+			for (const key of mergedEventKeys) {
+				const localEvent = eventProgress[key];
+				const remoteEvent = remoteEventMap[key];
+				const localTimestamp = syncMetadata.eventUpdatedAt[key] ?? localEvent?.updatedAt ?? 0;
+				const remoteTimestamp = remoteEvent?.updatedAt ?? 0;
+
+				if (remoteEvent && (!localEvent || remoteTimestamp > localTimestamp)) {
+					mergedEventProgress[key] = { ...remoteEvent };
+					syncMetadata.eventUpdatedAt[key] = remoteTimestamp;
+				} else if (localEvent) {
+					mergedEventProgress[key] = { ...localEvent };
+					syncMetadata.eventUpdatedAt[key] = localTimestamp || Date.now();
+				}
+			}
+			eventProgress = mergedEventProgress;
+
 			saveToStorage(STORAGE_KEY, player);
 			saveToStorage(LEVEL_STORAGE_KEY, levelProgress);
 			saveToStorage(DAILY_STORAGE_KEY, dailyResults);
+			saveToStorage(GHOST_STORAGE_KEY, ghostRuns);
+			saveToStorage(EVENT_PROGRESS_STORAGE_KEY, eventProgress);
 			saveToStorage(SYNC_METADATA_STORAGE_KEY, syncMetadata);
 			setCloudStatus('synced');
 		} catch (error) {
@@ -520,7 +591,8 @@ function createGameStore() {
 				wall_color: player.wallColor,
 				month_prize1_achieved: player.monthPrize1Achieved,
 				month_prize2_achieved: player.monthPrize2Achieved,
-				most_recent_month: player.mostRecentMonth
+				most_recent_month: player.mostRecentMonth,
+				special_item_ids: [...player.specialItemIds]
 			};
 
 			const levelRows: LevelProgressRow[] = Object.entries(levelProgress).map(([key, level]) => {
@@ -534,7 +606,8 @@ function createGameStore() {
 					star2: level.star2,
 					star3: level.star3,
 					best_moves: level.bestMoves,
-					best_time_seconds: level.bestTime
+					best_time_seconds: level.bestTime,
+					best_run_moves: ghostRuns[key]?.moves ?? null
 				};
 			});
 
@@ -552,9 +625,16 @@ function createGameStore() {
 				skin_id: skinId
 			}));
 
+			const eventRows: EventProgressRow[] = Object.values(eventProgress).map((entry) => ({
+				user_id: cloudUserId!,
+				event_id: entry.eventId,
+				progress_value: entry.progress,
+				completed_milestones: [...entry.completedMilestones]
+			}));
+
 			const worldRows = buildWorldProgressRows(cloudUserId);
 
-			const [profileUpsert, levelUpsert, dailyUpsert, skinUpsert, worldUpsert] = await Promise.all([
+			const [profileUpsert, levelUpsert, dailyUpsert, skinUpsert, worldUpsert, eventUpsert] = await Promise.all([
 				supabase.from('profiles').upsert(profileRow, { onConflict: 'id' }),
 				levelRows.length > 0
 					? supabase.from('level_progress').upsert(levelRows, { onConflict: 'user_id,world_id,level_number' })
@@ -567,10 +647,13 @@ function createGameStore() {
 					: Promise.resolve({ error: null }),
 				worldRows.length > 0
 					? supabase.from('world_progress').upsert(worldRows, { onConflict: 'user_id,world_id' })
+					: Promise.resolve({ error: null }),
+				eventRows.length > 0
+					? supabase.from('event_progress').upsert(eventRows, { onConflict: 'user_id,event_id' })
 					: Promise.resolve({ error: null })
 			]);
 
-			const errors = [profileUpsert.error, levelUpsert.error, dailyUpsert.error, skinUpsert.error, worldUpsert.error].filter(Boolean);
+			const errors = [profileUpsert.error, levelUpsert.error, dailyUpsert.error, skinUpsert.error, worldUpsert.error, eventUpsert.error].filter(Boolean);
 			if (errors.length > 0) {
 				throw new Error(errors[0]?.message ?? 'Failed to save cloud data.');
 			}
@@ -669,6 +752,14 @@ function createGameStore() {
 		else if (name === 'doubleCoinsToken') player.doubleCoinsTokensOwned = (player.doubleCoinsTokensOwned ?? 0) + 1;
 		touchPlayer();
 		save();
+	}
+
+	function awardSpecialItem(specialItemId: string): boolean {
+		if (player.specialItemIds.includes(specialItemId)) return false;
+		player.specialItemIds = [...player.specialItemIds, specialItemId].sort();
+		touchPlayer();
+		save();
+		return true;
 	}
 
 	function grantPowerupDirect(name: PowerupName, amount = 1) {
@@ -848,9 +939,24 @@ function createGameStore() {
 		return levelProgress[`${worldId}:${levelNumber}`];
 	}
 
-	function saveLevelProgress(worldId: number, level: CampaignLevel) {
+	function getGhostRun(worldId: number, levelNumber: string): GhostRunData | undefined {
+		return ghostRuns[`${worldId}:${levelNumber}`];
+	}
+
+	function shouldReplaceBestRun(existing: CampaignLevel | undefined, moves: number, time: number): boolean {
+		if (!existing || existing.bestMoves <= 0) return true;
+		if (moves < existing.bestMoves) return true;
+		if (moves === existing.bestMoves) {
+			if (existing.bestTime <= 0) return true;
+			return time < existing.bestTime;
+		}
+		return false;
+	}
+
+	function saveLevelProgress(worldId: number, level: CampaignLevel, bestRunMoves?: Direction[]) {
 		const key = `${worldId}:${level.levelNumber}`;
 		const existing = levelProgress[key];
+		const replaceBestRun = bestRunMoves && shouldReplaceBestRun(existing, level.bestMoves, level.bestTime);
 
 		if (existing) {
 			// Only improve — never overwrite with worse stats
@@ -864,6 +970,9 @@ function createGameStore() {
 		}
 
 		levelProgress[key] = { ...level };
+		if (replaceBestRun) {
+			ghostRuns[key] = { moves: [...bestRunMoves], updatedAt: Date.now() };
+		}
 		touchLevel(key);
 		save();
 	}
@@ -896,6 +1005,27 @@ function createGameStore() {
 			_updateStreak(result.shortDate);
 		}
 
+		save();
+	}
+
+	function getEventProgress(eventId: string): EventProgress | undefined {
+		return eventProgress[eventId];
+	}
+
+	function incrementEventProgress(eventId: string, amount = 1) {
+		const existing = eventProgress[eventId] ?? { eventId, progress: 0, completedMilestones: [] };
+		const nextProgress = existing.progress + amount;
+		const activeEvent = getActiveEvent();
+		const milestones = activeEvent?.id === eventId
+			? activeEvent.milestones.filter((milestone) => nextProgress >= milestone.at).map((milestone) => milestone.at)
+			: existing.completedMilestones;
+		eventProgress[eventId] = {
+			eventId,
+			progress: nextProgress,
+			completedMilestones: milestones,
+			updatedAt: Date.now()
+		};
+		touchEvent(eventId);
 		save();
 	}
 
@@ -1121,6 +1251,10 @@ function createGameStore() {
 		get worlds() { return worlds; },
 		get levelProgress() { return levelProgress; },
 		get dailyResults() { return dailyResults; },
+		get ghostRuns() { return ghostRuns; },
+		get eventProgress() { return eventProgress; },
+		get activeEvent() { return getActiveEvent(); },
+		get shopCatalog() { return getEventPowerupCatalog(); },
 		get initialized() { return initialized; },
 		get cloudUserId() { return cloudUserId; },
 		get cloudSyncError() { return cloudSyncError; },
@@ -1140,13 +1274,17 @@ function createGameStore() {
 		unlockSkin,
 		buySkin,
 		addPowerup,
+		awardSpecialItem,
 		usePowerup,
 		recordAlgoMastery,
 		getLevelProgress,
+		getGhostRun,
 		saveLevelProgress,
 		getWorldStarCount,
 		getDailyResult,
 		saveDailyResult,
+		getEventProgress,
+		incrementEventProgress,
 		isDailyMazeUnlocked,
 		hasKey,
 		addKey,

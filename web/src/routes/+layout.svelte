@@ -81,6 +81,7 @@
 				<a href="{base}/" class="nav-link" class:active={isActive(`${base}/`)}>Home</a>
 				<a href="{base}/campaign/worlds" class="nav-link" class:active={isActive(`${base}/campaign`)}>Campaign</a>
 				<a href="{base}/daily" class="nav-link" class:active={isActive(`${base}/daily`)}>Daily</a>
+				<a href="{base}/leaderboard" class="nav-link" class:active={isActive(`${base}/leaderboard`)}>Leaderboard</a>
 				<a href="{base}/shop" class="nav-link" class:active={isActive(`${base}/shop`)}>Shop</a>
 				<a href="{base}/equip" class="nav-link" class:active={isActive(`${base}/equip`)}>Equip</a>
 				<a href="{base}/codex" class="nav-link" class:active={isActive(`${base}/codex`)}>Codex</a>
@@ -164,6 +165,7 @@
 					<a href="{base}/" class="footer-link">Home</a>
 					<a href="{base}/campaign/worlds" class="footer-link">Campaign</a>
 					<a href="{base}/daily" class="footer-link">Daily Maze</a>
+					<a href="{base}/leaderboard" class="footer-link">Leaderboard</a>
 					<a href="{base}/codex" class="footer-link">Codex</a>
 					<a href="{base}/stats" class="footer-link">Chronicles</a>
 					<a href="{base}/download" class="footer-link">Desktop App</a>

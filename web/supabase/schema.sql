@@ -147,6 +147,78 @@ create policy "Users can update own world progress"
   on world_progress for update using (auth.uid() = user_id);
 
 -- ============================================================================
+-- Public Leaderboards
+-- ============================================================================
+
+create or replace view public.daily_leaderboard_days as
+select
+  d.short_date,
+  to_date(d.short_date, 'FMMM/FMDD/YYYY') as played_on,
+  count(*)::integer as entry_count,
+  min(d.completion_time) as best_time_seconds
+from daily_maze_results d
+where d.status = 'completed'
+group by d.short_date, to_date(d.short_date, 'FMMM/FMDD/YYYY');
+
+create or replace view public.daily_leaderboard_entries as
+select
+  dense_rank() over (
+    partition by d.short_date
+    order by d.completion_time asc, d.completion_moves asc, d.updated_at asc, d.user_id asc
+  )::integer as rank,
+  d.short_date,
+  to_date(d.short_date, 'FMMM/FMDD/YYYY') as played_on,
+  d.user_id,
+  p.player_name,
+  d.completion_time,
+  d.completion_moves,
+  d.updated_at as completed_at
+from daily_maze_results d
+join profiles p on p.id = d.user_id
+where d.status = 'completed';
+
+create or replace view public.campaign_star_leaderboard as
+with campaign_totals as (
+  select
+    lp.user_id,
+    p.player_name,
+    sum(
+      (case when lp.star1 then 1 else 0 end) +
+      (case when lp.star2 then 1 else 0 end) +
+      (case when lp.star3 then 1 else 0 end)
+    )::integer as total_stars,
+    count(*) filter (where lp.completed)::integer as completed_levels,
+    min(nullif(lp.best_time_seconds, 0)) as best_time_seconds,
+    min(nullif(lp.best_moves, 0)) as best_moves,
+    max(lp.updated_at) as last_updated_at
+  from level_progress lp
+  join profiles p on p.id = lp.user_id
+  group by lp.user_id, p.player_name
+)
+select
+  dense_rank() over (
+    order by total_stars desc,
+    completed_levels desc,
+    coalesce(best_time_seconds, 1000000000) asc,
+    coalesce(best_moves, 2147483647) asc,
+    last_updated_at asc,
+    user_id asc
+  )::integer as rank,
+  user_id,
+  player_name,
+  total_stars,
+  completed_levels,
+  best_time_seconds,
+  best_moves,
+  last_updated_at
+from campaign_totals
+where total_stars > 0 or completed_levels > 0;
+
+grant select on public.daily_leaderboard_days to anon, authenticated;
+grant select on public.daily_leaderboard_entries to anon, authenticated;
+grant select on public.campaign_star_leaderboard to anon, authenticated;
+
+-- ============================================================================
 -- Updated-at trigger function
 -- ============================================================================
 

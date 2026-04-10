@@ -17,7 +17,21 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
-      - name: Install MAUI workloads
-        run: dotnet workload install maui-android maui-ios
+      # Only restore server-side projects — the MAUI app requires platform
+      # workloads that aren't available on ubuntu-latest runners.
+      - name: Restore server-side projects
+        run: |
+          dotnet restore MazeEscape.Core/MazeEscape.Core.csproj
+          dotnet restore MazeEscape.Api/MazeEscape.Api.csproj
+          dotnet restore MazeEscape.Api.Tests/MazeEscape.Api.Tests.csproj
+          dotnet restore MazeEscape.Web/MazeEscape.Web.csproj
+          dotnet restore MazeEscape.Web.Tests/MazeEscape.Web.Tests.csproj
 
-      - uses: actions/nuget-dependency-submission@v1
+      - uses: advanced-security/nuget-dependency-submission-action@v1
+        with:
+          solution-path: |
+            MazeEscape.Core/MazeEscape.Core.csproj
+            MazeEscape.Api/MazeEscape.Api.csproj
+            MazeEscape.Api.Tests/MazeEscape.Api.Tests.csproj
+            MazeEscape.Web/MazeEscape.Web.csproj
+            MazeEscape.Web.Tests/MazeEscape.Web.Tests.csproj

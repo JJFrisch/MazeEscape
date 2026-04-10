@@ -974,7 +974,12 @@ namespace MazeEscape.Models
 
             OptimizeMaze();
         }
+    }
 
+    public class PlayerModel
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
 
         public PlayerModel(int x, int y)
         {

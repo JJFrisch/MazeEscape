@@ -18,6 +18,7 @@
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import type { WorldMapLayout, MapNode, MapCollectible } from '$lib/core/types';
 	import MapCollectiblePopup from '$lib/components/MapCollectiblePopup.svelte';
+	import { WORLD_THEMES } from '$lib/worldThemes';
 
 	let { worldId, layout }: { worldId: number; layout: WorldMapLayout } = $props();
 
@@ -35,6 +36,7 @@
 	// Pan gesture tracking
 	let autoPanDone = false;
 	let isPanning = $state(false);
+	let pointerIsDown = false;
 	let panStartX = 0;
 	let panStartY = 0;
 	let panOriginX = 0;
@@ -135,10 +137,7 @@
 
 	function onPointerDown(e: PointerEvent) {
 		if (e.button !== 0 && e.pointerType !== 'touch') return;
-		// Don't capture or start panning yet — wait until the pointer has actually
-		// moved (see onPointerMove). Calling setPointerCapture here would redirect
-		// the subsequent click event to this container, swallowing all child onclick
-		// handlers (level nodes, collectibles).
+		pointerIsDown = true;
 		panStartX = e.clientX;
 		panStartY = e.clientY;
 		panOriginX = panX;
@@ -146,6 +145,8 @@
 	}
 
 	function onPointerMove(e: PointerEvent) {
+		// Only pan when a button is actually held down.
+		if (!pointerIsDown) return;
 		const dx = e.clientX - panStartX;
 		const dy = e.clientY - panStartY;
 		// Only commit to panning once we've clearly dragged past the click threshold.
@@ -160,6 +161,7 @@
 	}
 
 	function onPointerUp() {
+		pointerIsDown = false;
 		isPanning = false;
 	}
 
@@ -302,6 +304,7 @@
 	const BONUS_COLOR = '#1e3a2f';
 	const ACCENT_BLUE = '#38bdf8';
 	const ACCENT_GOLD = '#fbbf24';
+	const worldTheme = $derived(WORLD_THEMES.find(t => t.worldId === worldId) ?? WORLD_THEMES[0]);
 	const GATE_RED = '#f87171';
 	const GATE_GREEN = '#4ade80';
 	const GEM_COLOR = '#a78bfa';
@@ -313,15 +316,15 @@
 
 	function levelNodeFill(node: MapNode): string {
 		const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
-		if (prog?.completed) return node.type === 'bonus_level' ? ACCENT_GOLD : ACCENT_BLUE;
+		if (prog?.completed) return node.type === 'bonus_level' ? ACCENT_GOLD : worldTheme.accentColor;
 		if (isLevelUnlocked(node.levelNumber ?? '')) return '#0f2a44';
 		return '#0a1628';
 	}
 
 	function levelNodeStroke(node: MapNode): string {
 		const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
-		if (prog?.completed) return node.type === 'bonus_level' ? ACCENT_GOLD : ACCENT_BLUE;
-		if (isLevelUnlocked(node.levelNumber ?? '')) return ACCENT_BLUE;
+		if (prog?.completed) return node.type === 'bonus_level' ? ACCENT_GOLD : worldTheme.accentColor;
+		if (isLevelUnlocked(node.levelNumber ?? '')) return worldTheme.accentColor;
 		return '#1e3a5c';
 	}
 
@@ -374,6 +377,10 @@
 					<feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
 					<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
 				</filter>
+				<!-- Ambient blur for nebula blobs -->
+				<filter id="ambient-blur" x="-40%" y="-40%" width="180%" height="180%">
+					<feGaussianBlur in="SourceGraphic" stdDeviation="32" />
+				</filter>
 				<!-- Gate shimmer animation -->
 				<radialGradient id="gate-closed-grad" cx="50%" cy="50%" r="50%">
 					<stop offset="0%" stop-color="#f87171" stop-opacity="0.5"/>
@@ -383,10 +390,99 @@
 					<stop offset="0%" stop-color="#4ade80" stop-opacity="0.5"/>
 					<stop offset="100%" stop-color="#14532d" stop-opacity="0.1"/>
 				</radialGradient>
+				<!-- Animated background gradient (world-themed center glow + edge vignette) -->
+				<radialGradient id="bg-grad" cx="50%" cy="40%" r="65%">
+					<stop offset="0%" stop-color={worldTheme.accentColor} stop-opacity="0.07">
+						<animate attributeName="stop-opacity" values="0.07;0.13;0.07" dur="14s" repeatCount="indefinite"/>
+					</stop>
+					<stop offset="55%" stop-color="#060e1c" stop-opacity="0"/>
+					<stop offset="100%" stop-color="#020610" stop-opacity="1"/>
+				</radialGradient>
+				<!-- Nebula radial gradients (world-themed accent color) -->
+				<radialGradient id="nebula-tl" cx="20%" cy="20%" r="50%">
+					<stop offset="0%" stop-color={worldTheme.accentColor} stop-opacity="0.32"/>
+					<stop offset="100%" stop-color={worldTheme.accentColor} stop-opacity="0"/>
+				</radialGradient>
+				<radialGradient id="nebula-br" cx="80%" cy="80%" r="50%">
+					<stop offset="0%" stop-color={worldTheme.accentColor} stop-opacity="0.26"/>
+					<stop offset="100%" stop-color={worldTheme.accentColor} stop-opacity="0"/>
+				</radialGradient>
+				<radialGradient id="nebula-mid" cx="55%" cy="50%" r="45%">
+					<stop offset="0%" stop-color={worldTheme.accentColor} stop-opacity="0.17"/>
+					<stop offset="100%" stop-color={worldTheme.accentColor} stop-opacity="0"/>
+				</radialGradient>
+				<radialGradient id="nebula-tr" cx="80%" cy="18%" r="40%">
+					<stop offset="0%" stop-color={worldTheme.accentColor} stop-opacity="0.23"/>
+					<stop offset="100%" stop-color={worldTheme.accentColor} stop-opacity="0"/>
+				</radialGradient>
+				<!-- Fifth nebula — lower-left -->
+				<radialGradient id="nebula-bl" cx="15%" cy="80%" r="38%">
+					<stop offset="0%" stop-color={worldTheme.accentColor} stop-opacity="0.19"/>
+					<stop offset="100%" stop-color={worldTheme.accentColor} stop-opacity="0"/>
+				</radialGradient>
+				<!-- Crosshatch grid pattern (world-tinted lines) -->
+				<pattern id="map-grid" x="0" y="0" width={T} height={T} patternUnits="userSpaceOnUse">
+					<line x1={T / 2} y1="0" x2={T / 2} y2={T} stroke={worldTheme.accentColor} stroke-width="0.5" opacity="0.07"/>
+					<line x1="0" y1={T / 2} x2={T} y2={T / 2} stroke={worldTheme.accentColor} stroke-width="0.5" opacity="0.07"/>
+				</pattern>
 			</defs>
 
-			<!-- ── Layer 1: Background ──────────────────────────────── -->
-			<rect width={svgWidth} height={svgHeight} fill={WALL_COLOR} />
+			<!-- ── Layer 1: Animated background ────────────────────── -->
+			<rect width={svgWidth} height={svgHeight} fill="url(#bg-grad)" />
+
+			<!-- ── Layer 1b: Nebula atmosphere blobs ───────────────── -->
+			<ellipse
+				cx={svgWidth * 0.18} cy={svgHeight * 0.2}
+				rx={svgWidth * 0.35} ry={svgHeight * 0.32}
+				fill="url(#nebula-tl)" filter="url(#ambient-blur)"
+			>
+				<animate attributeName="opacity" values="1;0.55;1" dur="9s" begin="0s" repeatCount="indefinite"/>
+			</ellipse>
+			<ellipse
+				cx={svgWidth * 0.82} cy={svgHeight * 0.78}
+				rx={svgWidth * 0.38} ry={svgHeight * 0.3}
+				fill="url(#nebula-br)" filter="url(#ambient-blur)"
+			>
+				<animate attributeName="opacity" values="0.7;1;0.7" dur="11s" begin="2s" repeatCount="indefinite"/>
+			</ellipse>
+			<ellipse
+				cx={svgWidth * 0.52} cy={svgHeight * 0.48}
+				rx={svgWidth * 0.3} ry={svgHeight * 0.28}
+				fill="url(#nebula-mid)" filter="url(#ambient-blur)"
+			>
+				<animate attributeName="opacity" values="0.6;1;0.6" dur="13s" begin="5s" repeatCount="indefinite"/>
+			</ellipse>
+			<ellipse
+				cx={svgWidth * 0.8} cy={svgHeight * 0.15}
+				rx={svgWidth * 0.25} ry={svgHeight * 0.22}
+				fill="url(#nebula-tr)" filter="url(#ambient-blur)"
+			>
+				<animate attributeName="opacity" values="0.8;0.45;0.8" dur="10s" begin="7s" repeatCount="indefinite"/>
+			</ellipse>
+			<ellipse
+				cx={svgWidth * 0.12} cy={svgHeight * 0.82}
+				rx={svgWidth * 0.28} ry={svgHeight * 0.2}
+				fill="url(#nebula-bl)" filter="url(#ambient-blur)"
+			>
+				<animate attributeName="opacity" values="0.55;1;0.55" dur="12s" begin="3.5s" repeatCount="indefinite"/>
+			</ellipse>
+
+			<!-- ── Layer 2a: Path corridor glow (soft background halo) -->
+			{#each layout.pathSegments as seg}
+				{#if !seg.bonus}
+					{@const x1 = cx(seg.from.col)}
+					{@const y1 = cy(seg.from.row)}
+					{@const x2 = cx(seg.to.col)}
+					{@const y2 = cy(seg.to.row)}
+					<line
+						{x1} {y1} {x2} {y2}
+						stroke={worldTheme.accentColor}
+						stroke-width={T * CORRIDOR_W * 1.8}
+						stroke-linecap="round"
+						opacity="0.045"
+					/>
+				{/if}
+			{/each}
 
 			<!-- ── Layer 2: Path corridors ─────────────────────────── -->
 			{#each layout.pathSegments as seg}
@@ -406,12 +502,112 @@
 				/>
 			{/each}
 
-			<!-- ── Layer 3: Subtle grid dots (texture) ──────────────── -->
-			{#each { length: layout.rows } as _, row}
-				{#each { length: layout.cols } as _, col}
-					<circle cx={cx(col)} cy={cy(row)} r="1" fill="#ffffff" opacity="0.04" />
-				{/each}
+			<!-- ── Layer 3: Crosshatch grid texture ─────────────────── -->
+			<rect width={svgWidth} height={svgHeight} fill="url(#map-grid)" pointer-events="none"/>
+
+			<!-- ── Layer 3b: Drifting ambient particles ─────────────── -->
+			{#each [
+				{ col: 2,  row: 3,  dur: 9,  begin: 0   },
+				{ col: 5,  row: 7,  dur: 12, begin: 1.5 },
+				{ col: 9,  row: 2,  dur: 10, begin: 3   },
+				{ col: 13, row: 5,  dur: 8,  begin: 0.7 },
+				{ col: 1,  row: 10, dur: 14, begin: 2.2 },
+				{ col: 7,  row: 12, dur: 11, begin: 4   },
+				{ col: 15, row: 9,  dur: 9,  begin: 5.5 },
+				{ col: 4,  row: 15, dur: 13, begin: 1   },
+				{ col: 11, row: 1,  dur: 10, begin: 6   },
+				{ col: 8,  row: 8,  dur: 12, begin: 3.3 },
+				{ col: 3,  row: 18, dur: 9,  begin: 0.4 },
+				{ col: 16, row: 14, dur: 11, begin: 7   },
+				{ col: 6,  row: 4,  dur: 8,  begin: 2.8 },
+				{ col: 12, row: 16, dur: 14, begin: 1.2 },
+				{ col: 10, row: 11, dur: 10, begin: 5   },
+			] as p}
+				{@const px = cx(Math.min(p.col, layout.cols - 1))}
+				{@const py = cy(Math.min(p.row, layout.rows - 1))}
+				<circle cx={px} cy={py} r="1.5" fill={worldTheme.accentColor} opacity="0.35" pointer-events="none">
+					<animate attributeName="cy" values="{py};{py - 55};{py}" dur="{p.dur}s" begin="{p.begin}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+					<animate attributeName="opacity" values="0.35;0.0;0.35" dur="{p.dur}s" begin="{p.begin}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+				</circle>
 			{/each}
+
+			<!-- ── Layer 3c: World-specific motif elements ──────────── -->
+			{#if worldTheme.motif === 'space'}
+				<!-- Twinkling background stars scattered across the map -->
+				{#each [
+					{ x: 0.04, y: 0.06, r: 1.1, dur: 3.2, begin: 0.0 },
+					{ x: 0.18, y: 0.03, r: 0.8, dur: 2.8, begin: 0.6 },
+					{ x: 0.31, y: 0.09, r: 1.0, dur: 4.0, begin: 1.1 },
+					{ x: 0.55, y: 0.04, r: 0.7, dur: 3.5, begin: 1.8 },
+					{ x: 0.72, y: 0.08, r: 1.2, dur: 2.6, begin: 0.3 },
+					{ x: 0.88, y: 0.02, r: 0.9, dur: 3.8, begin: 2.0 },
+					{ x: 0.07, y: 0.22, r: 0.6, dur: 4.2, begin: 0.9 },
+					{ x: 0.40, y: 0.17, r: 1.0, dur: 3.0, begin: 1.5 },
+					{ x: 0.63, y: 0.20, r: 0.8, dur: 3.6, begin: 2.4 },
+					{ x: 0.92, y: 0.25, r: 0.7, dur: 2.9, begin: 0.7 },
+					{ x: 0.14, y: 0.38, r: 1.1, dur: 4.1, begin: 3.0 },
+					{ x: 0.50, y: 0.33, r: 0.8, dur: 3.3, begin: 1.2 },
+					{ x: 0.78, y: 0.41, r: 1.0, dur: 2.7, begin: 2.8 },
+					{ x: 0.96, y: 0.36, r: 0.6, dur: 4.4, begin: 0.2 },
+					{ x: 0.03, y: 0.55, r: 0.9, dur: 3.7, begin: 1.9 },
+					{ x: 0.26, y: 0.60, r: 1.2, dur: 3.1, begin: 0.5 },
+					{ x: 0.60, y: 0.58, r: 0.7, dur: 4.0, begin: 2.1 },
+					{ x: 0.84, y: 0.63, r: 1.0, dur: 2.5, begin: 3.3 },
+					{ x: 0.10, y: 0.76, r: 0.8, dur: 3.9, begin: 1.4 },
+					{ x: 0.45, y: 0.80, r: 0.6, dur: 3.4, begin: 2.6 },
+					{ x: 0.70, y: 0.78, r: 1.1, dur: 3.0, begin: 0.8 },
+					{ x: 0.90, y: 0.84, r: 0.9, dur: 4.3, begin: 1.7 },
+					{ x: 0.22, y: 0.92, r: 0.7, dur: 2.8, begin: 3.5 },
+					{ x: 0.55, y: 0.95, r: 1.0, dur: 3.6, begin: 0.4 },
+					{ x: 0.80, y: 0.97, r: 0.8, dur: 2.6, begin: 2.2 },
+				] as s}
+					<circle
+						cx={svgWidth * s.x} cy={svgHeight * s.y}
+						r={s.r} fill="white" pointer-events="none"
+					>
+						<animate attributeName="opacity" values="0.1;0.75;0.1" dur="{s.dur}s" begin="{s.begin}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1"/>
+					</circle>
+				{/each}
+			{:else if worldTheme.motif === 'tech'}
+				<!-- Faint circuit nodes pulsing in the background -->
+				{#each [
+					{ col: 1,  row: 2  }, { col: 4,  row: 5  }, { col: 7,  row: 1  },
+					{ col: 10, row: 4  }, { col: 13, row: 2  }, { col: 2,  row: 8  },
+					{ col: 5,  row: 11 }, { col: 9,  row: 9  }, { col: 12, row: 7  },
+					{ col: 15, row: 10 }, { col: 3,  row: 14 }, { col: 8,  row: 16 },
+					{ col: 11, row: 13 }, { col: 14, row: 15 }, { col: 6,  row: 17 },
+					{ col: 0,  row: 6  }, { col: 16, row: 3  }, { col: 1,  row: 18 },
+				] as n}
+					{@const nx = cx(Math.min(n.col, layout.cols - 1))}
+					{@const ny = cy(Math.min(n.row, layout.rows - 1))}
+					<circle cx={nx} cy={ny} r={T * 0.11} fill="none" stroke={worldTheme.accentColor} stroke-width="1" opacity="0.13" pointer-events="none">
+						<animate attributeName="opacity" values="0.13;0.28;0.13" dur="{6 + (n.col % 4)}s" begin="{(n.row % 5) * 0.7}s" repeatCount="indefinite"/>
+					</circle>
+					<!-- Short connector dashes radiating from node -->
+					<line x1={nx - T * 0.18} y1={ny} x2={nx - T * 0.28} y2={ny} stroke={worldTheme.accentColor} stroke-width="1" opacity="0.10" stroke-dasharray="3 4" pointer-events="none"/>
+					<line x1={nx + T * 0.18} y1={ny} x2={nx + T * 0.28} y2={ny} stroke={worldTheme.accentColor} stroke-width="1" opacity="0.10" stroke-dasharray="3 4" pointer-events="none"/>
+					<line x1={nx} y1={ny - T * 0.18} x2={nx} y2={ny - T * 0.28} stroke={worldTheme.accentColor} stroke-width="1" opacity="0.10" stroke-dasharray="3 4" pointer-events="none"/>
+				{/each}
+			{:else if worldTheme.motif === 'elemental'}
+				<!-- Slow drifting organic energy wisps -->
+				{#each [
+					{ cx: 0.22, cy: 0.32, rx: 0.18, ry: 0.07, dur: 15, begin: 0.0 },
+					{ cx: 0.65, cy: 0.18, rx: 0.14, ry: 0.06, dur: 18, begin: 4.0 },
+					{ cx: 0.45, cy: 0.70, rx: 0.16, ry: 0.07, dur: 12, begin: 7.0 },
+					{ cx: 0.80, cy: 0.52, rx: 0.20, ry: 0.08, dur: 16, begin: 2.0 },
+					{ cx: 0.10, cy: 0.62, rx: 0.14, ry: 0.06, dur: 14, begin: 5.5 },
+					{ cx: 0.50, cy: 0.90, rx: 0.17, ry: 0.07, dur: 19, begin: 1.5 },
+				] as w}
+					<ellipse
+						cx={svgWidth * w.cx} cy={svgHeight * w.cy}
+						rx={svgWidth * w.rx} ry={svgHeight * w.ry}
+						fill={worldTheme.accentColor} opacity="0" pointer-events="none"
+						filter="url(#ambient-blur)"
+					>
+						<animate attributeName="opacity" values="0;0.20;0;0.13;0" dur="{w.dur}s" begin="{w.begin}s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.25;0.5;0.75;1" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1"/>
+					</ellipse>
+				{/each}
+			{/if}
 
 			<!-- ── Layer 4: Collectibles ────────────────────────────── -->
 			{#each layout.collectibles as item}
@@ -640,13 +836,13 @@
 				{@const py = cy(playerMarkerNode.tile.row)}
 				<g class="player-marker">
 					<!-- Outer pulse -->
-					<circle cx={px} cy={py} r={T * 0.55} fill={ACCENT_BLUE} opacity="0.12">
+					<circle cx={px} cy={py} r={T * 0.55} fill={worldTheme.accentColor} opacity="0.12">
 						<animate attributeName="r" values="{T*0.55};{T*0.75};{T*0.55}" dur="1.8s" repeatCount="indefinite"/>
 						<animate attributeName="opacity" values="0.12;0.0;0.12" dur="1.8s" repeatCount="indefinite"/>
 					</circle>
 					<!-- Marker pin -->
-					<circle cx={px} cy={py} r={T * 0.16} fill={ACCENT_BLUE} stroke="#fff" stroke-width="2"/>
-					<text x={px} y={py - T * 0.22} text-anchor="middle" font-size={T * 0.22} fill={ACCENT_BLUE}>▼</text>
+					<circle cx={px} cy={py} r={T * 0.16} fill={worldTheme.accentColor} stroke="#fff" stroke-width="2"/>
+					<text x={px} y={py - T * 0.22} text-anchor="middle" font-size={T * 0.22} fill={worldTheme.accentColor}>▼</text>
 				</g>
 			{/if}
 
@@ -718,10 +914,18 @@
 		width: 100%;
 		height: 100%;
 		overflow: hidden;
-		background: #050d1a;
+		background: #030810;
 		cursor: grab;
 		user-select: none;
 		touch-action: none;
+	}
+	.map-container::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: radial-gradient(ellipse 80% 80% at 50% 50%, transparent 40%, rgba(2, 5, 14, 0.7) 100%);
+		pointer-events: none;
+		z-index: 1;
 	}
 	.map-container:active {
 		cursor: grabbing;

@@ -21,6 +21,8 @@
 		stars = -1,
 		twoStarMoves = 0,
 		threeStarTime = 0,
+		fiveStarMoves = 0,
+		fiveStarTime = 0,
 		coins,
 		accentColor = '#38bdf8',
 		mazeWidth = 0,
@@ -41,6 +43,8 @@
 		stars?: number;
 		twoStarMoves?: number;
 		threeStarTime?: number;
+		fiveStarMoves?: number;
+		fiveStarTime?: number;
 		coins: number;
 		accentColor?: string;
 		mazeWidth?: number;
@@ -80,7 +84,7 @@
 			<!-- Stars -->
 			{#if showStars}
 				<div class="outro-stars">
-					<Stars count={stars} size="3rem" />
+					<Stars count={stars} max={5} size="3rem" />
 				</div>
 			{/if}
 
@@ -108,7 +112,10 @@
 					<span class="stat-value">{fmtTime(time)}</span>
 					<span class="stat-label">Time</span>
 					{#if threeStarTime > 0}
-						<span class="stat-goal">goal ≤ {threeStarTime}s</span>
+						<span class="stat-goal">★★★ ≤ {threeStarTime}s</span>
+					{/if}
+					{#if fiveStarTime > 0}
+						<span class="stat-goal">★★★★★ ≤ {fiveStarTime}s</span>
 					{/if}
 					{#if bestTime > 0}
 						<span class="stat-best">best {fmtTime(bestTime)}</span>
@@ -120,7 +127,10 @@
 					<span class="stat-value">{moves}</span>
 					<span class="stat-label">Moves</span>
 					{#if twoStarMoves > 0}
-						<span class="stat-goal">goal ≤ {twoStarMoves}</span>
+						<span class="stat-goal">★★ ≤ {twoStarMoves}</span>
+					{/if}
+					{#if fiveStarMoves > 0}
+						<span class="stat-goal">★★★★★ ≤ {fiveStarMoves}</span>
 					{/if}
 					{#if bestMoves > 0}
 						<span class="stat-best">best {bestMoves}</span>

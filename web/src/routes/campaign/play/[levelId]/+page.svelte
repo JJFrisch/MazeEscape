@@ -101,7 +101,7 @@
 	const canAcceptInput = $derived(gameIsActive && !currentIsComplete && !showIntro && !showOutro);
 	let loadError = $state('');
 	let initializedLevelKey = $state('');
-	let victoryStars = $state({ star1: false, star2: false, star3: false, total: 0 });
+	let victoryStars = $state({ star1: false, star2: false, star3: false, star4: false, star5: false, total: 0 });
 	let coinsEarned = $state(0);
 	let prevBestTime = $state(0);
 	let prevBestMoves = $state(0);
@@ -132,7 +132,7 @@
 			showOutro = false;
 			elapsed = 0;
 			coinsEarned = 0;
-			victoryStars = { star1: false, star2: false, star3: false, total: 0 };
+			victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: false, total: 0 };
 			loadError = '';
 
 			const seed = worldId * 10000 + (parseInt(levelDef.levelNumber) || 0) * 100 +
@@ -271,8 +271,11 @@
 		const stars = calculateStars(
 			currentMoves,
 			elapsed,
+			session?.hintsUsed ?? 0,
 			levelDef.twoStarMoves,
-			levelDef.threeStarTime
+			levelDef.threeStarTime,
+			levelDef.fiveStarMoves,
+			levelDef.fiveStarTime
 		);
 		victoryStars = stars;
 
@@ -293,6 +296,8 @@
 			star1: stars.star1,
 			star2: stars.star2,
 			star3: stars.star3,
+			star4: stars.star4,
+			star5: stars.star5,
 			numberOfStars: stars.total,
 			bestMoves: currentMoves,
 			bestTime: elapsed
@@ -576,6 +581,8 @@
 		stars={victoryStars.total}
 		twoStarMoves={levelDef.twoStarMoves}
 		threeStarTime={levelDef.threeStarTime}
+		fiveStarMoves={levelDef.fiveStarMoves}
+		fiveStarTime={levelDef.fiveStarTime}
 		coins={coinsEarned}
 		accentColor={theme.accentColor}
 		mazeWidth={levelDef.width}

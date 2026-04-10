@@ -231,7 +231,6 @@ function mapLevelRowToCampaignLevel(row: LevelProgressRow): CampaignLevel | unde
 		bestTime: Number(row.best_time_seconds)
 	};
 }
-
 function mapDailyRowToDailyLevel(row: DailyMazeResultRow): DailyMazeLevel {
 	const base = getDailyMazeForDate(parseShortDate(row.short_date));
 	return {
@@ -676,13 +675,17 @@ function createGameStore() {
 		const existing = levelProgress[key];
 
 		const wasAlreadyStar3 = existing?.star3 === true;
+		const wasAlreadyStar4 = existing?.star4 === true;
+		const wasAlreadyStar5 = existing?.star5 === true;
 
 		if (existing) {
 			// Only improve — never overwrite with worse stats
 			level.star1 = level.star1 || existing.star1;
 			level.star2 = level.star2 || existing.star2;
 			level.star3 = level.star3 || existing.star3;
-			level.numberOfStars = (level.star1 ? 1 : 0) + (level.star2 ? 1 : 0) + (level.star3 ? 1 : 0);
+			level.star4 = level.star4 || existing.star4;
+			level.star5 = level.star5 || existing.star5;
+			level.numberOfStars = (level.star1 ? 1 : 0) + (level.star2 ? 1 : 0) + (level.star3 ? 1 : 0) + (level.star4 ? 1 : 0) + (level.star5 ? 1 : 0);
 			level.bestMoves = existing.bestMoves > 0 ? Math.min(level.bestMoves || Infinity, existing.bestMoves) : level.bestMoves;
 			level.bestTime = existing.bestTime > 0 ? Math.min(level.bestTime || Infinity, existing.bestTime) : level.bestTime;
 			level.completed = level.completed || existing.completed;
@@ -691,6 +694,12 @@ function createGameStore() {
 		levelProgress[key] = { ...level };
 		if (level.star3 && !wasAlreadyStar3) {
 			addGems(1);
+		}
+		if (level.star4 && !wasAlreadyStar4) {
+			addGems(2);
+		}
+		if (level.star5 && !wasAlreadyStar5) {
+			addGems(3);
 		}
 		touchLevel(key);
 		save();

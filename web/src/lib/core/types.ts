@@ -44,6 +44,8 @@ export interface CampaignLevel {
 	mazeShape: MazeShape;
 	twoStarMoves: number;
 	threeStarTime: number;
+	fiveStarMoves: number;
+	fiveStarTime: number;
 	numberOfStars: number;
 	minimumStarsToUnlock: number;
 	connectTo1: string | null;
@@ -54,6 +56,8 @@ export interface CampaignLevel {
 	star1: boolean;
 	star2: boolean;
 	star3: boolean;
+	star4: boolean;
+	star5: boolean;
 	bestMoves: number;
 	bestTime: number; // seconds
 }

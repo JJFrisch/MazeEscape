@@ -150,7 +150,15 @@
 		clearInterval(timerInterval);
 		if (!session || !selectedDate || !selectedDaily) return;
 
-		const stars = calculateStars(session.moves, elapsed, selectedDaily.movesNeeded, selectedDaily.timeNeeded);
+		const stars = calculateStars(
+			session.moves,
+			elapsed,
+			session.hintsUsed,
+			selectedDaily.movesNeeded,
+			selectedDaily.timeNeeded,
+			Math.floor(selectedDaily.movesNeeded * 0.6),
+			Math.floor(selectedDaily.timeNeeded * 0.6)
+		);
 		victoryStars = stars;
 
 		coinsEarned = 50 + stars.total * 25;

@@ -11,6 +11,7 @@ export interface GameSessionState {
 	playerPos: Position;
 	moves: number;
 	elapsed: number; // seconds
+	hintsUsed: number;
 	isComplete: boolean;
 	hintPath: Position[] | null;
 }
@@ -31,6 +32,7 @@ export function createGameSession(config: GameSessionConfig): GameSessionState {
 		playerPos: { ...maze.start },
 		moves: 0,
 		elapsed: 0,
+		hintsUsed: 0,
 		isComplete: false,
 		hintPath: null
 	};
@@ -65,17 +67,30 @@ export function getHint(state: GameSessionState): Position[] {
 		state.maze.height
 	);
 	state.hintPath = path;
+	state.hintsUsed++;
 	return path;
 }
 
 export function calculateStars(
 	moves: number,
 	elapsedSeconds: number,
+	hintsUsed: number,
 	twoStarMoves: number,
-	threeStarTime: number
-): { star1: boolean; star2: boolean; star3: boolean; total: number } {
+	threeStarTime: number,
+	fiveStarMoves: number,
+	fiveStarTime: number
+): { star1: boolean; star2: boolean; star3: boolean; star4: boolean; star5: boolean; total: number } {
 	const star1 = true; // always earned on completion
 	const star2 = moves <= twoStarMoves;
 	const star3 = elapsedSeconds <= threeStarTime;
-	return { star1, star2, star3, total: (star1 ? 1 : 0) + (star2 ? 1 : 0) + (star3 ? 1 : 0) };
+	const star4 = hintsUsed === 0;
+	const star5 = moves <= fiveStarMoves && elapsedSeconds <= fiveStarTime;
+	return {
+		star1,
+		star2,
+		star3,
+		star4,
+		star5,
+		total: (star1 ? 1 : 0) + (star2 ? 1 : 0) + (star3 ? 1 : 0) + (star4 ? 1 : 0) + (star5 ? 1 : 0)
+	};
 }

@@ -202,7 +202,7 @@ function mapProfileRowToPlayerData(profile: ProfileRow | null, ownedSkins: Owned
 		playerId: profile.id,
 		playerName: profile.player_name,
 		coinCount: profile.coin_count,
-		gemCount: (player.gemCount ?? 0), // not in cloud profile, persist locally only
+		gemCount: 0, // not in cloud profile, persist locally only
 		hintsOwned: profile.hints_owned,
 		extraTimesOwned: profile.extra_times_owned,
 		extraMovesOwned: profile.extra_moves_owned,

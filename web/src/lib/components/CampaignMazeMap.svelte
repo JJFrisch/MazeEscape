@@ -801,7 +801,7 @@
 					{@const px = cx(node.tile.col)}
 					{@const py = cy(node.tile.row)}
 					{@const stars = gameStore.getWorldStarCount(worldId)}
-					{@const unlocked = stars >= 250}
+					{@const unlocked = stars >= 300}
 					{@const visible = isAreaVisible(node.area)}
 					{#if visible}
 						<!-- svelte-ignore a11y_click_events_have_key_events -->

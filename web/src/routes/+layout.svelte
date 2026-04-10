@@ -286,7 +286,7 @@
 	}
 	.nav-link.active {
 		color: var(--color-accent-primary);
-		background: rgba(56, 189, 248, 0.08);
+		background: color-mix(in srgb, var(--color-accent-primary) 10%, transparent);
 	}
 	.nav-link.active::after {
 		content: '';
@@ -297,7 +297,7 @@
 		height: 2px;
 		background: var(--color-accent-primary);
 		border-radius: 1px 1px 0 0;
-		box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+		box-shadow: 0 0 8px var(--color-accent-glow);
 	}
 
 	.nav-cta {
@@ -337,12 +337,12 @@
 		align-items: center;
 		gap: 5px;
 		padding: 4px 10px 4px 8px;
-		background: rgba(56, 189, 248, 0.07);
-		border: 1px solid rgba(56, 189, 248, 0.2);
+		background: color-mix(in srgb, var(--color-accent-primary) 8%, transparent);
+		border: 1px solid color-mix(in srgb, var(--color-accent-primary) 22%, transparent);
 		border-radius: var(--radius-full);
 		font-size: 11px;
 		font-weight: 500;
-		color: rgba(56, 189, 248, 0.8);
+		color: color-mix(in srgb, var(--color-accent-primary) 82%, white 18%);
 	}
 	.auth-email {
 		max-width: 140px;

@@ -56,7 +56,7 @@
 			<li><strong>Extra Time (150 🪙)</strong> – Extra seconds for the 3-star threshold</li>
 			<li><strong>Extra Moves (50 🪙)</strong> – Extra moves for the 2-star threshold</li>
 		</ul>
-	</section>
+	</section> 
 
 	<section class="info-section">
 		<h2>🎨 Skins</h2>

@@ -3,18 +3,16 @@
 	import { onDestroy, onMount, tick } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getDailyMazeForDate, getDailyMazesForMonth, getDailyMazeSeed } from '$lib/core/daily';
-	import { createGameSession, getHint, calculateStars, getMoveThresholdsForOptimalPath } from '$lib/core/session';
+	import { createGameSession, getHint, getCompassPath, calculateStars, getMoveThresholdsForOptimalPath } from '$lib/core/session';
 	import type { GameSessionState } from '$lib/core/session';
 	import { canMove, applyMove } from '$lib/core/maze';
 	import type { Direction, DailyMazeLevel } from '$lib/core/types';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
-	import { getSkinById } from '$lib/core/skins';
-	import { mazeThemeStore } from '$lib/stores/mazeThemeStore.svelte';
 	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
 	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
+	import AchievementUnlockPopup from '$lib/components/AchievementUnlockPopup.svelte';
 
 	const today = new Date();
-	const skinImageUrl = $derived(getSkinById(gameStore.player.currentSkinId)?.imageUrl ?? 'player_image0');
 	let viewYear = $state(today.getFullYear());
 	let viewMonth = $state(today.getMonth());
 	let viewport = $state({ width: 0, height: 0 });
@@ -32,6 +30,11 @@
 	let visitedCells = $state(new Set<string>());
 	let playing = $state(false);
 	let moveTargets = $state({ twoStarMoves: 0, fiveStarMoves: 0 });
+	let hourglassFrozen = $state(false);
+	let hourglassTimer: ReturnType<typeof setTimeout> | undefined;
+	let compassTimer: ReturnType<typeof setTimeout> | undefined;
+	let newlyUnlocked = $state<string[]>([]);
+	let shownAchievementId = $derived(newlyUnlocked[0] ?? null);
 
 	const DAILY_PHRASES = [
 		"Shuffling today's challenge…",
@@ -109,10 +112,14 @@
 		if (isFuture(dateStr) || !unlocked) return;
 
 		clearInterval(timerInterval);
+		clearTimeout(hourglassTimer);
+		clearTimeout(compassTimer);
 		showIntro = false;
 		showOutro = false;
 		elapsed = 0;
 		coinsEarned = 0;
+		hourglassFrozen = false;
+		newlyUnlocked = [];
 		victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: false, total: 0 };
 
 		const d = new Date(dateStr);
@@ -143,7 +150,7 @@
 		showIntro = false;
 		clearInterval(timerInterval);
 		timerInterval = setInterval(() => {
-			if (session && !session.isComplete) elapsed += 0.01;
+			if (session && !session.isComplete && !hourglassFrozen) elapsed += 0.01;
 		}, 10);
 	}
 
@@ -172,6 +179,9 @@
 
 	function onComplete() {
 		clearInterval(timerInterval);
+		clearTimeout(hourglassTimer);
+		clearTimeout(compassTimer);
+		hourglassFrozen = false;
 		if (!session || !selectedDate || !selectedDaily) return;
 
 		const stars = calculateStars(
@@ -187,11 +197,17 @@
 
 		coinsEarned = 50 + stars.total * 25;
 		gameStore.addCoins(coinsEarned);
+		gameStore.addCrystalShards(stars.total);
 
 		// Track algorithm mastery for the deity system
 		if (selectedDaily.levelType) {
 			gameStore.recordAlgoMastery(selectedDaily.levelType);
 		}
+
+		gameStore.incrementMazesCompleted();
+
+		if (elapsed < 30) gameStore.markAchievementProgress('speed_runner', 1);
+		if (session.hintsUsed === 0) gameStore.markAchievementProgress('hint_free', 1);
 
 		const result: DailyMazeLevel = {
 			...selectedDaily,
@@ -201,22 +217,79 @@
 		};
 		gameStore.saveDailyResult(result);
 
+		const unlockedAchievements = gameStore.checkAchievements();
+		if (unlockedAchievements.length > 0) {
+			newlyUnlocked = [...unlockedAchievements];
+		}
+
 		showOutro = true;
 	}
 
 	function useHint() {
 		if (!session || !canAcceptInput) return;
 		if (gameStore.usePowerup('hint')) {
-			const hintPath = getHint(session);
-			session = { ...session, hintPath };
+			const nextSession = { ...session };
+			const hintPath = getHint(nextSession);
+			session = { ...nextSession, hintPath };
 		}
+	}
+
+	function useCompass() {
+		if (!session || !canAcceptInput) return;
+		if (gameStore.usePowerup('compass')) {
+			const nextSession = { ...session };
+			const hintPath = getCompassPath(nextSession);
+			session = { ...nextSession, hintPath };
+			clearTimeout(compassTimer);
+			compassTimer = setTimeout(() => {
+				if (!session) return;
+				session = { ...session, hintPath: null };
+			}, 3000);
+		}
+	}
+
+	function useHourglass() {
+		if (!session || !canAcceptInput || hourglassFrozen) return;
+		if (gameStore.usePowerup('hourglass')) {
+			hourglassFrozen = true;
+			clearTimeout(hourglassTimer);
+			hourglassTimer = setTimeout(() => {
+				hourglassFrozen = false;
+			}, 15000);
+		}
+	}
+
+	function useBlinkScroll() {
+		if (!session || !canAcceptInput) return;
+		if (gameStore.usePowerup('blinkScroll')) {
+			const candidates: Array<{ x: number; y: number }> = [];
+			for (let y = 0; y < session.maze.height; y++) {
+				for (let x = 0; x < session.maze.width; x++) {
+					if (x !== session.playerPos.x || y !== session.playerPos.y) {
+						candidates.push({ x, y });
+					}
+				}
+			}
+			const destination = candidates[Math.floor(Math.random() * candidates.length)];
+			if (!destination) return;
+			visitedCells = new Set([...visitedCells, `${destination.x},${destination.y}`]);
+			session = { ...session, playerPos: destination, hintPath: null };
+		}
+	}
+
+	function useDoubleCoins() {
+		if (!session || !canAcceptInput) return;
+		gameStore.usePowerup('doubleCoinsToken');
 	}
 
 	function backToCalendar() {
 		clearInterval(timerInterval);
+		clearTimeout(hourglassTimer);
+		clearTimeout(compassTimer);
 		showIntro = false;
 		showOutro = false;
 		playing = false;
+		hourglassFrozen = false;
 		session = null;
 	}
 
@@ -250,7 +323,11 @@
 		return new Date(viewYear, viewMonth, 1).getDay();
 	}
 
-	onDestroy(() => clearInterval(timerInterval));
+	onDestroy(() => {
+		clearInterval(timerInterval);
+		clearTimeout(hourglassTimer);
+		clearTimeout(compassTimer);
+	});
 	onMount(() => {
 		updateViewport();
 	});
@@ -382,8 +459,18 @@
 			<button class="hud-back" onclick={backToCalendar}>← Calendar</button>
 			<span class="hud-label">📅 {selectedDateLabel}</span>
 			<div class="hud-stats">
-				<span class="hud-stat">⏱️ {elapsed.toFixed(1)}s</span>
-				<span class="hud-stat">👣 {session.moves} / {moveTargets.twoStarMoves}</span>
+				<div class="hud-stat">
+					<span>⏱️ {elapsed.toFixed(1)}s</span>
+					{#if hourglassFrozen}
+						<span class="frozen-badge">FROZEN</span>
+					{:else}
+						<span class="hud-stat-target">/ {selectedDaily?.timeNeeded ?? 0}s</span>
+					{/if}
+				</div>
+				<div class="hud-stat">
+					<span>👣 {session.moves}</span>
+					<span class="hud-stat-target">/ {moveTargets.twoStarMoves}</span>
+				</div>
 			</div>
 		</div>
 
@@ -395,15 +482,32 @@
 				hintPath={session.hintPath}
 				showVisited={true}
 				{visitedCells}
-				{skinImageUrl}
-				visualTheme={mazeThemeStore.theme}
 			/>
 		</div>
 
 		<div class="controls-bar">
-			<button class="powerup-btn" onclick={useHint} disabled={gameStore.player.hintsOwned <= 0}>
-				💡 Hint ({gameStore.player.hintsOwned})
-			</button>
+			<div class="powerups">
+				<button class="powerup-btn" onclick={useHint} disabled={gameStore.player.hintsOwned <= 0}>
+					💡 Hint
+					<span class="powerup-count">({gameStore.player.hintsOwned})</span>
+				</button>
+				<button class="powerup-btn" onclick={useCompass} disabled={(gameStore.player.compassOwned ?? 0) <= 0}>
+					🧭 Compass
+					<span class="powerup-count">({gameStore.player.compassOwned ?? 0})</span>
+				</button>
+				<button class="powerup-btn" onclick={useHourglass} disabled={(gameStore.player.hourglassOwned ?? 0) <= 0 || hourglassFrozen}>
+					⏳ Hourglass
+					<span class="powerup-count">({gameStore.player.hourglassOwned ?? 0})</span>
+				</button>
+				<button class="powerup-btn" onclick={useBlinkScroll} disabled={(gameStore.player.blinkScrollsOwned ?? 0) <= 0}>
+					✨ Blink
+					<span class="powerup-count">({gameStore.player.blinkScrollsOwned ?? 0})</span>
+				</button>
+				<button class="powerup-btn" onclick={useDoubleCoins} disabled={(gameStore.player.doubleCoinsTokensOwned ?? 0) <= 0 || gameStore.player.doubleCoinsActive}>
+					🪙 2× Coins
+					<span class="powerup-count">({gameStore.player.doubleCoinsTokensOwned ?? 0})</span>
+				</button>
+			</div>
 			<div class="dpad" role="group" aria-label="Movement controls">
 				<button class="dpad-btn" onclick={() => handleMove('up')} disabled={!canAcceptInput}>▲</button>
 				<div class="dpad-middle">
@@ -445,6 +549,15 @@
 			{ label: 'Retry', onclick: () => { showOutro = false; if (selectedDate) startDailyMaze(selectedDate); } },
 			{ label: '← Calendar', primary: true, onclick: () => { showOutro = false; backToCalendar(); } }
 		]}
+	/>
+{/if}
+
+{#if shownAchievementId}
+	<AchievementUnlockPopup
+		achievementId={shownAchievementId}
+		ondismiss={() => {
+			newlyUnlocked = newlyUnlocked.slice(1);
+		}}
 	/>
 {/if}
 
@@ -805,7 +918,26 @@
 	}
 
 	.hud-stat {
+		display: flex;
+		align-items: baseline;
+		gap: var(--space-1);
 		font-family: var(--font-mono);
+	}
+
+	.hud-stat-target {
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+	}
+
+	.frozen-badge {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		color: #38bdf8;
+		background: rgba(56, 189, 248, 0.12);
+		border: 1px solid rgba(56, 189, 248, 0.4);
+		border-radius: var(--radius-full);
+		padding: 1px 6px;
 	}
 
 	.maze-area {
@@ -826,7 +958,17 @@
 		flex-shrink: 0;
 	}
 
+	.powerups {
+		display: flex;
+		gap: var(--space-2);
+		flex-wrap: wrap;
+		max-width: 260px;
+	}
+
 	.powerup-btn {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
 		background: var(--color-bg-card);
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-md);
@@ -837,6 +979,11 @@
 	}
 
 	.powerup-btn:disabled { opacity: 0.4; cursor: default; }
+
+	.powerup-count {
+		color: var(--color-text-muted);
+		font-size: var(--text-xs);
+	}
 
 	.dpad { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 	.dpad-middle { display: flex; gap: 2px; }

@@ -6,6 +6,7 @@
 
 import { browser } from '$app/environment';
 import type { PlayerData, CampaignLevel, DailyMazeLevel } from '$lib/core/types';
+import { ACHIEVEMENT_CATALOG } from '$lib/core/achievements';
 import { SKIN_CATALOG } from '$lib/core/skins';
 import { getDailyMazeForDate } from '$lib/core/daily';
 import { getAllWorlds, getLevelByNumber, type WorldDefinition } from '$lib/core/levels';
@@ -114,6 +115,25 @@ function defaultPlayerData(): PlayerData {
 		algoMasteryCount: {},
 		// Lifetime
 		coinsEarnedLifetime: 0,
+		// Achievements
+		achievements: {},
+		// Crafting
+		crystalShards: 0,
+		// Total mazes completed
+		mazesCompleted: 0,
+	};
+}
+
+function normalizePlayerData(value: Partial<PlayerData> | null | undefined): PlayerData {
+	const defaults = defaultPlayerData();
+	if (!value) return defaults;
+
+	return {
+		...defaults,
+		...value,
+		unlockedSkinIds: Array.from(new Set([0, ...(value.unlockedSkinIds ?? defaults.unlockedSkinIds)])).sort((a, b) => a - b),
+		algoMasteryCount: value.algoMasteryCount ?? defaults.algoMasteryCount,
+		achievements: value.achievements ?? defaults.achievements
 	};
 }
 
@@ -208,35 +228,29 @@ function getLevelTemplate(worldId: number, levelNumber: string): CampaignLevel |
 	return getLevelByNumber(world, levelNumber);
 }
 
-function mapProfileRowToPlayerData(profile: ProfileRow | null, ownedSkins: OwnedSkinRow[]): PlayerData | undefined {
+function mapProfileRowToPlayerData(
+	profile: ProfileRow | null,
+	ownedSkins: OwnedSkinRow[],
+	currentPlayer?: PlayerData
+): PlayerData | undefined {
 	if (!profile) return undefined;
 
+	const fallback = normalizePlayerData(currentPlayer);
+
 	return {
+		...fallback,
 		playerId: profile.id,
 		playerName: profile.player_name,
 		coinCount: profile.coin_count,
-		gemCount: 0,
 		hintsOwned: profile.hints_owned,
 		extraTimesOwned: profile.extra_times_owned,
 		extraMovesOwned: profile.extra_moves_owned,
-		compassOwned: 0,
-		hourglassOwned: 0,
-		blinkScrollsOwned: 0,
-		streakShieldsOwned: 0,
-		doubleCoinsTokensOwned: 0,
-		doubleCoinsActive: false,
-		currentWorldIndex: 0,
 		currentSkinId: profile.current_skin_id,
-		unlockedSkinIds: Array.from(new Set([0, ...ownedSkins.map((row) => row.skin_id)])),
+		unlockedSkinIds: Array.from(new Set([0, ...fallback.unlockedSkinIds, ...ownedSkins.map((row) => row.skin_id)])).sort((a, b) => a - b),
 		wallColor: profile.wall_color,
 		monthPrize1Achieved: profile.month_prize1_achieved,
 		monthPrize2Achieved: profile.month_prize2_achieved,
-		mostRecentMonth: profile.most_recent_month,
-		currentStreak: 0,
-		bestStreak: 0,
-		lastDailyDate: '',
-		algoMasteryCount: {},
-		coinsEarnedLifetime: 0,
+		mostRecentMonth: profile.most_recent_month
 	};
 }
 
@@ -293,7 +307,7 @@ function createGameStore() {
 
 	function init() {
 		if (initialized) return;
-		player = loadFromStorage(STORAGE_KEY, defaultPlayerData());
+		player = normalizePlayerData(loadFromStorage<Partial<PlayerData>>(STORAGE_KEY, defaultPlayerData()));
 		levelProgress = loadFromStorage(LEVEL_STORAGE_KEY, {});
 		dailyResults = loadFromStorage(DAILY_STORAGE_KEY, {});
 		syncMetadata = normalizeSyncMetadata(loadFromStorage<SyncMetadata | null>(SYNC_METADATA_STORAGE_KEY, null), player, levelProgress, dailyResults);
@@ -389,9 +403,9 @@ function createGameStore() {
 			}
 
 			const remoteProfileTimestamp = timestampFromIso(profileResult.data?.updated_at);
-			const remotePlayer = mapProfileRowToPlayerData(profileResult.data ?? null, skinResult.data ?? []);
+			const remotePlayer = mapProfileRowToPlayerData(profileResult.data ?? null, skinResult.data ?? [], player);
 			if (remotePlayer && remoteProfileTimestamp > syncMetadata.playerUpdatedAt) {
-				player = { ...remotePlayer };
+				player = normalizePlayerData(remotePlayer);
 				syncMetadata.playerUpdatedAt = remoteProfileTimestamp;
 			} else {
 				player = { ...player, playerId: cloudUserId };
@@ -834,6 +848,169 @@ function createGameStore() {
 		return w1l10?.star1 === true;
 	}
 
+	// --- Crystal shards ---
+
+	function addCrystalShards(n: number) {
+		player.crystalShards = (player.crystalShards ?? 0) + n;
+		touchPlayer();
+		save();
+	}
+
+	function spendCrystalShards(n: number): boolean {
+		if ((player.crystalShards ?? 0) < n) return false;
+		player.crystalShards -= n;
+		touchPlayer();
+		save();
+		return true;
+	}
+
+	function incrementMazesCompleted() {
+		player.mazesCompleted = (player.mazesCompleted ?? 0) + 1;
+		touchPlayer();
+		save();
+	}
+
+	// --- Achievements ---
+
+	/**
+	 * Evaluate all achievements against current player state.
+	 * Unlocks any newly met criteria, awards rewards, and returns IDs of
+	 * achievements that were unlocked this call.
+	 */
+	function checkAchievements(): string[] {
+		if (!player.achievements) player.achievements = {};
+		const newlyUnlocked: string[] = [];
+		const today = new Date();
+		const dateStr = today.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+
+		for (const def of ACHIEVEMENT_CATALOG) {
+			const entry = player.achievements[def.id] ?? { progress: 0, unlocked: false };
+			if (entry.unlocked) continue;
+
+			// Compute current progress
+			let currentProgress = 0;
+			switch (def.id) {
+				case 'first_daily': {
+					const completedDailies = Object.values(dailyResults).filter(d => d.status === 'completed' || d.status === 'completed_late');
+					currentProgress = completedDailies.length > 0 ? 1 : 0;
+					break;
+				}
+				case 'daily_devotion': {
+					currentProgress = Object.values(dailyResults).filter(d => d.status === 'completed' || d.status === 'completed_late').length;
+					break;
+				}
+				case 'streak_7':
+					currentProgress = player.bestStreak ?? 0;
+					break;
+				case 'speed_runner':
+					// Unlocked externally via flagging in play pages; check stored progress
+					currentProgress = entry.progress;
+					break;
+				case 'hint_free':
+					currentProgress = entry.progress;
+					break;
+				case 'three_star_three': {
+					const threeStarLevels = Object.values(levelProgress).filter(l => l.numberOfStars >= 3);
+					currentProgress = Math.min(threeStarLevels.length, def.target);
+					break;
+				}
+				case 'century_explorer':
+					currentProgress = player.mazesCompleted ?? 0;
+					break;
+				case 'world1_clear': {
+					const w1 = worlds.find(w => w.worldId === 1);
+					const w1Cleared = w1 ? w1.levels.filter(l => !l.levelNumber.includes('b')).every(l => getLevelProgress(1, l.levelNumber)?.completed) : false;
+					currentProgress = w1Cleared ? 1 : 0;
+					break;
+				}
+				case 'world2_clear': {
+					const w2 = worlds.find(w => w.worldId === 2);
+					const w2Cleared = w2 && w2.levels.length > 0 ? w2.levels.filter(l => !l.levelNumber.includes('b')).every(l => getLevelProgress(2, l.levelNumber)?.completed) : false;
+					currentProgress = w2Cleared ? 1 : 0;
+					break;
+				}
+				case 'world3_clear': {
+					const w3 = worlds.find(w => w.worldId === 3);
+					const w3Cleared = w3 && w3.levels.length > 0 ? w3.levels.filter(l => !l.levelNumber.includes('b')).every(l => getLevelProgress(3, l.levelNumber)?.completed) : false;
+					currentProgress = w3Cleared ? 1 : 0;
+					break;
+				}
+				case 'deity_student': {
+					const maxMastery = Math.max(0, ...Object.values(player.algoMasteryCount ?? {}));
+					currentProgress = Math.min(maxMastery, def.target);
+					break;
+				}
+				case 'deity_disciple': {
+					const maxMastery = Math.max(0, ...Object.values(player.algoMasteryCount ?? {}));
+					currentProgress = Math.min(maxMastery, def.target);
+					break;
+				}
+				case 'deity_champion': {
+					const maxMastery = Math.max(0, ...Object.values(player.algoMasteryCount ?? {}));
+					currentProgress = Math.min(maxMastery, def.target);
+					break;
+				}
+				case 'coin_hoarder':
+					currentProgress = player.coinsEarnedLifetime ?? 0;
+					break;
+				case 'full_satchel': {
+					const allOwned =
+						(player.hintsOwned > 0) &&
+						(player.extraTimesOwned > 0) &&
+						(player.extraMovesOwned > 0) &&
+						((player.compassOwned ?? 0) > 0) &&
+						((player.hourglassOwned ?? 0) > 0) &&
+						((player.blinkScrollsOwned ?? 0) > 0) &&
+						((player.streakShieldsOwned ?? 0) > 0) &&
+						((player.doubleCoinsTokensOwned ?? 0) > 0);
+					currentProgress = allOwned ? 1 : 0;
+					break;
+				}
+				default:
+					currentProgress = entry.progress;
+			}
+
+			entry.progress = currentProgress;
+
+			if (currentProgress >= def.target) {
+				entry.unlocked = true;
+				entry.dateUnlocked = dateStr;
+				// Award reward
+				if (def.rewardType === 'coins') player.coinCount += def.rewardAmount;
+				else if (def.rewardType === 'gems') player.gemCount = (player.gemCount ?? 0) + def.rewardAmount;
+				else if (def.rewardType === 'shards') player.crystalShards = (player.crystalShards ?? 0) + def.rewardAmount;
+				else if (def.rewardType === 'powerup' && def.rewardPowerup) addPowerup(def.rewardPowerup as import('$lib/core/types').PowerupName);
+				newlyUnlocked.push(def.id);
+			}
+
+			player.achievements[def.id] = entry;
+		}
+
+		if (newlyUnlocked.length > 0) {
+			touchPlayer();
+			save();
+		} else {
+			// Still persist progress updates quietly
+			save();
+		}
+
+		return newlyUnlocked;
+	}
+
+	/**
+	 * Manually advance progress for achievements that can't be auto-computed
+	 * (speed_runner, hint_free). Returns true if the value changed.
+	 */
+	function markAchievementProgress(id: string, progress: number) {
+		if (!player.achievements) player.achievements = {};
+		const entry = player.achievements[id] ?? { progress: 0, unlocked: false };
+		if (entry.unlocked) return;
+		entry.progress = Math.max(entry.progress, progress);
+		player.achievements[id] = entry;
+		touchPlayer();
+		save();
+	}
+
 	function getCloudSyncStatusLabel(): string {
 		if (cloudSyncStatus === 'offline') return cloudUserId ? 'Offline' : 'Local only';
 		if (cloudSyncStatus === 'syncing') return 'Syncing...';
@@ -882,6 +1059,11 @@ function createGameStore() {
 		addKey,
 		isMapItemCollected,
 		collectMapItem,
-		getHighestAreaUnlocked
+		getHighestAreaUnlocked,
+		addCrystalShards,
+		spendCrystalShards,
+		incrementMazesCompleted,
+		checkAchievements,
+		markAchievementProgress
 	};
 }

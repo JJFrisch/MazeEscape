@@ -149,6 +149,12 @@ export interface PlayerData {
 	algoMasteryCount: Partial<Record<MazeAlgorithm, number>>;
 	// Lifetime stats
 	coinsEarnedLifetime: number;
+	// Achievements
+	achievements: Record<string, { progress: number; unlocked: boolean; dateUnlocked?: string }>;
+	// Crafting
+	crystalShards: number;
+	// Total mazes completed (campaign + daily)
+	mazesCompleted: number;
 }
 
 export type MazeAlgorithm =

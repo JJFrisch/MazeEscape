@@ -5,11 +5,13 @@
 -->
 <script lang="ts">
 	import type { MazeCell, MazeData, Position } from '$lib/core/types';
+	import type { MazeVisualTheme } from '$lib/core/mazeVisualThemes';
 
 	let {
 		maze,
 		playerPos,
 		wallColor = '#38bdf8',
+		visualTheme = 'neon',
 		hintPath = null,
 		skinEmoji = '🟣',
 		showVisited = false,
@@ -18,6 +20,7 @@
 		maze: MazeData;
 		playerPos: Position;
 		wallColor?: string;
+		visualTheme?: MazeVisualTheme;
 		hintPath?: Position[] | null;
 		skinEmoji?: string;
 		showVisited?: boolean;
@@ -34,6 +37,33 @@
 	const strokeColor = $derived(
 		!wallColor || wallColor === '#000000' ? FALLBACK_WALL_COLOR : wallColor
 	);
+	const themePalette = $derived.by(() => {
+		if (visualTheme === 'classic') {
+			return {
+				surface: '#f8fafc',
+				grid: 'rgba(15,23,42,0.035)',
+				hint: 'rgba(251,191,36,0.72)',
+				visited: 'rgba(59,130,246,0.10)',
+				halo: 'rgba(99,102,241,0.16)'
+			};
+		}
+		if (visualTheme === 'dotmatrix') {
+			return {
+				surface: '#04070d',
+				grid: 'rgba(148,163,184,0.035)',
+				hint: 'rgba(74,222,128,0.65)',
+				visited: 'rgba(148,163,184,0.07)',
+				halo: 'rgba(34,197,94,0.12)'
+			};
+		}
+		return {
+			surface: '#080e1e',
+			grid: 'rgba(255,255,255,0.015)',
+			hint: 'rgba(251,191,36,0.55)',
+			visited: 'rgba(139,92,246,0.06)',
+			halo: 'rgba(139,92,246,0.18)'
+		};
+	});
 
 	const viewBoxWidth = $derived(maze.width * CELL_SIZE + PADDING * 2);
 	const viewBoxHeight = $derived(maze.height * CELL_SIZE + PADDING * 2);
@@ -124,7 +154,7 @@
 		</defs>
 
 		<!-- Background -->
-		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill="#080e1e" />
+		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill={themePalette.surface} />
 
 		<!-- Subtle grid lines -->
 		{#each maze.cells as row}
@@ -134,7 +164,7 @@
 					y={ct(cell.y) + 0.5}
 					width={CELL_SIZE - 1}
 					height={CELL_SIZE - 1}
-					fill="rgba(255,255,255,0.015)"
+					fill={themePalette.grid}
 				/>
 			{/each}
 		{/each}
@@ -152,7 +182,7 @@
 					<rect {...r} fill="rgba(52,211,153,0.15)" stroke="rgba(52,211,153,0.35)" stroke-width="1" class="exit-cell" />
 				{:else if showVisited && visitedCells.has(`${cell.x},${cell.y}`)}
 					{@const r = innerRect(cell.x, cell.y)}
-					<rect {...r} fill="rgba(139,92,246,0.06)" />
+					<rect {...r} fill={themePalette.visited} />
 				{/if}
 			{/each}
 		{/each}
@@ -178,7 +208,7 @@
 			<polyline
 				points={hintPathPoints}
 				fill="none"
-				stroke="rgba(251,191,36,0.55)"
+				stroke={themePalette.hint}
 				stroke-width={CELL_SIZE * 0.14}
 				stroke-linecap="round"
 				stroke-linejoin="round"
@@ -211,7 +241,7 @@
 			cx={cx(playerPos.x)}
 			cy={cy(playerPos.y)}
 			r={CELL_SIZE * 0.42}
-			fill="rgba(139,92,246,0.18)"
+			fill={themePalette.halo}
 			filter="url(#mglow-player)"
 		/>
 		<!-- Player body -->
@@ -241,7 +271,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: #080e1e;
+		background: var(--maze-surface, #080e1e);
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 	}

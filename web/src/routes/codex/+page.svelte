@@ -3,10 +3,12 @@
 	import { DEITY_CATALOG } from '$lib/core/deities';
 	import { POWERUP_COSTS } from '$lib/core/types';
 	import type { PowerupName } from '$lib/core/types';
+	import { ACHIEVEMENT_CATALOG, type AchievementCategory, type AchievementDef } from '$lib/core/achievements';
 
 	// ── Tab state ──────────────────────────────────────────────
-	type Tab = 'satchel' | 'bestiary';
+	type Tab = 'satchel' | 'forge' | 'chronicles' | 'trophies' | 'bestiary';
 	let activeTab = $state<Tab>('satchel');
+	let forgeMessage = $state('');
 
 	// ── Satchel helpers ────────────────────────────────────────
 	function getOwned(name: PowerupName): number {
@@ -45,6 +47,152 @@
 
 	const MASTERY_TIER_LABELS = ['Uninitiated', 'Student', 'Disciple', 'Champion'];
 	const MASTERY_TIER_COLORS = ['#475569', '#34d399', '#38bdf8', '#a78bfa'];
+	const ACHIEVEMENT_CATEGORY_ORDER: AchievementCategory[] = ['Daily', 'Exploration', 'Mastery', 'Collection', 'Prestige'];
+	const TROPHY_ACHIEVEMENT_IDS = ['world1_clear', 'world2_clear', 'world3_clear', 'century_explorer'] as const;
+
+	type ForgeRecipe = {
+		id: string;
+		name: string;
+		description: string;
+		shardCost: number;
+		ingredients: Array<{ name: PowerupName; amount: number }>;
+		rewards: Array<{ name: PowerupName; amount: number }>;
+		rarity: 'common' | 'uncommon' | 'rare';
+	};
+
+	const FORGE_RECIPES: ForgeRecipe[] = [
+		{
+			id: 'trailfinder-compass',
+			name: 'Trailfinder Compass',
+			description: 'Bind three common insights into a compass that reveals the next stretch of the way.',
+			shardCost: 5,
+			ingredients: [
+				{ name: 'hint', amount: 2 },
+				{ name: 'extraMoves', amount: 1 }
+			],
+			rewards: [{ name: 'compass', amount: 1 }],
+			rarity: 'common'
+		},
+		{
+			id: 'tempered-hourglass',
+			name: 'Tempered Hourglass',
+			description: 'Fuse extra time and a steady stride into a brief pause in the clock.',
+			shardCost: 8,
+			ingredients: [
+				{ name: 'extraTime', amount: 2 },
+				{ name: 'extraMoves', amount: 1 }
+			],
+			rewards: [{ name: 'hourglass', amount: 1 }],
+			rarity: 'uncommon'
+		},
+		{
+			id: 'blink-transcript',
+			name: 'Blink Transcript',
+			description: 'Distill a compass and an hourglass into a rare scroll of relocation.',
+			shardCost: 10,
+			ingredients: [
+				{ name: 'compass', amount: 1 },
+				{ name: 'hourglass', amount: 1 }
+			],
+			rewards: [{ name: 'blinkScroll', amount: 1 }],
+			rarity: 'rare'
+		},
+		{
+			id: 'merchant-sigil',
+			name: 'Merchant Sigil',
+			description: 'A bright token etched for prosperous runs ahead.',
+			shardCost: 12,
+			ingredients: [
+				{ name: 'hint', amount: 2 },
+				{ name: 'compass', amount: 1 }
+			],
+			rewards: [{ name: 'doubleCoinsToken', amount: 1 }],
+			rarity: 'uncommon'
+		},
+		{
+			id: 'warden-aegis',
+			name: 'Warden Aegis',
+			description: 'Set spare momentum into a shield that guards a fragile streak.',
+			shardCost: 10,
+			ingredients: [
+				{ name: 'extraMoves', amount: 2 },
+				{ name: 'extraTime', amount: 1 }
+			],
+			rewards: [{ name: 'streakShield', amount: 1 }],
+			rarity: 'rare'
+		}
+	];
+
+	function getAchievementEntry(id: string) {
+		return gameStore.player.achievements?.[id] ?? { progress: 0, unlocked: false };
+	}
+
+	function getAchievementProgress(def: AchievementDef): number {
+		return Math.min(getAchievementEntry(def.id).progress ?? 0, def.target);
+	}
+
+	function isAchievementUnlocked(def: AchievementDef): boolean {
+		return getAchievementEntry(def.id).unlocked ?? false;
+	}
+
+	function getAchievementDate(def: AchievementDef): string {
+		return getAchievementEntry(def.id).dateUnlocked ?? '';
+	}
+
+	function getAchievementRewardLabel(def: AchievementDef): string {
+		if (def.rewardType === 'powerup') {
+			const rewardDef = POWERUP_COSTS.find((powerup) => powerup.name === def.rewardPowerup);
+			return `${def.rewardAmount}x ${rewardDef?.displayName ?? 'Powerup'}`;
+		}
+		if (def.rewardType === 'coins') return `${def.rewardAmount.toLocaleString()} coins`;
+		if (def.rewardType === 'gems') return `${def.rewardAmount} gem${def.rewardAmount === 1 ? '' : 's'}`;
+		if (def.rewardType === 'shards') return `${def.rewardAmount} shard${def.rewardAmount === 1 ? '' : 's'}`;
+		return 'Trophy etched in the wall';
+	}
+
+	function canCraft(recipe: ForgeRecipe): boolean {
+		if ((gameStore.player.crystalShards ?? 0) < recipe.shardCost) return false;
+		return recipe.ingredients.every((ingredient) => getOwned(ingredient.name) >= ingredient.amount);
+	}
+
+	function craftRecipe(recipe: ForgeRecipe) {
+		if (!canCraft(recipe)) {
+			forgeMessage = 'You are missing shards or ingredients for that recipe.';
+			return;
+		}
+
+		if (!gameStore.spendCrystalShards(recipe.shardCost)) {
+			forgeMessage = 'The forge sputtered. Your shard bank did not cover the cost.';
+			return;
+		}
+
+		for (const ingredient of recipe.ingredients) {
+			for (let count = 0; count < ingredient.amount; count += 1) {
+				gameStore.usePowerup(ingredient.name);
+			}
+		}
+
+		for (const reward of recipe.rewards) {
+			for (let count = 0; count < reward.amount; count += 1) {
+				gameStore.addPowerup(reward.name);
+			}
+		}
+
+		forgeMessage = `${recipe.name} completed. The forge yielded ${recipe.rewards.map((reward) => `${reward.amount}x ${POWERUP_COSTS.find((powerup) => powerup.name === reward.name)?.displayName ?? reward.name}`).join(', ')}.`;
+	}
+
+	function getUnlockedAchievementCount(): number {
+		return ACHIEVEMENT_CATALOG.filter((achievement) => isAchievementUnlocked(achievement)).length;
+	}
+
+	function getUnlockedTrophyCount(): number {
+		const worldHonors = TROPHY_ACHIEVEMENT_IDS.filter((id) => getAchievementEntry(id).unlocked).length;
+		const masteryHonors = DEITY_CATALOG.reduce((total, deity) => {
+			const mastery = getMastery(deity.algorithm);
+			return total + (mastery >= 10 ? 1 : 0) + (mastery >= 20 ? 1 : 0) + (mastery >= 30 ? 1 : 0);
+		}, 0);
+		return worldHonors + masteryHonors;
+	}
 
 	// Track expanded bestiary cards
 	let expandedDeity = $state<string | null>(null);
@@ -63,7 +211,7 @@
 				Adventurer's Tome
 			</div>
 			<h1 class="page-title">Codex</h1>
-			<p class="page-sub">Your satchel, your bestiary, your chronicles.</p>
+			<p class="page-sub">Your satchel, forge, trophies, chronicles, and bestiary.</p>
 		</div>
 
 		<!-- Currency chips -->
@@ -72,6 +220,7 @@
 				<img src="/images/coin.png" alt="" class="chip-coin" aria-hidden="true" />
 				<span>{gameStore.player.coinCount.toLocaleString()}</span>
 			</div>
+			<div class="chip shard-chip">✦ {gameStore.player.crystalShards ?? 0}</div>
 			{#if (gameStore.player.gemCount ?? 0) > 0}
 				<div class="chip gem-chip">💎 {gameStore.player.gemCount}</div>
 			{/if}
@@ -89,6 +238,36 @@
 		>
 			<span class="tab-icon">🎒</span>
 			Satchel
+		</button>
+		<button
+			class="tab-btn"
+			class:active={activeTab === 'forge'}
+			role="tab"
+			aria-selected={activeTab === 'forge'}
+			onclick={() => activeTab = 'forge'}
+		>
+			<span class="tab-icon">🔥</span>
+			Forge
+		</button>
+		<button
+			class="tab-btn"
+			class:active={activeTab === 'chronicles'}
+			role="tab"
+			aria-selected={activeTab === 'chronicles'}
+			onclick={() => activeTab = 'chronicles'}
+		>
+			<span class="tab-icon">🏅</span>
+			Chronicles
+		</button>
+		<button
+			class="tab-btn"
+			class:active={activeTab === 'trophies'}
+			role="tab"
+			aria-selected={activeTab === 'trophies'}
+			onclick={() => activeTab = 'trophies'}
+		>
+			<span class="tab-icon">🏆</span>
+			Trophies
 		</button>
 		<button
 			class="tab-btn"
@@ -152,6 +331,215 @@
 					</div>
 				</div>
 			{/each}
+		</div>
+
+	<!-- ── FORGE TAB ─────────────────────────────────────────── -->
+	{:else if activeTab === 'forge'}
+		<div class="tab-content forge-layout" role="tabpanel">
+			<div class="forge-bank">
+				<div class="forge-bank-header">
+					<span class="forge-kicker">Crystal Shard Bank</span>
+					<h2>Fuel for upgraded relics</h2>
+					<p>Every star won in the maze leaves residue in the forge. Spend shards to transmute common tools into rarer ones.</p>
+				</div>
+
+				<div class="shard-vault">
+					<div class="shard-orb" aria-hidden="true">✦</div>
+					<div>
+						<span class="shard-count-label">Stored shards</span>
+						<strong class="shard-count">{gameStore.player.crystalShards ?? 0}</strong>
+					</div>
+				</div>
+
+				<div class="recipe-progress-list">
+					{#each FORGE_RECIPES as recipe}
+						<div class="recipe-progress-row">
+							<div class="recipe-progress-head">
+								<span>{recipe.name}</span>
+								<span>{Math.min(gameStore.player.crystalShards ?? 0, recipe.shardCost)} / {recipe.shardCost}</span>
+							</div>
+							<div class="recipe-progress-track">
+								<div class="recipe-progress-fill" style="width:{Math.min(((gameStore.player.crystalShards ?? 0) / recipe.shardCost) * 100, 100)}%;"></div>
+							</div>
+						</div>
+					{/each}
+				</div>
+
+				{#if forgeMessage}
+					<div class="forge-message">{forgeMessage}</div>
+				{/if}
+			</div>
+
+			<div class="forge-recipes">
+				{#each FORGE_RECIPES as recipe}
+					<div class="forge-card" style="--recipe-color:{RARITY_COLORS[recipe.rarity]};">
+						<div class="forge-card-top">
+							<div>
+								<span class="forge-rarity">{recipe.rarity}</span>
+								<h3>{recipe.name}</h3>
+							</div>
+							<span class="forge-shard-cost">✦ {recipe.shardCost}</span>
+						</div>
+
+						<p class="forge-copy">{recipe.description}</p>
+
+						<div class="forge-meta-block">
+							<span class="forge-meta-title">Ingredients</span>
+							<div class="forge-chip-list">
+								{#each recipe.ingredients as ingredient}
+									{@const def = POWERUP_COSTS.find((powerup) => powerup.name === ingredient.name)!}
+									<div class="forge-chip" class:met={getOwned(ingredient.name) >= ingredient.amount}>
+										<span>{def.icon}</span>
+										<span>{ingredient.amount}x {def.displayName}</span>
+										<small>{getOwned(ingredient.name)} owned</small>
+									</div>
+								{/each}
+							</div>
+						</div>
+
+						<div class="forge-meta-block">
+							<span class="forge-meta-title">Result</span>
+							<div class="forge-chip-list reward-list">
+								{#each recipe.rewards as reward}
+									{@const rewardDef = POWERUP_COSTS.find((powerup) => powerup.name === reward.name)!}
+									<div class="forge-chip reward-chip met">
+										<span>{rewardDef.icon}</span>
+										<span>{reward.amount}x {rewardDef.displayName}</span>
+									</div>
+								{/each}
+							</div>
+						</div>
+
+						<button class="forge-btn" onclick={() => craftRecipe(recipe)} disabled={!canCraft(recipe)}>
+							{canCraft(recipe) ? 'Craft' : 'Need more materials'}
+						</button>
+					</div>
+				{/each}
+			</div>
+		</div>
+
+	<!-- ── CHRONICLES TAB ────────────────────────────────────── -->
+	{:else if activeTab === 'chronicles'}
+		<div class="tab-content" role="tabpanel">
+			<div class="chronicles-hero">
+				<div>
+					<span class="forge-kicker">Guild Commendations</span>
+					<h2>Progress etched into the record</h2>
+					<p>Every daily oath, world clear, and deity milestone is recorded here with its current standing.</p>
+				</div>
+				<div class="chronicles-summary">
+					<strong>{getUnlockedAchievementCount()} / {ACHIEVEMENT_CATALOG.length}</strong>
+					<span>commendations unlocked</span>
+				</div>
+			</div>
+
+			<div class="chronicles-track">
+				<div class="chronicles-track-fill" style="width:{(getUnlockedAchievementCount() / ACHIEVEMENT_CATALOG.length) * 100}%;"></div>
+			</div>
+
+			{#each ACHIEVEMENT_CATEGORY_ORDER as category}
+				<div class="chronicle-group">
+					<h2 class="group-title">{category}</h2>
+					<div class="achievement-grid">
+						{#each ACHIEVEMENT_CATALOG.filter((achievement) => achievement.category === category) as achievement}
+							{@const progress = getAchievementProgress(achievement)}
+							{@const unlockedState = isAchievementUnlocked(achievement)}
+							<div class="achievement-card" class:locked={!unlockedState}>
+								<div class="achievement-head">
+									<div class="achievement-icon">{achievement.icon}</div>
+									<div>
+										<h3>{achievement.name}</h3>
+										<p>{achievement.description}</p>
+									</div>
+								</div>
+
+								<div class="achievement-progress-row">
+									<span>{progress} / {achievement.target}</span>
+									<span>{unlockedState ? 'Unlocked' : 'In Progress'}</span>
+								</div>
+								<div class="achievement-progress-track">
+									<div class="achievement-progress-fill" style="width:{(progress / achievement.target) * 100}%;"></div>
+								</div>
+
+								<div class="achievement-footer">
+									<span class="achievement-reward">Reward: {getAchievementRewardLabel(achievement)}</span>
+									{#if unlockedState}
+										<span class="achievement-date">{getAchievementDate(achievement)}</span>
+									{/if}
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+			{/each}
+		</div>
+
+	<!-- ── TROPHIES TAB ──────────────────────────────────────── -->
+	{:else if activeTab === 'trophies'}
+		<div class="tab-content" role="tabpanel">
+			<div class="trophies-hero">
+				<div>
+					<span class="forge-kicker">Reward Wall</span>
+					<h2>Earned prestige and mastery relics</h2>
+					<p>Major clears live here, along with each deity's reward ladder, including mastery skin unlocks at Champion rank.</p>
+				</div>
+				<div class="chronicles-summary">
+					<strong>{getUnlockedTrophyCount()} / {TROPHY_ACHIEVEMENT_IDS.length + DEITY_CATALOG.length * 3}</strong>
+					<span>rewards visible</span>
+				</div>
+			</div>
+
+			<div class="trophy-section">
+				<h2 class="group-title">World Honors</h2>
+				<div class="trophy-grid">
+					{#each TROPHY_ACHIEVEMENT_IDS as trophyId}
+						{@const achievement = ACHIEVEMENT_CATALOG.find((entry) => entry.id === trophyId)!}
+						{@const unlockedState = getAchievementEntry(trophyId).unlocked}
+						<div class="trophy-card" class:locked={!unlockedState}>
+							<div class="trophy-icon">{unlockedState ? achievement.icon : '❔'}</div>
+							<h3>{unlockedState ? achievement.name : 'Unknown Honor'}</h3>
+							<p>{unlockedState ? achievement.description : 'Continue your ascent through the planes to reveal this honor.'}</p>
+							<span class="trophy-badge">{unlockedState ? 'Etched' : 'Locked'}</span>
+						</div>
+					{/each}
+				</div>
+			</div>
+
+			<div class="trophy-section">
+				<h2 class="group-title">Mastery Rewards</h2>
+				<div class="mastery-trophy-grid">
+					{#each DEITY_CATALOG as deity}
+						{@const mastery = getMastery(deity.algorithm)}
+						<div class="mastery-trophy-card" style="--deity-color:{deity.color}; --deity-dim:{deity.colorDim};">
+							<div class="mastery-trophy-head">
+								<div class="deity-sigil-wrap small">
+									<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={deity.color} stroke-width="1.5" aria-hidden="true">
+										<path d={deity.sigilPath} />
+									</svg>
+								</div>
+								<div>
+									<h3>{deity.name}</h3>
+									<p>{mastery} encounters recorded</p>
+								</div>
+							</div>
+
+							<div class="mastery-reward-list">
+								{#each [
+									{ at: 10, label: 'Sigil Badge', icon: '🏅' },
+									{ at: 20, label: 'Rare Relic', icon: '💎' },
+									{ at: 30, label: 'Mastery Skin', icon: '✨' }
+								] as reward}
+									<div class="mastery-reward-row" class:unlocked={mastery >= reward.at}>
+										<span class="reward-threshold">{reward.icon} {reward.at}</span>
+										<span>{reward.label}</span>
+										<strong>{mastery >= reward.at ? 'Unlocked' : 'Locked'}</strong>
+									</div>
+								{/each}
+							</div>
+						</div>
+					{/each}
+				</div>
+			</div>
 		</div>
 
 	<!-- ── BESTIARY TAB ──────────────────────────────────────── -->
@@ -392,6 +780,11 @@
 		border: 1px solid rgba(124,58,237,0.3);
 		color: #a78bfa;
 	}
+	.shard-chip {
+		background: rgba(34,197,94,0.08);
+		border: 1px solid rgba(34,197,94,0.26);
+		color: #86efac;
+	}
 
 	/* ── Tab bar ─────────────────────────────────── */
 	.tab-bar {
@@ -503,6 +896,385 @@
 		text-align: right;
 	}
 	.satchel-qty.qty-zero { color: rgba(255,255,255,0.2); }
+
+	/* ── Forge ───────────────────────────────────── */
+	.forge-layout {
+		display: grid;
+		grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+		gap: var(--space-5);
+	}
+	.forge-bank,
+	.forge-card,
+	.chronicles-hero,
+	.trophies-hero,
+	.achievement-card,
+	.trophy-card,
+	.mastery-trophy-card {
+		background: var(--color-bg-card);
+		border: 1px solid rgba(255,255,255,0.08);
+		border-radius: var(--radius-xl);
+	}
+	.forge-bank {
+		padding: var(--space-5);
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-5);
+		position: sticky;
+		top: calc(var(--header-height) + var(--space-4));
+		height: fit-content;
+	}
+	.forge-kicker {
+		display: inline-block;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: #86efac;
+		margin-bottom: var(--space-2);
+	}
+	.forge-bank-header h2,
+	.chronicles-hero h2,
+	.trophies-hero h2 {
+		font-family: var(--font-display);
+		font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+		margin-bottom: var(--space-2);
+	}
+	.forge-bank-header p,
+	.chronicles-hero p,
+	.trophies-hero p {
+		color: var(--color-text-secondary);
+		font-size: var(--text-sm);
+		line-height: 1.6;
+	}
+	.shard-vault {
+		display: flex;
+		align-items: center;
+		gap: var(--space-4);
+		padding: var(--space-4);
+		background: linear-gradient(135deg, rgba(34,197,94,0.10), rgba(56,189,248,0.08));
+		border: 1px solid rgba(134,239,172,0.18);
+		border-radius: var(--radius-xl);
+	}
+	.shard-orb {
+		width: 56px;
+		height: 56px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		background: rgba(255,255,255,0.08);
+		font-size: 1.6rem;
+		box-shadow: 0 0 24px rgba(134,239,172,0.18);
+	}
+	.shard-count-label {
+		display: block;
+		font-size: var(--text-xs);
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--color-text-muted);
+		margin-bottom: 4px;
+	}
+	.shard-count {
+		font-family: var(--font-display);
+		font-size: clamp(1.7rem, 5vw, 2.2rem);
+		color: #dcfce7;
+	}
+	.recipe-progress-list {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+	}
+	.recipe-progress-head {
+		display: flex;
+		justify-content: space-between;
+		gap: var(--space-3);
+		font-size: var(--text-xs);
+		color: var(--color-text-secondary);
+		margin-bottom: 6px;
+	}
+	.recipe-progress-track,
+	.chronicles-track,
+	.achievement-progress-track {
+		height: 8px;
+		background: rgba(255,255,255,0.08);
+		border-radius: var(--radius-full);
+		overflow: hidden;
+	}
+	.recipe-progress-fill,
+	.chronicles-track-fill,
+	.achievement-progress-fill {
+		height: 100%;
+		background: linear-gradient(90deg, #86efac, #38bdf8);
+		border-radius: var(--radius-full);
+	}
+	.forge-message {
+		padding: var(--space-3) var(--space-4);
+		background: rgba(56,189,248,0.08);
+		border: 1px solid rgba(56,189,248,0.18);
+		border-radius: var(--radius-lg);
+		font-size: var(--text-sm);
+		color: #bae6fd;
+		line-height: 1.55;
+	}
+	.forge-recipes {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		gap: var(--space-4);
+	}
+	.forge-card {
+		padding: var(--space-5);
+		border-color: color-mix(in srgb, var(--recipe-color) 22%, rgba(255,255,255,0.08));
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+	.forge-card-top {
+		display: flex;
+		justify-content: space-between;
+		gap: var(--space-3);
+		align-items: flex-start;
+	}
+	.forge-card h3,
+	.achievement-card h3,
+	.trophy-card h3,
+	.mastery-trophy-card h3 {
+		font-family: var(--font-display);
+		font-size: var(--text-lg);
+		color: var(--color-text-primary);
+	}
+	.forge-rarity {
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--recipe-color);
+	}
+	.forge-shard-cost {
+		padding: 6px 10px;
+		border-radius: var(--radius-full);
+		background: rgba(255,255,255,0.04);
+		font-size: var(--text-xs);
+		font-weight: 700;
+		white-space: nowrap;
+	}
+	.forge-copy {
+		color: var(--color-text-secondary);
+		font-size: var(--text-sm);
+		line-height: 1.6;
+	}
+	.forge-meta-block {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+	}
+	.forge-meta-title {
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-text-muted);
+	}
+	.forge-chip-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+	}
+	.forge-chip {
+		display: grid;
+		gap: 2px;
+		padding: 8px 10px;
+		border-radius: var(--radius-lg);
+		background: rgba(255,255,255,0.04);
+		border: 1px solid rgba(255,255,255,0.08);
+		font-size: var(--text-xs);
+		color: var(--color-text-secondary);
+	}
+	.forge-chip.met {
+		border-color: rgba(134,239,172,0.28);
+		background: rgba(134,239,172,0.08);
+		color: #dcfce7;
+	}
+	.forge-chip small {
+		font-size: 10px;
+		color: var(--color-text-muted);
+	}
+	.reward-chip {
+		min-width: 120px;
+	}
+	.forge-btn {
+		margin-top: auto;
+		padding: 12px 16px;
+		border: none;
+		border-radius: var(--radius-lg);
+		background: linear-gradient(135deg, color-mix(in srgb, var(--recipe-color) 80%, white 20%), var(--recipe-color));
+		color: #07111d;
+		font-weight: 800;
+		cursor: pointer;
+	}
+	.forge-btn:disabled {
+		opacity: 0.45;
+		cursor: default;
+	}
+
+	/* ── Chronicles ─────────────────────────────── */
+	.chronicles-hero,
+	.trophies-hero {
+		padding: var(--space-5);
+		margin-bottom: var(--space-6);
+		display: flex;
+		justify-content: space-between;
+		gap: var(--space-5);
+		align-items: end;
+		flex-wrap: wrap;
+	}
+	.chronicles-summary {
+		display: grid;
+		gap: 4px;
+		text-align: right;
+	}
+	.chronicles-summary strong {
+		font-family: var(--font-display);
+		font-size: clamp(1.8rem, 4vw, 2.4rem);
+	}
+	.chronicles-summary span {
+		font-size: var(--text-xs);
+		text-transform: uppercase;
+		letter-spacing: 0.12em;
+		color: var(--color-text-muted);
+	}
+	.chronicles-track {
+		margin-bottom: var(--space-6);
+	}
+	.chronicle-group {
+		margin-bottom: var(--space-7);
+	}
+	.achievement-grid,
+	.trophy-grid,
+	.mastery-trophy-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+		gap: var(--space-4);
+	}
+	.achievement-card,
+	.trophy-card,
+	.mastery-trophy-card {
+		padding: var(--space-5);
+	}
+	.achievement-card.locked,
+	.trophy-card.locked {
+		opacity: 0.72;
+		filter: grayscale(0.35);
+	}
+	.achievement-head {
+		display: flex;
+		gap: var(--space-3);
+		margin-bottom: var(--space-4);
+	}
+	.achievement-icon,
+	.trophy-icon {
+		width: 46px;
+		height: 46px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 14px;
+		background: rgba(255,255,255,0.05);
+		font-size: 1.4rem;
+		flex-shrink: 0;
+	}
+	.achievement-head p,
+	.trophy-card p,
+	.mastery-trophy-head p {
+		margin-top: 4px;
+		font-size: var(--text-sm);
+		line-height: 1.55;
+		color: var(--color-text-secondary);
+	}
+	.achievement-progress-row,
+	.achievement-footer {
+		display: flex;
+		justify-content: space-between;
+		gap: var(--space-3);
+		font-size: var(--text-xs);
+		color: var(--color-text-muted);
+		margin-bottom: var(--space-2);
+		flex-wrap: wrap;
+	}
+	.achievement-progress-fill {
+		background: linear-gradient(90deg, #38bdf8, #a78bfa);
+	}
+	.achievement-footer {
+		margin-top: var(--space-3);
+		margin-bottom: 0;
+	}
+	.achievement-reward {
+		color: #bae6fd;
+	}
+	.achievement-date {
+		color: #fef08a;
+	}
+
+	/* ── Trophies ───────────────────────────────── */
+	.trophy-section {
+		margin-bottom: var(--space-7);
+	}
+	.trophy-card {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+	}
+	.trophy-badge {
+		align-self: flex-start;
+		padding: 6px 10px;
+		border-radius: var(--radius-full);
+		background: rgba(250,204,21,0.10);
+		border: 1px solid rgba(250,204,21,0.22);
+		font-size: var(--text-xs);
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #facc15;
+	}
+	.mastery-trophy-card {
+		border-color: color-mix(in srgb, var(--deity-color) 20%, rgba(255,255,255,0.08));
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-4);
+	}
+	.deity-sigil-wrap.small {
+		width: 42px;
+		height: 42px;
+	}
+	.mastery-trophy-head {
+		display: flex;
+		gap: var(--space-3);
+		align-items: center;
+	}
+	.mastery-reward-list {
+		display: grid;
+		gap: var(--space-2);
+	}
+	.mastery-reward-row {
+		display: grid;
+		grid-template-columns: auto 1fr auto;
+		gap: var(--space-3);
+		align-items: center;
+		padding: 10px 12px;
+		border-radius: var(--radius-lg);
+		background: rgba(255,255,255,0.03);
+		border: 1px solid rgba(255,255,255,0.06);
+		font-size: var(--text-sm);
+		color: var(--color-text-secondary);
+	}
+	.mastery-reward-row.unlocked {
+		background: color-mix(in srgb, var(--deity-color) 10%, transparent);
+		border-color: color-mix(in srgb, var(--deity-color) 30%, transparent);
+		color: white;
+	}
+	.reward-threshold {
+		font-weight: 800;
+		color: var(--deity-color);
+	}
 
 	/* ── Bestiary ─────────────────────────────────── */
 	.bestiary-intro {
@@ -709,5 +1481,26 @@
 		font-weight: 700;
 		letter-spacing: 0.08em;
 		opacity: 1;
+	}
+
+	@media (max-width: 820px) {
+		.forge-layout {
+			grid-template-columns: 1fr;
+		}
+		.forge-bank {
+			position: static;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.tab-bar {
+			flex-wrap: wrap;
+		}
+		.chronicles-summary {
+			text-align: left;
+		}
+		.mastery-reward-row {
+			grid-template-columns: 1fr;
+		}
 	}
 </style>

@@ -71,6 +71,23 @@ export function getHint(state: GameSessionState): Position[] {
 	return path;
 }
 
+/**
+ * Compass: show the first `n` cells of the solution path without
+ * penalizing hintsUsed (so star4 is unaffected).
+ */
+export function getCompassPath(state: GameSessionState, n = 4): Position[] {
+	const fullPath = findPathToEnd(
+		state.maze.cells,
+		state.playerPos,
+		state.maze.end,
+		state.maze.width,
+		state.maze.height
+	);
+	const partial = fullPath.slice(0, n + 1); // include player pos as first cell
+	state.hintPath = partial;
+	return partial;
+}
+
 export function calculateStars(
 	moves: number,
 	elapsedSeconds: number,

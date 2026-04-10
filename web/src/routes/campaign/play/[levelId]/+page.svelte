@@ -5,7 +5,7 @@
 	import { onDestroy, untrack } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
-	import { createGameSession, getHint, calculateStars } from '$lib/core/session';
+	import { createGameSession, getHint, getCompassPath, calculateStars } from '$lib/core/session';
 	import type { GameSessionState, GameSessionConfig } from '$lib/core/session';
 	import { canMove, applyMove } from '$lib/core/maze';
 	import type { Direction } from '$lib/core/types';
@@ -13,6 +13,7 @@
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
 	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
 	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
+	import AchievementUnlockPopup from '../../../../lib/components/AchievementUnlockPopup.svelte';
 
 	// Parse route: "worldId-levelNumber" e.g. "1-5" or "2-3b"
 	const levelKey = $derived($page.params.levelId as string);
@@ -62,8 +63,19 @@
 	let visitedCells = $state(new Set<string>());
 	let moveQueue: Direction[] = [];
 	const MOVE_QUEUE_MAX = 2;
+	// Powerup state
+	let hourglassFrozen = $state(false);
+	let hourglassTimer: ReturnType<typeof setTimeout> | undefined;
+	let compassTimer: ReturnType<typeof setTimeout> | undefined;
+	// Achievement unlock queue
+	let newlyUnlocked = $state<string[]>([]);
+	let shownAchievementId = $derived(newlyUnlocked[0] ?? null);
 
 	function startGame() {
+		hourglassFrozen = false;
+		clearTimeout(hourglassTimer);
+		clearTimeout(compassTimer);
+		newlyUnlocked = [];
 		if (!levelDef) {
 			loadError = `Level ${levelNumber} could not be loaded.`;
 			session = null;
@@ -111,7 +123,7 @@
 		showIntro = false;
 		clearInterval(timerInterval);
 		timerInterval = setInterval(() => {
-			if (session && !session.isComplete) {
+			if (session && !session.isComplete && !hourglassFrozen) {
 				elapsed += 0.01;
 			}
 		}, 10);
@@ -154,6 +166,9 @@
 
 	function onLevelComplete() {
 		clearInterval(timerInterval);
+		clearTimeout(hourglassTimer);
+		clearTimeout(compassTimer);
+		hourglassFrozen = false;
 
 		if (!levelDef || !session) return;
 
@@ -173,8 +188,18 @@
 		coinsEarned = baseCoins + stars.total * 25;
 		gameStore.addCoins(coinsEarned);
 
+		// Crystal shards: 1 per star earned
+		gameStore.addCrystalShards(stars.total);
+
 		// Track algorithm mastery for the deity system
 		gameStore.recordAlgoMastery(levelDef.levelType);
+
+		// Increment total mazes completed
+		gameStore.incrementMazesCompleted();
+
+		// Achievement progress for event-based achievements
+		if (elapsed < 30) gameStore.markAchievementProgress('speed_runner', 1);
+		if (session.hintsUsed === 0) gameStore.markAchievementProgress('hint_free', 1);
 
 		// Save progress
 		const updatedLevel = {
@@ -189,15 +214,65 @@
 		};
 		gameStore.saveLevelProgress(worldId, updatedLevel);
 
+		// Check achievements and queue popups
+		const unlocked = gameStore.checkAchievements();
+		if (unlocked.length > 0) {
+			newlyUnlocked = [...unlocked];
+		}
+
 		showOutro = true;
 	}
 
 	function useHint() {
 		if (!session || session.isComplete || showIntro) return;
 		if (gameStore.usePowerup('hint')) {
-			getHint(session);
-			session = session; // trigger reactivity
+			const nextSession = { ...session };
+			const hintPath = getHint(nextSession);
+			session = { ...nextSession, hintPath };
 		}
+	}
+
+	function useCompass() {
+		if (!session || session.isComplete || showIntro) return;
+		if (gameStore.usePowerup('compass')) {
+			const nextSession = { ...session };
+			const hintPath = getCompassPath(nextSession);
+			session = { ...nextSession, hintPath };
+			clearTimeout(compassTimer);
+			compassTimer = setTimeout(() => {
+				if (!session) return;
+				session = { ...session, hintPath: null };
+			}, 3000);
+		}
+	}
+
+	function useHourglass() {
+		if (!session || session.isComplete || showIntro || hourglassFrozen) return;
+		if (gameStore.usePowerup('hourglass')) {
+			hourglassFrozen = true;
+			clearTimeout(hourglassTimer);
+			hourglassTimer = setTimeout(() => { hourglassFrozen = false; }, 15000);
+		}
+	}
+
+	function useBlinkScroll() {
+		if (!session || session.isComplete || showIntro) return;
+		if (gameStore.usePowerup('blinkScroll')) {
+			const { maze, playerPos } = session;
+			const candidates: { x: number; y: number }[] = [];
+			for (let y = 0; y < maze.height; y++) {
+				for (let x = 0; x < maze.width; x++) {
+					if (x !== playerPos.x || y !== playerPos.y) candidates.push({ x, y });
+				}
+			}
+			const pick = candidates[Math.floor(Math.random() * candidates.length)];
+			session = { ...session, playerPos: pick, hintPath: null };
+		}
+	}
+
+	function useDoubleCoins() {
+		if (!session || session.isComplete || showIntro) return;
+		gameStore.usePowerup('doubleCoinsToken');
 	}
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -257,6 +332,8 @@
 
 	onDestroy(() => {
 		clearInterval(timerInterval);
+		clearTimeout(hourglassTimer);
+		clearTimeout(compassTimer);
 	});
 
 	// Restart game when route changes (untrack so startGame's reactive reads
@@ -299,7 +376,11 @@
 					<span class="hud-stat-value" class:over-threshold={elapsed > levelDef.threeStarTime}>
 						{elapsed.toFixed(1)}s
 					</span>
-					<span class="hud-stat-target">/ {levelDef.threeStarTime}s</span>
+					{#if hourglassFrozen}
+						<span class="frozen-badge">FROZEN</span>
+					{:else}
+						<span class="hud-stat-target">/ {levelDef.threeStarTime}s</span>
+					{/if}
 				</div>
 				<div class="hud-stat">
 					<span class="hud-stat-label">👣</span>
@@ -333,6 +414,26 @@
 					</svg>
 					Hint
 					<span class="powerup-count">({gameStore.player.hintsOwned})</span>
+				</button>
+				<button class="powerup-btn" onclick={useCompass} disabled={(gameStore.player.compassOwned ?? 0) <= 0}>
+					🧭
+					Compass
+					<span class="powerup-count">({gameStore.player.compassOwned ?? 0})</span>
+				</button>
+				<button class="powerup-btn" onclick={useHourglass} disabled={(gameStore.player.hourglassOwned ?? 0) <= 0 || hourglassFrozen}>
+					⏳
+					Hourglass
+					<span class="powerup-count">({gameStore.player.hourglassOwned ?? 0})</span>
+				</button>
+				<button class="powerup-btn" onclick={useBlinkScroll} disabled={(gameStore.player.blinkScrollsOwned ?? 0) <= 0}>
+					✨
+					Blink
+					<span class="powerup-count">({gameStore.player.blinkScrollsOwned ?? 0})</span>
+				</button>
+				<button class="powerup-btn" onclick={useDoubleCoins} disabled={(gameStore.player.doubleCoinsTokensOwned ?? 0) <= 0 || gameStore.player.doubleCoinsActive}>
+					🪙
+					2× Coins
+					<span class="powerup-count">({gameStore.player.doubleCoinsTokensOwned ?? 0})</span>
 				</button>
 			</div>
 			<div class="dpad" role="group" aria-label="Movement controls">
@@ -404,6 +505,13 @@
 			{ label: 'Retry', onclick: () => { showOutro = false; startGame(); } },
 			{ label: levelDef.connectTo1 ? 'Next Level →' : 'Back to World', primary: true, onclick: goToNextLevel }
 		]}
+	/>
+{/if}
+
+{#if shownAchievementId}
+	<AchievementUnlockPopup
+		achievementId={shownAchievementId}
+		ondismiss={() => { newlyUnlocked = newlyUnlocked.slice(1); }}
 	/>
 {/if}
 
@@ -484,6 +592,23 @@
 		font-size: var(--text-xs);
 	}
 
+	.frozen-badge {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		color: #38bdf8;
+		background: rgba(56, 189, 248, 0.12);
+		border: 1px solid rgba(56, 189, 248, 0.4);
+		border-radius: var(--radius-full);
+		padding: 1px 6px;
+		animation: pulse 1s ease-in-out infinite alternate;
+	}
+
+	@keyframes pulse {
+		from { opacity: 0.6; }
+		to { opacity: 1; }
+	}
+
 	/* Maze */
 	.maze-area {
 		flex: 1;
@@ -511,6 +636,8 @@
 	.powerups {
 		display: flex;
 		gap: var(--space-2);
+		flex-wrap: wrap;
+		max-width: 220px;
 	}
 
 	.powerup-btn {

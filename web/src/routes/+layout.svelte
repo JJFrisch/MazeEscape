@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '$lib/styles/global.css';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
+	import { mazeThemeStore } from '$lib/stores/mazeThemeStore.svelte';
 	import { themeStore } from '$lib/stores/themeStore.svelte';
 	import { initializeSupabaseAuth } from '$lib/supabase/auth';
 	import { authStore } from '$lib/supabase/authStore.svelte';
@@ -18,6 +19,7 @@
 
 	onMount(() => {
 		themeStore.init();
+		mazeThemeStore.init();
 		gameStore.init();
 		const cleanupSupabaseAuth = initializeSupabaseAuth({
 			onSignedIn: async (userId) => {

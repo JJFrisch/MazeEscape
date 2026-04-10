@@ -3,26 +3,26 @@
   Concentric rings with arc walls and radial walls.
 -->
 <script lang="ts">
+	import { getMazeThemePalette, type MazeVisualTheme } from '$lib/core/mazeVisualThemes';
 	import type { CircularMazeData } from '$lib/core/types';
 
 	let {
 		maze,
 		playerPos,
 		wallColor = '#c084fc',
-		accentColor = '#c084fc'
+		visualTheme = 'neon' as MazeVisualTheme
 	}: {
 		maze: CircularMazeData;
 		playerPos: { ring: number; sector: number };
 		wallColor?: string;
-		accentColor?: string;
+		visualTheme?: MazeVisualTheme;
 	} = $props();
 
 	const RING_WIDTH = 30;
 	const CENTER_R = 24;
 	const PADDING = 20;
 
-	const FALLBACK = '#c084fc';
-	const stroke = $derived(!wallColor || wallColor === '#000000' ? FALLBACK : wallColor);
+	const palette = $derived(getMazeThemePalette(visualTheme, wallColor));
 
 	const outerR = $derived(CENTER_R + maze.numRings * RING_WIDTH);
 	const size = $derived(outerR * 2 + PADDING * 2);
@@ -157,7 +157,7 @@
 
 				arcs.push({
 					d,
-					fill: cell.value === 2 ? 'rgba(109,40,217,0.18)' : 'rgba(52,211,153,0.15)',
+					fill: cell.value === 2 ? palette.startCellColor : palette.exitCellColor,
 					key: `cell-${ring}-${s}`
 				});
 			}
@@ -197,7 +197,7 @@
 		</defs>
 
 		<!-- Background -->
-		<rect x="0" y="0" width={size} height={size} fill="#080e1e" rx="8" />
+		<rect x="0" y="0" width={size} height={size} fill={palette.bgColor} rx="8" />
 
 		<!-- Ring grid lines (subtle) -->
 		{#each Array(maze.numRings) as _, ring}
@@ -205,14 +205,14 @@
 				cx={cx} cy={cy}
 				r={ringOuterR(ring)}
 				fill="none"
-				stroke="rgba(255,255,255,0.03)"
+				stroke={palette.gridColor}
 				stroke-width="0.5"
 			/>
 		{/each}
 
 		<!-- Cell highlights -->
 		{#each cellArcs as arc (arc.key)}
-			<path d={arc.d} fill={arc.fill} />
+			<path d={arc.d} fill={arc.fill} stroke={arc.fill === palette.startCellColor ? palette.startCellStroke : palette.exitCellStroke} stroke-width="0.5" />
 		{/each}
 
 		<!-- Exit marker -->
@@ -221,38 +221,44 @@
 			cx={exitXY.x}
 			cy={exitXY.y}
 			r={RING_WIDTH * 0.32}
-			fill="url(#cgrad-exit)"
-			filter="url(#cglow-player)"
+			fill={palette.exitDotColor}
+			filter={palette.exitGlow ? 'url(#cglow-player)' : undefined}
 		/>
 
 		<!-- Walls — glow layer -->
-		<g fill="none" stroke={stroke} stroke-width="2" stroke-linecap="round" opacity="0.4" filter="url(#cglow-wall)">
-			{#each wallPaths as wall (wall.key)}
-				<path d={wall.d} />
-			{/each}
-		</g>
+		{#if palette.wallGlowWidth > 0}
+			<g fill="none" stroke={palette.strokeColor} stroke-width={palette.wallGlowWidth} stroke-linecap="round" opacity="0.4" filter="url(#cglow-wall)">
+				{#each wallPaths as wall (wall.key)}
+					<path d={wall.d} />
+				{/each}
+			</g>
+		{/if}
 
 		<!-- Walls — solid layer -->
-		<g fill="none" stroke={stroke} stroke-width="1.5" stroke-linecap="round">
+		<g fill="none" stroke={palette.strokeColor} stroke-width={palette.wallWidth} stroke-linecap={palette.wallLineCap} stroke-linejoin={palette.wallLineJoin}>
 			{#each wallPaths as wall (wall.key)}
 				<path d={wall.d} />
 			{/each}
 		</g>
 
 		<!-- Player -->
-		<circle
-			class="player-halo"
-			cx={playerXY.x}
-			cy={playerXY.y}
-			r={RING_WIDTH * 0.5}
-			fill="rgba(139,92,246,0.18)"
-			filter="url(#cglow-player)"
-		/>
+		{#if palette.playerGlow}
+			<circle
+				class="player-halo"
+				cx={playerXY.x}
+				cy={playerXY.y}
+				r={RING_WIDTH * 0.5}
+				fill={palette.playerHaloColor}
+				filter="url(#cglow-player)"
+			/>
+		{/if}
 		<circle
 			cx={playerXY.x}
 			cy={playerXY.y}
 			r={RING_WIDTH * 0.35}
-			fill="url(#cgrad-player)"
+			fill={palette.playerColor}
+			stroke={palette.playerStroke}
+			stroke-width={palette.playerStrokeWidth}
 		/>
 	</svg>
 </div>
@@ -265,7 +271,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: #080e1e;
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 	}

@@ -14,6 +14,7 @@
 	import { generateCircularMaze, canMoveCircular, keyToCircularDir } from '$lib/core/circularMaze';
 	import { generateTriMaze, canMoveTri, applyMoveTri, keyToTriDir } from '$lib/core/triMaze';
 	import { getWorldTheme } from '$lib/worldThemes';
+	import { mazeThemeStore } from '$lib/stores/mazeThemeStore.svelte';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
 	import HexMazeRenderer from '$lib/components/HexMazeRenderer.svelte';
 	import CircularMazeRenderer from '$lib/components/CircularMazeRenderer.svelte';
@@ -463,18 +464,21 @@
 					maze={hexState.maze}
 					playerPos={hexState.pos}
 					wallColor={gameStore.player.wallColor}
+					visualTheme={mazeThemeStore.theme}
 				/>
 			{:else if activeShape === 'circular' && circState}
 				<CircularMazeRenderer
 					maze={circState.maze}
 					playerPos={circState.pos}
 					wallColor={gameStore.player.wallColor}
+					visualTheme={mazeThemeStore.theme}
 				/>
 			{:else if activeShape === 'triangular' && triState}
 				<TriMazeRenderer
 					maze={triState.maze}
 					playerPos={triState.pos}
 					wallColor={gameStore.player.wallColor}
+					visualTheme={mazeThemeStore.theme}
 				/>
 			{:else if session}
 				<MazeRenderer
@@ -485,6 +489,7 @@
 					showVisited={true}
 					{visitedCells}
 					{skinImageUrl}
+					visualTheme={mazeThemeStore.theme}
 				/>
 			{/if}
 		</div>

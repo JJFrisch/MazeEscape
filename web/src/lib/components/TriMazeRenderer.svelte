@@ -3,26 +3,26 @@
   Alternating up/down triangles with neon glow.
 -->
 <script lang="ts">
+	import { getMazeThemePalette, type MazeVisualTheme } from '$lib/core/mazeVisualThemes';
 	import type { TriCell, TriMazeData } from '$lib/core/types';
 
 	let {
 		maze,
 		playerPos,
 		wallColor = '#34d399',
-		accentColor = '#34d399'
+		visualTheme = 'neon' as MazeVisualTheme
 	}: {
 		maze: TriMazeData;
 		playerPos: { col: number; row: number };
 		wallColor?: string;
-		accentColor?: string;
+		visualTheme?: MazeVisualTheme;
 	} = $props();
 
 	const TRI_SIDE = 40; // side length
 	const TRI_H = TRI_SIDE * Math.sqrt(3) / 2;
 	const PADDING = 20;
 
-	const FALLBACK = '#34d399';
-	const stroke = $derived(!wallColor || wallColor === '#000000' ? FALLBACK : wallColor);
+	const palette = $derived(getMazeThemePalette(visualTheme, wallColor));
 
 	// Triangle vertices
 	function triVertices(col: number, row: number): { x: number; y: number }[] {
@@ -118,16 +118,16 @@
 		</defs>
 
 		<!-- Background -->
-		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill="#080e1e" rx="8" />
+		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill={palette.bgColor} rx="8" />
 
 		<!-- Cell backgrounds -->
 		{#each allCells as cell (`bg-${cell.col},${cell.row}`)}
 			<polygon
 				points={triPoints(cell.col, cell.row)}
-				fill={cell.value === 2 ? 'rgba(109,40,217,0.15)' :
-					  cell.value === 3 ? 'rgba(52,211,153,0.15)' :
-					  'rgba(255,255,255,0.012)'}
-				stroke="rgba(255,255,255,0.03)"
+				fill={cell.value === 2 ? palette.startCellColor :
+					  cell.value === 3 ? palette.exitCellColor :
+					  palette.cellBgColor}
+				stroke={palette.cellStrokeColor}
 				stroke-width="0.3"
 			/>
 		{/each}
@@ -138,21 +138,23 @@
 			cx={exitXY.x}
 			cy={exitXY.y}
 			r={TRI_SIDE * 0.14}
-			fill="url(#tgrad-exit)"
-			filter="url(#tglow-player)"
+			fill={palette.exitDotColor}
+			filter={palette.exitGlow ? 'url(#tglow-player)' : undefined}
 		/>
 
 		<!-- Walls — glow -->
-		<g stroke={stroke} stroke-width="2" stroke-linecap="round" opacity="0.4" filter="url(#tglow-wall)">
-			{#each allCells as cell (`wg-${cell.col},${cell.row}`)}
-				{#each wallLines(cell) as seg}
-					<line x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2} />
+		{#if palette.wallGlowWidth > 0}
+			<g stroke={palette.strokeColor} stroke-width={palette.wallGlowWidth} stroke-linecap="round" opacity="0.4" filter="url(#tglow-wall)">
+				{#each allCells as cell (`wg-${cell.col},${cell.row}`)}
+					{#each wallLines(cell) as seg}
+						<line x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2} />
+					{/each}
 				{/each}
-			{/each}
-		</g>
+			</g>
+		{/if}
 
 		<!-- Walls — solid -->
-		<g stroke={stroke} stroke-width="1.5" stroke-linecap="round">
+		<g stroke={palette.strokeColor} stroke-width={palette.wallWidth} stroke-linecap={palette.wallLineCap} stroke-linejoin={palette.wallLineJoin}>
 			{#each allCells as cell (`ws-${cell.col},${cell.row}`)}
 				{#each wallLines(cell) as seg}
 					<line x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2} />
@@ -161,19 +163,23 @@
 		</g>
 
 		<!-- Player -->
-		<circle
-			class="player-halo"
-			cx={playerXY.x}
-			cy={playerXY.y}
-			r={TRI_SIDE * 0.22}
-			fill="rgba(139,92,246,0.18)"
-			filter="url(#tglow-player)"
-		/>
+		{#if palette.playerGlow}
+			<circle
+				class="player-halo"
+				cx={playerXY.x}
+				cy={playerXY.y}
+				r={TRI_SIDE * 0.22}
+				fill={palette.playerHaloColor}
+				filter="url(#tglow-player)"
+			/>
+		{/if}
 		<circle
 			cx={playerXY.x}
 			cy={playerXY.y}
 			r={TRI_SIDE * 0.16}
-			fill="url(#tgrad-player)"
+			fill={palette.playerColor}
+			stroke={palette.playerStroke}
+			stroke-width={palette.playerStrokeWidth}
 		/>
 	</svg>
 </div>
@@ -186,7 +192,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: #080e1e;
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 	}

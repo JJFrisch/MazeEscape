@@ -9,6 +9,7 @@
 	import type { Direction, DailyMazeLevel } from '$lib/core/types';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
 	import { getSkinById } from '$lib/core/skins';
+	import { mazeThemeStore } from '$lib/stores/mazeThemeStore.svelte';
 	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
 	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
 
@@ -327,6 +328,7 @@ victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: 
 				showVisited={true}
 				{visitedCells}
 				{skinImageUrl}
+				visualTheme={mazeThemeStore.theme}
 			/>
 		</div>
 

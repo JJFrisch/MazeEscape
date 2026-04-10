@@ -8,12 +8,13 @@
 	import { generateHexMaze, generateHexMazePrims, generateHexMazeKruskals } from '$lib/core/hexMaze';
 	import { generateCircularMaze, generateCircularMazePrims } from '$lib/core/circularMaze';
 	import { generateTriMaze, generateTriMazeHuntAndKill, generateTriMazeKruskals } from '$lib/core/triMaze';
+	import { MAZE_VISUAL_THEME_OPTIONS } from '$lib/core/mazeVisualThemes';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
 	import HexMazeRenderer from '$lib/components/HexMazeRenderer.svelte';
 	import CircularMazeRenderer from '$lib/components/CircularMazeRenderer.svelte';
 	import TriMazeRenderer from '$lib/components/TriMazeRenderer.svelte';
+	import { mazeThemeStore } from '$lib/stores/mazeThemeStore.svelte';
 	import type { MazeData, HexMazeData, CircularMazeData, TriMazeData, MazeAlgorithm } from '$lib/core/types';
-	import type { MazeVisualTheme } from '$lib/components/MazeRenderer.svelte';
 
 	// ---------------------------------------------------------------------------
 	// Types
@@ -359,7 +360,6 @@ The triangular cell packing creates the most visually intricate maze in this col
 	// ---------------------------------------------------------------------------
 
 	let previews = $state<Preview[]>(ALGORITHMS.map(() => ({ ready: false })));
-	let theme = $state<MazeVisualTheme>('neon');
 
 	const SEED_BASE = 42;
 	const PREVIEW_W = 8;
@@ -459,13 +459,13 @@ The triangular cell packing creates the most visually intricate maze in this col
 		</p>
 
 		<div class="algo-theme-picker">
-			<span class="theme-label">Rectangular preview theme:</span>
-			{#each (['neon', 'classic', 'dotmatrix'] as MazeVisualTheme[]) as t}
+			<span class="theme-label">Global preview theme:</span>
+			{#each MAZE_VISUAL_THEME_OPTIONS as t}
 				<button
 					class="theme-btn"
-					class:active={theme === t}
-					onclick={() => (theme = t)}
-				>{t}</button>
+					class:active={mazeThemeStore.theme === t.id}
+					onclick={() => mazeThemeStore.set(t.id)}
+				>{t.label}</button>
 			{/each}
 		</div>
 	</section>
@@ -492,23 +492,26 @@ The triangular cell packing creates the most visually intricate maze in this col
 									<MazeRenderer
 										maze={preview.maze}
 										playerPos={preview.maze.start}
-										visualTheme={theme}
+										visualTheme={mazeThemeStore.theme}
 										wallColor=""
 									/>
 								{:else if preview.type === 'hexagonal'}
 									<HexMazeRenderer
 										maze={preview.maze}
 										playerPos={preview.maze.start}
+										visualTheme={mazeThemeStore.theme}
 									/>
 								{:else if preview.type === 'circular'}
 									<CircularMazeRenderer
 										maze={preview.maze}
 										playerPos={preview.maze.start}
+										visualTheme={mazeThemeStore.theme}
 									/>
 								{:else if preview.type === 'triangular'}
 									<TriMazeRenderer
 										maze={preview.maze}
 										playerPos={preview.maze.start}
+										visualTheme={mazeThemeStore.theme}
 									/>
 								{/if}
 							{:else}

@@ -3,18 +3,19 @@
   Flat-top hexagons with neon glow effects.
 -->
 <script lang="ts">
+	import { getMazeThemePalette, type MazeVisualTheme } from '$lib/core/mazeVisualThemes';
 	import type { HexCell, HexMazeData } from '$lib/core/types';
 
 	let {
 		maze,
 		playerPos,
 		wallColor = '#38bdf8',
-		accentColor = '#38bdf8'
+		visualTheme = 'neon' as MazeVisualTheme
 	}: {
 		maze: HexMazeData;
 		playerPos: { col: number; row: number };
 		wallColor?: string;
-		accentColor?: string;
+		visualTheme?: MazeVisualTheme;
 	} = $props();
 
 	// Hex geometry (flat-top)
@@ -23,8 +24,7 @@
 	const HEX_H = Math.sqrt(3) * HEX_SIZE;
 	const PADDING = 24;
 
-	const FALLBACK = '#38bdf8';
-	const stroke = $derived(!wallColor || wallColor === '#000000' ? FALLBACK : wallColor);
+	const palette = $derived(getMazeThemePalette(visualTheme, wallColor));
 
 	// Convert hex grid coords to pixel center
 	function hexCenter(col: number, row: number): { x: number; y: number } {
@@ -113,17 +113,17 @@
 		</defs>
 
 		<!-- Background -->
-		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill="#080e1e" rx="8" />
+		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill={palette.bgColor} rx="8" />
 
 		<!-- Hex cell backgrounds -->
 		{#each allCells as cell (`bg-${cell.col},${cell.row}`)}
 			{@const center = hexCenter(cell.col, cell.row)}
 			<polygon
 				points={hexPoints(center.x, center.y)}
-				fill={cell.value === 2 ? 'rgba(109,40,217,0.15)' :
-					  cell.value === 3 ? 'rgba(52,211,153,0.15)' :
-					  'rgba(255,255,255,0.015)'}
-				stroke="rgba(255,255,255,0.04)"
+				fill={cell.value === 2 ? palette.startCellColor :
+					  cell.value === 3 ? palette.exitCellColor :
+					  palette.cellBgColor}
+				stroke={palette.cellStrokeColor}
 				stroke-width="0.5"
 			/>
 		{/each}
@@ -134,21 +134,23 @@
 			cx={exitCenter.x}
 			cy={exitCenter.y}
 			r={HEX_SIZE * 0.35}
-			fill="url(#hgrad-exit)"
-			filter="url(#hglow-player)"
+			fill={palette.exitDotColor}
+			filter={palette.exitGlow ? 'url(#hglow-player)' : undefined}
 		/>
 
 		<!-- Walls — glow layer -->
-		<g stroke={stroke} stroke-width="2" stroke-linecap="round" opacity="0.4" filter="url(#hglow-wall)">
-			{#each allCells as cell (`wg-${cell.col},${cell.row}`)}
-				{#each wallLines(cell) as seg}
-					<line x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2} />
+		{#if palette.wallGlowWidth > 0}
+			<g stroke={palette.strokeColor} stroke-width={palette.wallGlowWidth} stroke-linecap="round" opacity="0.4" filter="url(#hglow-wall)">
+				{#each allCells as cell (`wg-${cell.col},${cell.row}`)}
+					{#each wallLines(cell) as seg}
+						<line x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2} />
+					{/each}
 				{/each}
-			{/each}
-		</g>
+			</g>
+		{/if}
 
 		<!-- Walls — solid layer -->
-		<g stroke={stroke} stroke-width="1.5" stroke-linecap="round">
+		<g stroke={palette.strokeColor} stroke-width={palette.wallWidth} stroke-linecap={palette.wallLineCap} stroke-linejoin={palette.wallLineJoin}>
 			{#each allCells as cell (`ws-${cell.col},${cell.row}`)}
 				{#each wallLines(cell) as seg}
 					<line x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2} />
@@ -157,19 +159,23 @@
 		</g>
 
 		<!-- Player -->
-		<circle
-			class="player-halo"
-			cx={playerCenter.x}
-			cy={playerCenter.y}
-			r={HEX_SIZE * 0.55}
-			fill="rgba(139,92,246,0.18)"
-			filter="url(#hglow-player)"
-		/>
+		{#if palette.playerGlow}
+			<circle
+				class="player-halo"
+				cx={playerCenter.x}
+				cy={playerCenter.y}
+				r={HEX_SIZE * 0.55}
+				fill={palette.playerHaloColor}
+				filter="url(#hglow-player)"
+			/>
+		{/if}
 		<circle
 			cx={playerCenter.x}
 			cy={playerCenter.y}
 			r={HEX_SIZE * 0.4}
-			fill="url(#hgrad-player)"
+			fill={palette.playerColor}
+			stroke={palette.playerStroke}
+			stroke-width={palette.playerStrokeWidth}
 		/>
 	</svg>
 </div>
@@ -182,7 +188,6 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: #080e1e;
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 	}

@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { base } from '$app/paths';
+	import { MAZE_VISUAL_THEME_OPTIONS, type MazeVisualTheme } from '$lib/core/mazeVisualThemes';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { authStore } from '$lib/supabase/authStore.svelte';
+	import { mazeThemeStore } from '$lib/stores/mazeThemeStore.svelte';
 
 	let nameInput = $state(gameStore.player.playerName);
 	let wallColor = $state(gameStore.player.wallColor || '#6366f1');
@@ -28,6 +30,8 @@
 	async function signOut()  { await authStore.signOut(); }
 
 	const presetColors = ['#6366f1', '#8b5cf6', '#ec4899', '#ef4444', '#f59e0b', '#10b981', '#06b6d4', '#ffffff', '#000000'];
+
+	const THEMES: { id: MazeVisualTheme; label: string; accent: string }[] = MAZE_VISUAL_THEME_OPTIONS;
 </script>
 
 <svelte:head>
@@ -45,12 +49,32 @@
 
 <div class="settings-page">
 	<div class="settings-header">
-		<div class="page-eyebrow">
-			<span class="eyebrow-dot"></span>
-			Preferences
+		<div class="header-left">
+			<div class="page-eyebrow">
+				<span class="eyebrow-dot"></span>
+				Preferences
+			</div>
+			<h1 class="page-title">Settings</h1>
+			<p class="page-sub">Customize your gameplay experience.</p>
 		</div>
-		<h1 class="page-title">Settings</h1>
-		<p class="page-sub">Customize your gameplay experience.</p>
+
+		<div class="theme-picker-panel">
+			<div class="theme-picker-label">Maze Theme</div>
+			<div class="theme-picker-grid">
+				{#each THEMES as t}
+					<button
+						class="theme-chip"
+						class:active={mazeThemeStore.theme === t.id}
+						style="--chip-accent: {t.accent};"
+						onclick={() => mazeThemeStore.set(t.id)}
+						aria-label="Set maze theme to {t.label}"
+					>
+						<span class="chip-dot" style="background: {t.accent};"></span>
+						{t.label}
+					</button>
+				{/each}
+			</div>
+		</div>
 	</div>
 
 	<div class="settings-body">
@@ -213,8 +237,14 @@
 
 	/* ── Header ─────────────────────────────────── */
 	.settings-header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--space-6);
 		margin-bottom: var(--space-10);
+		flex-wrap: wrap;
 	}
+	.header-left { flex: 1; min-width: 0; }
 	.page-eyebrow {
 		display: inline-flex;
 		align-items: center;
@@ -483,5 +513,59 @@
 		display: flex;
 		gap: var(--space-2);
 		flex-wrap: wrap;
+	}
+
+	/* ── Maze theme picker ──────────────────────── */
+	.theme-picker-panel {
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: var(--space-2);
+	}
+	.theme-picker-label {
+		font-size: var(--text-xs);
+		font-weight: 700;
+		letter-spacing: 0.10em;
+		text-transform: uppercase;
+		color: rgba(255,255,255,0.35);
+	}
+	.theme-picker-grid {
+		display: grid;
+		grid-template-columns: repeat(3, auto);
+		gap: 6px;
+	}
+	.theme-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 7px 13px;
+		background: rgba(255,255,255,0.04);
+		border: 1px solid rgba(255,255,255,0.10);
+		border-radius: var(--radius-full);
+		font-family: var(--font-display);
+		font-weight: 600;
+		font-size: var(--text-xs);
+		color: var(--color-text-secondary);
+		cursor: pointer;
+		transition: all var(--transition-fast);
+		white-space: nowrap;
+	}
+	.theme-chip:hover {
+		background: rgba(255,255,255,0.08);
+		border-color: var(--chip-accent);
+		color: var(--color-text-primary);
+	}
+	.theme-chip.active {
+		background: rgba(255,255,255,0.08);
+		border-color: var(--chip-accent);
+		color: var(--color-text-primary);
+		box-shadow: 0 0 10px color-mix(in srgb, var(--chip-accent) 30%, transparent);
+	}
+	.chip-dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		flex-shrink: 0;
 	}
 </style>

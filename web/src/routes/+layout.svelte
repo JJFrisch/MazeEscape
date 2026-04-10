@@ -36,6 +36,27 @@
 
 <svelte:head>
 	<title>Maze Escape: Pathbound</title>
+	<meta name="description" content="A puzzle maze adventure game. Solve intricate mazes, collect stars, and conquer campaign worlds." />
+
+	<!-- Favicons -->
+	<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+	<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+	<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+	<link rel="manifest" href="/site.webmanifest" />
+	<meta name="theme-color" content="#0a1628" />
+
+	<!-- Open Graph / social sharing -->
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="Maze Escape: Pathbound" />
+	<meta property="og:description" content="A puzzle maze adventure game. Solve intricate mazes, collect stars, and conquer campaign worlds." />
+	<meta property="og:image" content="/android-chrome-512x512.png" />
+
+	<!-- Twitter card -->
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="Maze Escape: Pathbound" />
+	<meta name="twitter:description" content="A puzzle maze adventure game. Solve intricate mazes, collect stars, and conquer campaign worlds." />
+	<meta name="twitter:image" content="/android-chrome-512x512.png" />
 </svelte:head>
 
 <div class="app-shell">

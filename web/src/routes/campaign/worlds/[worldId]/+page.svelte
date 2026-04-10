@@ -67,7 +67,7 @@
 		<div class="strip-end">
 			<img src="{base}/images/full_star.png" alt="Stars:" class="star-icon" />
 			<span class="star-value" style="color: var(--color-accent-gold)">{starCount}</span>
-			<span class="star-denom">/ {worldDef.numberOfLevels * 3}</span>
+			<span class="star-denom">/ {worldDef.numberOfLevels * 5}</span>
 		</div>
 
 		<div class="accent-bar" style="background: {theme.accentColor}"></div>

@@ -246,8 +246,8 @@
 			showTooltip(e, hasIt ? 'Gate Open!' : `Requires the ${node.keyItemId?.replace(/_/g, ' ') ?? 'key'}`);
 		} else if (node.type === 'portal') {
 			const stars = gameStore.getWorldStarCount(worldId);
-			if (stars >= 250) showTooltip(e, 'Portal to World 2!');
-			else showTooltip(e, `Portal locked — need 250 ★ (you have ${stars})`);
+			if (stars >= 300) showTooltip(e, 'Portal to World 2!');
+			else showTooltip(e, `Portal locked — need 300 ★ (you have ${stars})`);
 		}
 	}
 

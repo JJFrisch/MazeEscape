@@ -25,7 +25,7 @@
 		{#each worlds as world, i}
 			{@const theme = WORLD_THEMES.find((t) => t.worldId === world.worldId)}
 			{@const stars = gameStore.getWorldStarCount(world.worldId)}
-			{@const isLocked = world.locked && i > 0 && gameStore.getWorldStarCount(worlds[i - 1]?.worldId ?? 0) < 250}
+			{@const isLocked = world.locked && i > 0 && gameStore.getWorldStarCount(worlds[i - 1]?.worldId ?? 0) < 300}
 
 			<div
 				class="world-card"
@@ -76,7 +76,7 @@
 							<div
 								class="progress-bar-fill"
 								style="
-									--fill-w: {Math.min((stars / (world.numberOfLevels * 3)) * 100, 100)}%;
+									--fill-w: {Math.min((stars / (world.numberOfLevels * 5)) * 100, 100)}%;
 									background: {theme?.accentColor ?? '#38bdf8'};
 								"
 							></div>

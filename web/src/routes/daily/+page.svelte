@@ -25,7 +25,7 @@
 	let timerInterval: ReturnType<typeof setInterval>;
 	let showIntro = $state(false);
 	let showOutro = $state(false);
-	let victoryStars = $state({ star1: false, star2: false, star3: false, total: 0 });
+    let victoryStars = $state({ star1: false, star2: false, star3: false, star4: false, star5: false, total: 0 });
 	let coinsEarned = $state(0);
 	let visitedCells = $state(new Set<string>());
 	let playing = $state(false);
@@ -91,7 +91,7 @@
 		showOutro = false;
 		elapsed = 0;
 		coinsEarned = 0;
-		victoryStars = { star1: false, star2: false, star3: false, total: 0 };
+victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: false, total: 0 };
 
 		const d = new Date(dateStr);
 		const dailyLevel = getDailyMazeForDate(d);
@@ -367,6 +367,8 @@
 		stars={victoryStars.total}
 		twoStarMoves={selectedDaily.movesNeeded}
 		threeStarTime={selectedDaily.timeNeeded}
+		fiveStarMoves={Math.floor(selectedDaily.movesNeeded * 0.6)}
+		fiveStarTime={Math.floor(selectedDaily.timeNeeded * 0.6)}
 		coins={coinsEarned}
 		accentColor="#34d399"
 		actions={[

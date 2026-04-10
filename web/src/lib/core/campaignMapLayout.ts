@@ -77,7 +77,7 @@ const world1Nodes: MapNode[] = [
 	{ id: 'l4b', type: 'bonus_level', tile: tile(14, 4),  levelNumber: '4b', area: 1 },
 
 	// Star gate between area 1 and area 2 (20 stars)
-	{ id: 'sg1', type: 'star_gate', tile: tile(2, 7), starsRequired: 20, area: 2 },
+	{ id: 'sg1', type: 'star_gate', tile: tile(2, 7), starsRequired: 35, area: 2 },
 
 	// ── Area 2: levels 15–28, bonus 5b–7b ─────────────────────────────────
 
@@ -107,7 +107,7 @@ const world1Nodes: MapNode[] = [
 	{ id: 'kg1', type: 'key_gate', tile: tile(11, 14), keyItemId: 'key_area2', area: 2 },
 
 	// Star gate between area 2 and area 3 (45 stars)
-	{ id: 'sg2', type: 'star_gate', tile: tile(2, 15), starsRequired: 45, area: 3 },
+	{ id: 'sg2', type: 'star_gate', tile: tile(2, 15), starsRequired: 80, area: 3 },
 
 	// ── Area 3: levels 29–43, bonus 8b–9b ─────────────────────────────────
 
@@ -137,7 +137,7 @@ const world1Nodes: MapNode[] = [
 	{ id: 'kg2', type: 'key_gate', tile: tile(20, 22), keyItemId: 'key_forest', area: 3 },
 
 	// Star gate between area 3 and area 4 (80 stars)
-	{ id: 'sg3', type: 'star_gate', tile: tile(2, 23), starsRequired: 80, area: 4 },
+	{ id: 'sg3', type: 'star_gate', tile: tile(2, 23), starsRequired: 140, area: 4 },
 
 	// ── Area 4: levels 44–55, bonus 10b ───────────────────────────────────
 
@@ -160,7 +160,7 @@ const world1Nodes: MapNode[] = [
 	{ id: 'l10b', type: 'bonus_level', tile: tile(5, 27), levelNumber: '10b', area: 4 },
 
 	// Star gate between area 4 and area 5 (120 stars)
-	{ id: 'sg4', type: 'star_gate', tile: tile(8, 31), starsRequired: 120, area: 5 },
+	{ id: 'sg4', type: 'star_gate', tile: tile(8, 31), starsRequired: 210, area: 5 },
 
 	// ── Area 5: levels 56–67 + portal ─────────────────────────────────────
 
@@ -183,7 +183,7 @@ const world1Nodes: MapNode[] = [
 	{ id: 'portal1', type: 'portal', tile: tile(2, 39), area: 5 },
 
 	// Final star gate before portal (250 stars)
-	{ id: 'sg5', type: 'star_gate', tile: tile(2, 38), starsRequired: 250, area: 5 }
+	{ id: 'sg5', type: 'star_gate', tile: tile(2, 38), starsRequired: 300, area: 5 }
 ];
 
 // ---------------------------------------------------------------------------
@@ -459,14 +459,14 @@ const world2Nodes: MapNode[] = [
 	{ id: 'w2l21', type: 'level', tile: tile(20, 8), levelNumber: '21', area: 1 },
 
 	// sg1: 20★ — gates l22 (minStars:20); on connector between legs 3 and 4
-	{ id: 'w2sg1', type: 'star_gate', tile: tile(20, 10), starsRequired: 20, area: 1 },
+	{ id: 'w2sg1', type: 'star_gate', tile: tile(20, 10), starsRequired: 35, area: 1 },
 
 	// ── Area 2: l22–l42 ── (legs 4-6, rows 11-17) ─────────────────────────
 
 	// Leg 4 (←, row 11)  — l22 starts area 2 section (minStars:20)
 	{ id: 'w2l22', type: 'level', tile: tile(20, 11), levelNumber: '22', area: 2 },
 	// sg2: 30★ — gates l23 (minStars:30); inline between l22(20,11) and l23(17,11)
-	{ id: 'w2sg2', type: 'star_gate', tile: tile(19, 11), starsRequired: 30, area: 2 },
+	{ id: 'w2sg2', type: 'star_gate', tile: tile(19, 11), starsRequired: 55, area: 2 },
 	{ id: 'w2l23', type: 'level', tile: tile(17, 11), levelNumber: '23', area: 2 },
 	{ id: 'w2l24', type: 'level', tile: tile(14, 11), levelNumber: '24', area: 2 },
 	{ id: 'w2l25', type: 'level', tile: tile(11, 11), levelNumber: '25', area: 2 },
@@ -476,7 +476,7 @@ const world2Nodes: MapNode[] = [
 	// Leg 5 (→, row 14)
 	{ id: 'w2l29', type: 'level', tile: tile(2,  14), levelNumber: '29', area: 2 }, // hex
 	// sg3: 50★ — gates l30 (minStars:50); inline between l29(2,14) and l30(5,14)
-	{ id: 'w2sg3', type: 'star_gate', tile: tile(4,  14), starsRequired: 50, area: 2 },
+	{ id: 'w2sg3', type: 'star_gate', tile: tile(4,  14), starsRequired: 90, area: 2 },
 	{ id: 'w2l30', type: 'level', tile: tile(5,  14), levelNumber: '30', area: 2 },
 	{ id: 'w2l31', type: 'level', tile: tile(8,  14), levelNumber: '31', area: 2 },
 	{ id: 'w2l32', type: 'level', tile: tile(11, 14), levelNumber: '32', area: 2 },
@@ -489,7 +489,7 @@ const world2Nodes: MapNode[] = [
 	{ id: 'w2l38', type: 'level', tile: tile(14, 17), levelNumber: '38', area: 2 },
 	{ id: 'w2l39', type: 'level', tile: tile(11, 17), levelNumber: '39', area: 2 },
 	// sg4: 60★ — gates l40 (minStars:60); inline between l39(11,17) and l40(8,17)
-	{ id: 'w2sg4', type: 'star_gate', tile: tile(10, 17), starsRequired: 60, area: 2 },
+	{ id: 'w2sg4', type: 'star_gate', tile: tile(10, 17), starsRequired: 110, area: 2 },
 	{ id: 'w2l40', type: 'level', tile: tile(8,  17), levelNumber: '40', area: 2 },
 	{ id: 'w2l41', type: 'level', tile: tile(5,  17), levelNumber: '41', area: 2 },
 	{ id: 'w2l42', type: 'level', tile: tile(2,  17), levelNumber: '42', area: 2 },
@@ -505,7 +505,7 @@ const world2Nodes: MapNode[] = [
 	{ id: 'w2l48', type: 'level', tile: tile(17, 20), levelNumber: '48', area: 3 },
 	{ id: 'w2l49', type: 'level', tile: tile(20, 20), levelNumber: '49', area: 3 },
 	// sg5: 80★ — gates l50 (minStars:80); on connector between legs 7 and 8
-	{ id: 'w2sg5', type: 'star_gate', tile: tile(20, 22), starsRequired: 80, area: 3 },
+	{ id: 'w2sg5', type: 'star_gate', tile: tile(20, 22), starsRequired: 145, area: 3 },
 	// Leg 8 (←, row 23)
 	{ id: 'w2l50', type: 'level', tile: tile(20, 23), levelNumber: '50', area: 3 },
 	{ id: 'w2l51', type: 'level', tile: tile(17, 23), levelNumber: '51', area: 3 },
@@ -519,7 +519,7 @@ const world2Nodes: MapNode[] = [
 	{ id: 'w2l58', type: 'level', tile: tile(5,  26), levelNumber: '58', area: 3 },
 	{ id: 'w2l59', type: 'level', tile: tile(8,  26), levelNumber: '59', area: 3 },
 	// sg6: 100★ — gates l60 (minStars:100); inline between l59(8,26) and l60(11,26)
-	{ id: 'w2sg6', type: 'star_gate', tile: tile(10, 26), starsRequired: 100, area: 3 },
+	{ id: 'w2sg6', type: 'star_gate', tile: tile(10, 26), starsRequired: 180, area: 3 },
 	{ id: 'w2l60', type: 'level', tile: tile(11, 26), levelNumber: '60', area: 3 },
 	{ id: 'w2l61', type: 'level', tile: tile(14, 26), levelNumber: '61', area: 3 },
 	{ id: 'w2l62', type: 'level', tile: tile(17, 26), levelNumber: '62', area: 3 },
@@ -535,7 +535,7 @@ const world2Nodes: MapNode[] = [
 	{ id: 'w2l68', type: 'level', tile: tile(8,  29), levelNumber: '68', area: 4 },
 	{ id: 'w2l69', type: 'level', tile: tile(5,  29), levelNumber: '69', area: 4 },
 	// sg7: 120★ — gates l70 (minStars:120); inline between l69(5,29) and l70(2,29)
-	{ id: 'w2sg7', type: 'star_gate', tile: tile(3,  29), starsRequired: 120, area: 4 },
+	{ id: 'w2sg7', type: 'star_gate', tile: tile(3,  29), starsRequired: 215, area: 4 },
 	{ id: 'w2l70', type: 'level', tile: tile(2,  29), levelNumber: '70', area: 4 },
 	// Leg 11 (→, row 32)
 	{ id: 'w2l71', type: 'level', tile: tile(2,  32), levelNumber: '71', area: 4 },
@@ -549,7 +549,7 @@ const world2Nodes: MapNode[] = [
 	{ id: 'w2l78', type: 'level', tile: tile(20, 35), levelNumber: '78', area: 4 },
 	{ id: 'w2l79', type: 'level', tile: tile(17, 35), levelNumber: '79', area: 4 },
 	// sg8: 150★ — gates l80 (minStars:150); inline between l79(17,35) and l80(14,35)
-	{ id: 'w2sg8', type: 'star_gate', tile: tile(16, 35), starsRequired: 150, area: 4 },
+	{ id: 'w2sg8', type: 'star_gate', tile: tile(16, 35), starsRequired: 270, area: 4 },
 	{ id: 'w2l80', type: 'level', tile: tile(14, 35), levelNumber: '80', area: 4 },
 	{ id: 'w2l81', type: 'level', tile: tile(11, 35), levelNumber: '81', area: 4 },
 	{ id: 'w2l82', type: 'level', tile: tile(8,  35), levelNumber: '82', area: 4 },
@@ -565,7 +565,7 @@ const world2Nodes: MapNode[] = [
 	{ id: 'w2l88', type: 'level', tile: tile(11, 38), levelNumber: '88', area: 5 },
 	{ id: 'w2l89', type: 'level', tile: tile(14, 38), levelNumber: '89', area: 5 },
 	// sg9: 200★ — gates l90 (minStars:200); inline between l89(14,38) and l90(17,38)
-	{ id: 'w2sg9', type: 'star_gate', tile: tile(16, 38), starsRequired: 200, area: 5 },
+	{ id: 'w2sg9', type: 'star_gate', tile: tile(16, 38), starsRequired: 360, area: 5 },
 	{ id: 'w2l90', type: 'level', tile: tile(17, 38), levelNumber: '90', area: 5 },
 	{ id: 'w2l91', type: 'level', tile: tile(20, 38), levelNumber: '91', area: 5 },
 	// Leg 14 (←, row 41)
@@ -577,7 +577,7 @@ const world2Nodes: MapNode[] = [
 	{ id: 'w2l97',  type: 'level', tile: tile(5,  41), levelNumber: '97',  area: 5 },
 	{ id: 'w2l98',  type: 'level', tile: tile(2,  41), levelNumber: '98',  area: 5 },
 	// sg10: 230★ — on connector between legs 14 and 15
-	{ id: 'w2sg10', type: 'star_gate', tile: tile(2,  43), starsRequired: 230, area: 5 },
+	{ id: 'w2sg10', type: 'star_gate', tile: tile(2,  43), starsRequired: 415, area: 5 },
 	// Leg 15 (→, row 44)
 	{ id: 'w2l99',  type: 'level', tile: tile(2,  44), levelNumber: '99',  area: 5 },
 	{ id: 'w2l100', type: 'level', tile: tile(5,  44), levelNumber: '100', area: 5 },
@@ -587,7 +587,7 @@ const world2Nodes: MapNode[] = [
 	{ id: 'w2l104', type: 'level', tile: tile(17, 44), levelNumber: '104', area: 5 },
 	{ id: 'w2l105', type: 'level', tile: tile(20, 44), levelNumber: '105', area: 5 },
 	// sg11: 250★ — on connector between legs 15 and 16; final gate before portal
-	{ id: 'w2sg11', type: 'star_gate', tile: tile(20, 46), starsRequired: 250, area: 5 },
+	{ id: 'w2sg11', type: 'star_gate', tile: tile(20, 46), starsRequired: 470, area: 5 },
 	// Leg 16 (←, row 47) — 5 levels (l106–l110)
 	{ id: 'w2l106', type: 'level', tile: tile(20, 47), levelNumber: '106', area: 5 },
 	{ id: 'w2l107', type: 'level', tile: tile(17, 47), levelNumber: '107', area: 5 },

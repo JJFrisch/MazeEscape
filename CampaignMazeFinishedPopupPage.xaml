@@ -47,7 +47,7 @@
                        HeightRequest="62"/>
             </Grid>
 
-            <Grid BackgroundColor="#F2F2F2"
+            <Grid BackgroundColor="White"
                   Padding="14,10"
                   RowDefinitions="Auto,2,Auto"
                   ColumnDefinitions="*,*"

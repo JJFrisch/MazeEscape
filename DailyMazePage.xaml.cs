@@ -112,7 +112,7 @@ public partial class DailyMazePage : ContentPage
     {
         if (RestartMonth)
         {
-            string mazeType = Maze.MazeTypes[rnd.Next(0, Maze.MazeTypes.Count)];
+            string mazeType = PickDailyMazeAlgorithm();
 
             DailyMazeLevel today = new DailyMazeLevel()
             {
@@ -133,7 +133,7 @@ public partial class DailyMazePage : ContentPage
 
             if (RestartMonth)
             {
-                string mazeType = Maze.MazeTypes[rnd.Next(0, Maze.MazeTypes.Count)];
+                string mazeType = PickDailyMazeAlgorithm();
 
                 //DateTime new_date_time = new DateTime(date_time.Year, date_time.Month, i);
 
@@ -1021,5 +1021,22 @@ public partial class DailyMazePage : ContentPage
     {
         base.OnDisappearing();
         hook?.Dispose();
+    }
+
+    private string PickDailyMazeAlgorithm()
+    {
+        var primsTypes = new HashSet<string>
+        {
+            "GeneratePrims", "GenerateGrowingTree_50_50", "GenerateGrowingTree_75_25",
+            "GenerateGrowingTree_25_75", "GenerateGrowingTree_50_0"
+        };
+        var pool = new List<string>();
+        foreach (var t in Maze.MazeTypes)
+        {
+            if (t == "GenerateBacktracking") continue;
+            pool.Add(t);
+            if (primsTypes.Contains(t)) pool.Add(t); // double weight for Prim's variants
+        }
+        return pool[rnd.Next(0, pool.Count)];
     }
 }

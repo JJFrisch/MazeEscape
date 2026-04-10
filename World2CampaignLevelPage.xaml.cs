@@ -256,6 +256,9 @@ public partial class World2CampaignLevelPage : ContentPage
 
     public void InitializeMaze()
     {
+        if (Level.Width * Level.Height > 100 && Level.LevelType == "GenerateBacktracking")
+            Level.LevelType = "GeneratePrims";
+
         Maze.MazeGenerationDelegateList[Level.LevelType](Level.Width, Level.Height);
 
         Level.TwoStarMoves = Math.Max((int)(Maze.PathLength * 1.01), Maze.PathLength + 5);

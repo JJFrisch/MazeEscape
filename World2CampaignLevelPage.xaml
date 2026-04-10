@@ -11,12 +11,12 @@
         <drawables:PlayerDrawable x:Key="playerDrawable"/>
     </ContentPage.Resources>
 
-    <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="WhiteSmoke" x:Name="PageAbsoluteLayout"
+    <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="White" x:Name="PageAbsoluteLayout"
                     toolkit:StateContainer.CurrentState="{Binding CurrentState}">
 
         <toolkit:StateContainer.StateViews>
 
-            <AbsoluteLayout BackgroundColor="LightBlue"
+            <AbsoluteLayout BackgroundColor="LightCyan"
                             toolkit:StateView.StateKey="Loading"
                             AbsoluteLayout.LayoutBounds="10,1,1,1"
                             AbsoluteLayout.LayoutFlags="All">

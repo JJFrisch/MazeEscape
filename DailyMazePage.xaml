@@ -14,12 +14,12 @@
 
     <AbsoluteLayout Margin="0,-80,0,0" x:Name="PageAbsoluteLayout"
                     toolkit:StateContainer.CurrentState="{Binding CurrentState}"
-                    BackgroundColor="WhiteSmoke">
+                    BackgroundColor="White">
 
 
         <toolkit:StateContainer.StateViews>
 
-            <AbsoluteLayout BackgroundColor="LightBlue"
+            <AbsoluteLayout BackgroundColor="LightCyan"
                     toolkit:StateView.StateKey="Calendar"
                     AbsoluteLayout.LayoutBounds="10,1,1,1"
                     AbsoluteLayout.LayoutFlags="All">

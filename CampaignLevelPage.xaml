@@ -13,12 +13,12 @@
 
   
 
-    <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="WhiteSmoke" x:Name="PageAbsoluteLayout"
+    <AbsoluteLayout Margin="0,-80,0,0" BackgroundColor="White" x:Name="PageAbsoluteLayout"
                     toolkit:StateContainer.CurrentState="{Binding CurrentState}">
         
         <toolkit:StateContainer.StateViews>
 
-            <AbsoluteLayout BackgroundColor="LightBlue"
+            <AbsoluteLayout BackgroundColor="LightCyan"
                             toolkit:StateView.StateKey="Loading"
                             AbsoluteLayout.LayoutBounds="10,1,1,1"
                             AbsoluteLayout.LayoutFlags="All">
@@ -113,7 +113,7 @@
                    AbsoluteLayout.LayoutFlags="All"
                    Source="aztec_background_1.png"
                    Aspect="Fill"
-                   Opacity="0.6"/>
+                   Opacity="0.2"/>
 
                     <Grid x:Name="mazeGrid"
               AbsoluteLayout.LayoutBounds="0,0,1,1"

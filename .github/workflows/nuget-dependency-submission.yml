@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@v4
@@ -27,11 +28,6 @@ jobs:
           dotnet restore MazeEscape.Web/MazeEscape.Web.csproj
           dotnet restore MazeEscape.Web.Tests/MazeEscape.Web.Tests.csproj
 
-      - uses: advanced-security/nuget-dependency-submission-action@v1
+      - uses: advanced-security/component-detection-dependency-submission-action@v0.1.1
         with:
-          solution-path: |
-            MazeEscape.Core/MazeEscape.Core.csproj
-            MazeEscape.Api/MazeEscape.Api.csproj
-            MazeEscape.Api.Tests/MazeEscape.Api.Tests.csproj
-            MazeEscape.Web/MazeEscape.Web.csproj
-            MazeEscape.Web.Tests/MazeEscape.Web.Tests.csproj
+          detectorsCategories: NuGet

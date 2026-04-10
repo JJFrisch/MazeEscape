@@ -223,10 +223,28 @@
 </svelte:head>
 
 {#if !unlocked}
-	<div class="locked-page">
-		<h1>🔒 Daily Maze Locked</h1>
-		<p>Complete World 1, Level 10 to unlock the Daily Maze!</p>
-		<a href="{base}/campaign/worlds/1" class="btn btn-primary">Go to World 1 →</a>
+	<div class="locked-shell">
+		<div class="locked-glow-1" aria-hidden="true"></div>
+		<div class="locked-glow-2" aria-hidden="true"></div>
+		<div class="locked-card">
+			<div class="locked-icon-wrap">
+				<svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+					<rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2"/>
+					<path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+				</svg>
+			</div>
+			<h1 class="locked-title">Daily Maze Locked</h1>
+			<p class="locked-desc">
+				Complete <strong>World 1, Level 10</strong> to unlock the Daily Maze —
+				a new procedural challenge every day.
+			</p>
+			<a href="{base}/campaign/worlds/1" class="locked-cta">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+					<polygon points="6,3 20,12 6,21" fill="currentColor"/>
+				</svg>
+				Play World 1
+			</a>
+		</div>
 	</div>
 {:else if !playing}
 	<div class="daily-page">
@@ -351,25 +369,104 @@
 {/if}
 
 <style>
-	.daily-page, .locked-page {
+	.daily-page {
 		max-width: 600px;
 		margin: 0 auto;
 		padding: var(--space-4);
 	}
 
-	.locked-page {
+	/* ── Locked state ───────────────────────────── */
+	.locked-shell {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 55vh;
+		padding: var(--space-8) var(--space-4);
+	}
+	.locked-glow-1 {
+		position: absolute;
+		width: 500px; height: 400px;
+		top: -60px; left: 50%;
+		transform: translateX(-50%);
+		background: radial-gradient(ellipse, rgba(56,189,248,0.07), transparent 65%);
+		filter: blur(70px);
+		pointer-events: none;
+	}
+	.locked-glow-2 {
+		position: absolute;
+		width: 400px; height: 300px;
+		bottom: -40px; left: 50%;
+		transform: translateX(-50%);
+		background: radial-gradient(ellipse, rgba(245,158,11,0.05), transparent 65%);
+		filter: blur(70px);
+		pointer-events: none;
+	}
+	.locked-card {
+		position: relative;
+		z-index: 1;
+		max-width: 420px;
 		text-align: center;
-		padding-top: var(--space-16);
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: var(--space-5);
+		padding: var(--space-10) var(--space-8);
+		background: rgba(8,16,32,0.85);
+		border: 1px solid rgba(56,189,248,0.15);
+		border-radius: var(--radius-2xl);
+		backdrop-filter: blur(20px);
+		box-shadow: 0 8px 48px rgba(0,0,0,0.5);
+		animation: fade-up 0.5s ease both;
 	}
+	@keyframes fade-up { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
 
-	.locked-page h1 {
-		font-size: var(--text-3xl);
-		margin-bottom: var(--space-4);
+	.locked-icon-wrap {
+		width: 72px; height: 72px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(56,189,248,0.08);
+		border: 1px solid rgba(56,189,248,0.2);
+		border-radius: var(--radius-2xl);
+		color: var(--color-accent-primary);
+		animation: float-y 4s ease-in-out infinite;
 	}
-
-	.locked-page p {
-		color: var(--color-text-muted);
-		margin-bottom: var(--space-8);
+	.locked-title {
+		font-family: var(--font-display);
+		font-size: var(--text-2xl);
+		font-weight: 700;
+		color: var(--color-text-primary);
+		letter-spacing: -0.02em;
+	}
+	.locked-desc {
+		font-size: var(--text-base);
+		color: var(--color-text-secondary);
+		line-height: 1.65;
+		max-width: 320px;
+	}
+	.locked-desc strong { color: var(--color-text-primary); }
+	.locked-cta {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 13px 28px;
+		background: var(--color-accent-primary);
+		color: #fff;
+		border-radius: var(--radius-lg);
+		font-family: var(--font-display);
+		font-weight: 700;
+		font-size: var(--text-base);
+		text-decoration: none;
+		transition: all var(--transition-base);
+		box-shadow: 0 0 28px rgba(56,189,248,0.3);
+		margin-top: var(--space-2);
+	}
+	.locked-cta:hover {
+		background: #0ea5e9;
+		box-shadow: 0 0 40px rgba(56,189,248,0.45);
+		transform: translateY(-2px);
+		color: #fff;
 	}
 
 	.page-title {

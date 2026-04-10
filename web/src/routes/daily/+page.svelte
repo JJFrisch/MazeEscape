@@ -188,6 +188,11 @@
 		coinsEarned = 50 + stars.total * 25;
 		gameStore.addCoins(coinsEarned);
 
+		// Track algorithm mastery for the deity system
+		if (selectedDaily.levelType) {
+			gameStore.recordAlgoMastery(selectedDaily.levelType);
+		}
+
 		const result: DailyMazeLevel = {
 			...selectedDaily,
 			status: 'completed',
@@ -283,8 +288,45 @@
 	</div>
 {:else if !playing}
 	<div class="daily-page">
-		<h1 class="page-title">📅 Daily Maze</h1>
-		<p class="page-subtitle">A new maze every day. Come back to complete your streak!</p>
+		<!-- Page header -->
+		<div class="page-header">
+			<div class="page-header-left">
+				<h1 class="page-title">📅 Daily Maze</h1>
+				<p class="page-subtitle">A new challenge every day. The labyrinth never rests.</p>
+			</div>
+
+			<!-- Streak counter -->
+			<div class="streak-panel">
+				<div class="streak-block" class:streak-active={(gameStore.player.currentStreak ?? 0) > 0}>
+					<span class="streak-flame">{(gameStore.player.currentStreak ?? 0) > 0 ? '🔥' : '💤'}</span>
+					<div class="streak-info">
+						<span class="streak-number">{gameStore.player.currentStreak ?? 0}</span>
+						<span class="streak-label">day streak</span>
+					</div>
+				</div>
+				<div class="streak-divider"></div>
+				<div class="streak-best">
+					<span class="streak-best-num">{gameStore.player.bestStreak ?? 0}</span>
+					<span class="streak-label">best</span>
+				</div>
+				{#if (gameStore.player.streakShieldsOwned ?? 0) > 0}
+					<div class="streak-shield-badge" title="Streak shields owned">
+						🛡️ {gameStore.player.streakShieldsOwned}
+					</div>
+				{/if}
+			</div>
+		</div>
+
+		<!-- Streak milestone hint -->
+		{#if (gameStore.player.currentStreak ?? 0) > 0}
+			{@const next = [3, 7, 14, 30, 60, 100].find(m => m > (gameStore.player.currentStreak ?? 0))}
+			{#if next}
+				<div class="streak-milestone-bar">
+					<div class="milestone-fill" style="width:{Math.min(((gameStore.player.currentStreak ?? 0) / next) * 100, 100)}%;"></div>
+					<span class="milestone-label">🎯 {next - (gameStore.player.currentStreak ?? 0)} day{next - (gameStore.player.currentStreak ?? 0) !== 1 ? 's' : ''} to {next}-day milestone</span>
+				</div>
+			{/if}
+		{/if}
 
 		<div class="calendar-header">
 			<button class="cal-nav" onclick={prevMonth}>◀</button>
@@ -507,16 +549,117 @@
 		color: #fff;
 	}
 
+	/* ── Page header ────────────────────────────── */
+	.page-header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--space-4);
+		margin-bottom: var(--space-5);
+		flex-wrap: wrap;
+	}
+	.page-header-left { flex: 1; min-width: 0; }
+
 	.page-title {
 		font-family: var(--font-display);
 		font-size: var(--text-2xl);
 		margin-bottom: var(--space-1);
 	}
-
 	.page-subtitle {
 		color: var(--color-text-muted);
 		font-size: var(--text-sm);
-		margin-bottom: var(--space-6);
+	}
+
+	/* ── Streak panel ────────────────────────────── */
+	.streak-panel {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-4);
+		background: rgba(255,255,255,0.03);
+		border: 1px solid rgba(255,255,255,0.08);
+		border-radius: var(--radius-xl);
+		backdrop-filter: blur(8px);
+		flex-shrink: 0;
+	}
+	.streak-block {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+	}
+	.streak-flame { font-size: 1.4rem; line-height: 1; }
+	.streak-info { display: flex; flex-direction: column; align-items: flex-start; }
+	.streak-number {
+		font-family: var(--font-display);
+		font-size: var(--text-2xl);
+		font-weight: 700;
+		color: var(--color-text-primary);
+		line-height: 1;
+	}
+	.streak-block.streak-active .streak-number { color: #f97316; }
+	.streak-label {
+		font-size: 9px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-text-muted);
+	}
+	.streak-divider {
+		width: 1px;
+		height: 32px;
+		background: rgba(255,255,255,0.08);
+	}
+	.streak-best {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+	}
+	.streak-best-num {
+		font-family: var(--font-display);
+		font-size: var(--text-lg);
+		font-weight: 700;
+		color: var(--color-accent-gold);
+		line-height: 1;
+	}
+	.streak-shield-badge {
+		font-size: var(--text-sm);
+		font-weight: 700;
+		padding: 4px 8px;
+		background: rgba(148,163,184,0.10);
+		border: 1px solid rgba(148,163,184,0.25);
+		border-radius: var(--radius-full);
+		color: #94a3b8;
+		cursor: default;
+	}
+
+	/* ── Streak milestone bar ────────────────────── */
+	.streak-milestone-bar {
+		position: relative;
+		height: 28px;
+		background: rgba(249,115,22,0.06);
+		border: 1px solid rgba(249,115,22,0.18);
+		border-radius: var(--radius-full);
+		margin-bottom: var(--space-5);
+		overflow: hidden;
+	}
+	.milestone-fill {
+		position: absolute;
+		top: 0; left: 0; bottom: 0;
+		background: linear-gradient(90deg, rgba(249,115,22,0.25), rgba(249,115,22,0.12));
+		border-radius: var(--radius-full);
+		transition: width 0.8s cubic-bezier(0.22,1,0.36,1);
+	}
+	.milestone-label {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		height: 100%;
+		padding: 0 var(--space-4);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		color: #f97316;
 	}
 
 	.calendar-header {

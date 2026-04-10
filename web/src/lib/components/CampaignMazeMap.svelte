@@ -18,7 +18,9 @@
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import type { WorldMapLayout, MapNode, MapCollectible } from '$lib/core/types';
 	import MapCollectiblePopup from '$lib/components/MapCollectiblePopup.svelte';
+	import EncounterCard from '$lib/components/EncounterCard.svelte';
 	import { WORLD_THEMES } from '$lib/worldThemes';
+	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
 
 	let { worldId, layout }: { worldId: number; layout: WorldMapLayout } = $props();
 
@@ -52,6 +54,14 @@
 
 	// Collectible popup
 	let activeCollectible = $state<MapCollectible | null>(null);
+
+	// Encounter card (D&D-style level info overlay)
+	let activeEncounterNode = $state<MapNode | null>(null);
+	const activeEncounterLevelDef = $derived.by(() => {
+		if (!activeEncounterNode?.levelNumber) return undefined;
+		const worldDef = getAllWorlds().find(w => w.worldId === worldId);
+		return worldDef ? getLevelByNumber(worldDef, activeEncounterNode.levelNumber) : undefined;
+	});
 
 	// ---------------------------------------------------------------------------
 	// Derived: player's furthest area and level nodes by area
@@ -236,7 +246,9 @@
 
 		if (node.type === 'level' || node.type === 'bonus_level') {
 			if (!isLevelUnlocked(node.levelNumber ?? '')) return;
-			goto(`${base}/campaign/play/${worldId}-${node.levelNumber}`);
+			// Open Encounter Card instead of direct navigate
+			activeEncounterNode = node;
+			return;
 		} else if (node.type === 'star_gate') {
 			const stars = gameStore.getWorldStarCount(worldId);
 			const needed = node.starsRequired ?? 0;
@@ -908,6 +920,16 @@
 		collectible={activeCollectible}
 		onCollect={() => onCollectibleCollect(activeCollectible!)}
 		onClose={() => { activeCollectible = null; }}
+	/>
+{/if}
+
+<!-- Encounter Card — D&D level info overlay -->
+{#if activeEncounterNode}
+	<EncounterCard
+		{worldId}
+		node={activeEncounterNode}
+		levelDef={activeEncounterLevelDef}
+		onclose={() => { activeEncounterNode = null; }}
 	/>
 {/if}
 

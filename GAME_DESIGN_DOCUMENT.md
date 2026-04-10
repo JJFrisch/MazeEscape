@@ -74,10 +74,10 @@ A **Codex** tab in the main nav reveals all 15 deities. Each entry shows:
 This is the algorithm-nerd hook. Players who care about graph theory get something no other puzzle game gives them: the actual maths, beautifully presented.
 
 ### Algorithm Mastery Rewards
-Each deity grants three rewards at 10 / 20 / 30 completions:
+Each deity grants three rewards at 10 / 80 / 200 completions:
 - **10 completions**: The deity's Sigil badge (shown in profile)
-- **20 completions**: Rare item (trail, powerup pack, or gems)
-- **30 completions**: **Algorithm skin** — a Legendary skin themed after that deity (Epic/Algorithm rarity, earned nowhere else)
+- **80 completions**: Rare item (trail, powerup pack, or gems)
+- **200 completions**: **Algorithm skin** — a Legendary skin themed after that deity (Epic/Algorithm rarity, earned nowhere else)
 
 The `CampaignLevel` type already has `levelType: MazeAlgorithm`. Daily maze also stores `levelType`. So mastery tracking is purely additive to the existing store.
 
@@ -329,8 +329,8 @@ Current Guild Rank shows in profile header with a badge icon.
 - "Area Conqueror" — Earn all 5 Area Trophies in a single world
 
 **The Speedrunner's Gauntlet** (Time-based)
-- "Flash Step" — Complete any level under 10 seconds
-- "The Quicksilver Mind" — Complete 5 levels with 5-star time (under par × 0.6)
+- "Flash Step" — Complete any level larger than 10x10 under 10 seconds
+- "The Quicksilver Mind" — Complete 5 levels with 20 seconds better than 5-star time 
 - "No Time to Think" — Complete a 15×15+ maze in under 30 seconds
 - "Ghost Protocol" — Beat your own previous best time on any level by 10+ seconds
 

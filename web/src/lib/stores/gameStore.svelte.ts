@@ -88,16 +88,32 @@ function defaultPlayerData(): PlayerData {
 		playerId: crypto.randomUUID(),
 		playerName: 'Player',
 		coinCount: 0,
+		gemCount: 0,
 		hintsOwned: 0,
 		extraTimesOwned: 0,
 		extraMovesOwned: 0,
+		// New consumables
+		compassOwned: 0,
+		hourglassOwned: 0,
+		blinkScrollsOwned: 0,
+		streakShieldsOwned: 0,
+		doubleCoinsTokensOwned: 0,
+		doubleCoinsActive: false,
 		currentWorldIndex: 0,
 		currentSkinId: 0,
 		unlockedSkinIds: [0], // Default skin is always unlocked
 		wallColor: '#000000',
 		monthPrize1Achieved: false,
 		monthPrize2Achieved: false,
-		mostRecentMonth: ''
+		mostRecentMonth: '',
+		// Streak
+		currentStreak: 0,
+		bestStreak: 0,
+		lastDailyDate: '',
+		// Mastery
+		algoMasteryCount: {},
+		// Lifetime
+		coinsEarnedLifetime: 0,
 	};
 }
 
@@ -199,16 +215,28 @@ function mapProfileRowToPlayerData(profile: ProfileRow | null, ownedSkins: Owned
 		playerId: profile.id,
 		playerName: profile.player_name,
 		coinCount: profile.coin_count,
+		gemCount: 0,
 		hintsOwned: profile.hints_owned,
 		extraTimesOwned: profile.extra_times_owned,
 		extraMovesOwned: profile.extra_moves_owned,
+		compassOwned: 0,
+		hourglassOwned: 0,
+		blinkScrollsOwned: 0,
+		streakShieldsOwned: 0,
+		doubleCoinsTokensOwned: 0,
+		doubleCoinsActive: false,
 		currentWorldIndex: 0,
 		currentSkinId: profile.current_skin_id,
 		unlockedSkinIds: Array.from(new Set([0, ...ownedSkins.map((row) => row.skin_id)])),
 		wallColor: profile.wall_color,
 		monthPrize1Achieved: profile.month_prize1_achieved,
 		monthPrize2Achieved: profile.month_prize2_achieved,
-		mostRecentMonth: profile.most_recent_month
+		mostRecentMonth: profile.most_recent_month,
+		currentStreak: 0,
+		bestStreak: 0,
+		lastDailyDate: '',
+		algoMasteryCount: {},
+		coinsEarnedLifetime: 0,
 	};
 }
 
@@ -555,7 +583,11 @@ function createGameStore() {
 	// --- Player mutations ---
 
 	function addCoins(amount: number) {
-		player.coinCount += amount;
+		// Double-coin token: consume and double the reward
+		const effective = player.doubleCoinsActive ? amount * 2 : amount;
+		if (player.doubleCoinsActive) player.doubleCoinsActive = false;
+		player.coinCount += effective;
+		player.coinsEarnedLifetime = (player.coinsEarnedLifetime ?? 0) + effective;
 		touchPlayer();
 		save();
 	}
@@ -605,34 +637,102 @@ function createGameStore() {
 		return true;
 	}
 
-	function addPowerup(name: 'hint' | 'extraTime' | 'extraMoves') {
+	function addPowerup(name: import('$lib/core/types').PowerupName) {
 		if (name === 'hint') player.hintsOwned++;
 		else if (name === 'extraTime') player.extraTimesOwned++;
 		else if (name === 'extraMoves') player.extraMovesOwned++;
+		else if (name === 'compass') player.compassOwned = (player.compassOwned ?? 0) + 1;
+		else if (name === 'hourglass') player.hourglassOwned = (player.hourglassOwned ?? 0) + 1;
+		else if (name === 'blinkScroll') player.blinkScrollsOwned = (player.blinkScrollsOwned ?? 0) + 1;
+		else if (name === 'streakShield') player.streakShieldsOwned = (player.streakShieldsOwned ?? 0) + 1;
+		else if (name === 'doubleCoinsToken') player.doubleCoinsTokensOwned = (player.doubleCoinsTokensOwned ?? 0) + 1;
 		touchPlayer();
 		save();
 	}
 
-	function usePowerup(name: 'hint' | 'extraTime' | 'extraMoves'): boolean {
+	function usePowerup(name: import('$lib/core/types').PowerupName): boolean {
 		if (name === 'hint' && player.hintsOwned > 0) {
 			player.hintsOwned--;
-			touchPlayer();
-			save();
-			return true;
+			touchPlayer(); save(); return true;
 		}
 		if (name === 'extraTime' && player.extraTimesOwned > 0) {
 			player.extraTimesOwned--;
-			touchPlayer();
-			save();
-			return true;
+			touchPlayer(); save(); return true;
 		}
 		if (name === 'extraMoves' && player.extraMovesOwned > 0) {
 			player.extraMovesOwned--;
-			touchPlayer();
-			save();
-			return true;
+			touchPlayer(); save(); return true;
+		}
+		if (name === 'compass' && (player.compassOwned ?? 0) > 0) {
+			player.compassOwned--;
+			touchPlayer(); save(); return true;
+		}
+		if (name === 'hourglass' && (player.hourglassOwned ?? 0) > 0) {
+			player.hourglassOwned--;
+			touchPlayer(); save(); return true;
+		}
+		if (name === 'blinkScroll' && (player.blinkScrollsOwned ?? 0) > 0) {
+			player.blinkScrollsOwned--;
+			touchPlayer(); save(); return true;
+		}
+		if (name === 'streakShield' && (player.streakShieldsOwned ?? 0) > 0) {
+			player.streakShieldsOwned--;
+			touchPlayer(); save(); return true;
+		}
+		if (name === 'doubleCoinsToken' && (player.doubleCoinsTokensOwned ?? 0) > 0) {
+			player.doubleCoinsTokensOwned--;
+			player.doubleCoinsActive = true;
+			touchPlayer(); save(); return true;
 		}
 		return false;
+	}
+
+	// --- Key inventory (for key-gate collectibles) ---
+	function hasKey(keyItemId: string): boolean {
+		const store = loadFromStorage<Record<string, boolean>>('mazeescape_keys', {});
+		return !!store[keyItemId];
+	}
+	function addKey(keyItemId: string) {
+		const store = loadFromStorage<Record<string, boolean>>('mazeescape_keys', {});
+		store[keyItemId] = true;
+		saveToStorage('mazeescape_keys', store);
+	}
+
+	// --- Map collectibles (campaign map chest/gem/etc collection state) ---
+	const MAP_ITEMS_KEY = 'mazeescape_map_items';
+	function _getMapItems(): Record<string, boolean> {
+		if (typeof window === 'undefined') return {};
+		try { return JSON.parse(localStorage.getItem(MAP_ITEMS_KEY) ?? '{}'); } catch { return {}; }
+	}
+	function isMapItemCollected(worldId: number, itemId: string): boolean {
+		return !!_getMapItems()[`${worldId}:${itemId}`];
+	}
+	function collectMapItem(worldId: number, itemId: string) {
+		const items = _getMapItems();
+		items[`${worldId}:${itemId}`] = true;
+		if (typeof window !== 'undefined') {
+			try { localStorage.setItem(MAP_ITEMS_KEY, JSON.stringify(items)); } catch { /* ignore */ }
+		}
+	}
+
+	// --- World area progression ---
+	function getHighestAreaUnlocked(worldId: number): number {
+		const world = worlds.find(w => w.worldId === worldId);
+		if (!world) return 1;
+		const stars = getWorldStarCount(worldId);
+		let highest = 1;
+		for (let i = 0; i < world.gateStarRequired.length; i++) {
+			if (stars >= world.gateStarRequired[i]) highest = i + 2;
+		}
+		return highest;
+	}
+
+	/** Track algorithm mastery whenever a maze is completed */
+	function recordAlgoMastery(algorithm: import('$lib/core/types').MazeAlgorithm) {
+		if (!player.algoMasteryCount) player.algoMasteryCount = {};
+		player.algoMasteryCount[algorithm] = (player.algoMasteryCount[algorithm] ?? 0) + 1;
+		touchPlayer();
+		save();
 	}
 
 	// --- Level progress ---
@@ -678,9 +778,55 @@ function createGameStore() {
 	}
 
 	function saveDailyResult(result: DailyMazeLevel) {
+		// Only update streak if this is a new completion (not a retry of already-completed)
+		const existing = dailyResults[result.shortDate];
+		const isFirstCompletion = !existing || existing.status !== 'completed';
+
 		dailyResults[result.shortDate] = { ...result };
 		touchDaily(result.shortDate);
+
+		if (isFirstCompletion && result.status === 'completed') {
+			_updateStreak(result.shortDate);
+		}
+
 		save();
+	}
+
+	function _updateStreak(shortDate: string) {
+		// Parse shortDate 'M/D/YYYY' into a Date (local noon to avoid DST edge cases)
+		function parseSd(sd: string): Date {
+			const [m, d, y] = sd.split('/').map(Number);
+			return new Date(y, m - 1, d, 12, 0, 0);
+		}
+		function daysBetween(a: Date, b: Date): number {
+			return Math.round((b.getTime() - a.getTime()) / 86_400_000);
+		}
+
+		const last = player.lastDailyDate;
+		const todayDate = parseSd(shortDate);
+
+		if (!last) {
+			player.currentStreak = 1;
+		} else {
+			if (last === shortDate) {
+				// Same day repeat — no change
+				return;
+			}
+			const diff = daysBetween(parseSd(last), todayDate);
+			if (diff === 1) {
+				player.currentStreak = (player.currentStreak ?? 0) + 1;
+			} else if (diff === 2 && (player.streakShieldsOwned ?? 0) > 0) {
+				// Gap of exactly one missed day — burn a shield
+				player.streakShieldsOwned--;
+				player.currentStreak = (player.currentStreak ?? 0) + 1;
+			} else {
+				player.currentStreak = 1;
+			}
+		}
+
+		player.bestStreak = Math.max(player.bestStreak ?? 0, player.currentStreak);
+		player.lastDailyDate = shortDate;
+		touchPlayer();
 	}
 
 	function isDailyMazeUnlocked(): boolean {
@@ -725,11 +871,17 @@ function createGameStore() {
 		buySkin,
 		addPowerup,
 		usePowerup,
+		recordAlgoMastery,
 		getLevelProgress,
 		saveLevelProgress,
 		getWorldStarCount,
 		getDailyResult,
 		saveDailyResult,
-		isDailyMazeUnlocked
+		isDailyMazeUnlocked,
+		hasKey,
+		addKey,
+		isMapItemCollected,
+		collectMapItem,
+		getHighestAreaUnlocked
 	};
 }

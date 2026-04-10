@@ -127,6 +127,13 @@ export interface PlayerData {
 	hintsOwned: number;
 	extraTimesOwned: number;
 	extraMovesOwned: number;
+	// New consumables
+	compassOwned: number;
+	hourglassOwned: number;
+	blinkScrollsOwned: number;
+	streakShieldsOwned: number;
+	doubleCoinsTokensOwned: number;
+	doubleCoinsActive: boolean;
 	currentWorldIndex: number;
 	currentSkinId: number;
 	unlockedSkinIds: number[];
@@ -134,6 +141,14 @@ export interface PlayerData {
 	monthPrize1Achieved: boolean;
 	monthPrize2Achieved: boolean;
 	mostRecentMonth: string;
+	// Streak tracking
+	currentStreak: number;
+	bestStreak: number;
+	lastDailyDate: string; // 'M/D/YYYY'
+	// Algorithm mastery (completions per algorithm type)
+	algoMasteryCount: Partial<Record<MazeAlgorithm, number>>;
+	// Lifetime stats
+	coinsEarnedLifetime: number;
 }
 
 export type MazeAlgorithm =
@@ -229,17 +244,108 @@ export interface TriMazeData {
 	end: { col: number; row: number };
 }
 
+export type PowerupName =
+	| 'hint'
+	| 'extraTime'
+	| 'extraMoves'
+	| 'compass'
+	| 'hourglass'
+	| 'blinkScroll'
+	| 'streakShield'
+	| 'doubleCoinsToken';
+
 export interface PowerupCost {
-	name: string;
+	name: PowerupName;
 	displayName: string;
 	cost: number;
 	icon: string;
+	description: string;
+	flavorText: string;
+	rarity: 'common' | 'uncommon' | 'rare';
+	accentColor: string;
 }
 
 export const POWERUP_COSTS: PowerupCost[] = [
-	{ name: 'hint', displayName: 'Hint', cost: 200, icon: '💡' },
-	{ name: 'extraTime', displayName: 'Extra Time', cost: 150, icon: '⏱️' },
-	{ name: 'extraMoves', displayName: 'Extra Moves', cost: 50, icon: '👟' }
+	{
+		name: 'hint',
+		displayName: 'Hint',
+		cost: 200,
+		icon: '💡',
+		description: 'Reveals the full path to the exit.',
+		flavorText: 'A gift from the Patient Cartographer.',
+		rarity: 'common',
+		accentColor: 'rgba(56,189,248,'
+	},
+	{
+		name: 'extraTime',
+		displayName: 'Extra Time',
+		cost: 150,
+		icon: '⏱️',
+		description: 'Adds bonus seconds toward 3-star time.',
+		flavorText: 'The Coiling Dreamer bends the clock.',
+		rarity: 'common',
+		accentColor: 'rgba(167,139,250,'
+	},
+	{
+		name: 'extraMoves',
+		displayName: 'Extra Moves',
+		cost: 50,
+		icon: '👣',
+		description: 'Adds bonus moves toward 2-star threshold.',
+		flavorText: 'The Wanderer grants you extra steps.',
+		rarity: 'common',
+		accentColor: 'rgba(52,211,153,'
+	},
+	{
+		name: 'compass',
+		displayName: 'Compass',
+		cost: 75,
+		icon: '🧭',
+		description: 'Flashes the exit direction for 3 seconds.',
+		flavorText: 'It knows not your path, only your destination\'s bearing.',
+		rarity: 'common',
+		accentColor: 'rgba(251,191,36,'
+	},
+	{
+		name: 'hourglass',
+		displayName: 'Hourglass',
+		cost: 300,
+		icon: '⌛',
+		description: 'Freezes the timer for 15 seconds.',
+		flavorText: 'The Coiling Dreamer slows time for those who ask kindly.',
+		rarity: 'uncommon',
+		accentColor: 'rgba(34,211,238,'
+	},
+	{
+		name: 'blinkScroll',
+		displayName: 'Blink Scroll',
+		cost: 450,
+		icon: '📜',
+		description: 'Returns to start without ending the run or costing moves.',
+		flavorText: 'The Wanderer walked these halls before you. Step where he stepped.',
+		rarity: 'rare',
+		accentColor: 'rgba(249,115,22,'
+	},
+	{
+		name: 'streakShield',
+		displayName: 'Streak Shield',
+		cost: 800,
+		icon: '🛡️',
+		description: 'Protects your daily streak if you miss one day.',
+		flavorText: 'A pact with the Hunter. Miss a day — this burns in your place.',
+		rarity: 'rare',
+		accentColor: 'rgba(148,163,184,'
+	},
+	{
+		name: 'doubleCoinsToken',
+		displayName: 'Double Coins',
+		cost: 600,
+		icon: '🪙',
+		description: 'Your next maze completion earns 2× coins.',
+		flavorText: 'The Greedy Arborist\'s blessing — the next path you carve yields twice the reward.',
+		rarity: 'uncommon',
+		accentColor: 'rgba(245,158,11,'
+	},
 ];
 
 // ---------------------------------------------------------------------------

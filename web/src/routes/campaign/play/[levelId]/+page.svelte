@@ -160,8 +160,11 @@
 		const stars = calculateStars(
 			session.moves,
 			elapsed,
+			session.hintsUsed,
 			levelDef.twoStarMoves,
-			levelDef.threeStarTime
+			levelDef.threeStarTime,
+			levelDef.fiveStarMoves,
+			levelDef.fiveStarTime
 		);
 		victoryStars = stars;
 
@@ -169,6 +172,9 @@
 		const baseCoins = Math.floor(Math.random() * 100) + 50;
 		coinsEarned = baseCoins + stars.total * 25;
 		gameStore.addCoins(coinsEarned);
+
+		// Track algorithm mastery for the deity system
+		gameStore.recordAlgoMastery(levelDef.levelType);
 
 		// Save progress
 		const updatedLevel = {

@@ -140,6 +140,7 @@ victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: 
 			moves: moves + 1,
 			elapsed: session.elapsed,
 			isComplete,
+			hintsUsed: session.hintsUsed,
 			hintPath: null
 		};
 

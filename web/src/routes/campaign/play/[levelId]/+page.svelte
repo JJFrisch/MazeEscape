@@ -254,7 +254,7 @@
 			if (!canMove(maze.cells, playerPos, direction, maze.width, maze.height)) return;
 			const newPos = applyMove(playerPos, direction);
 			const isComplete = newPos.x === maze.end.x && newPos.y === maze.end.y;
-			session = { maze, playerPos: newPos, moves: moves + 1, elapsed: session.elapsed, isComplete, hintPath: null };
+			session = { maze, playerPos: newPos, moves: moves + 1, elapsed: session.elapsed, isComplete, hintsUsed: session.hintsUsed, hintPath: null };
 			visitedCells = new Set([...visitedCells, `${newPos.x},${newPos.y}`]);
 			if (isComplete) onLevelComplete();
 		}

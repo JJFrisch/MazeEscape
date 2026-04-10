@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { SupabaseConfigError } from '$lib/supabase/client';
 	import {
 		fetchCampaignLeaderboard,
 		fetchDailyLeaderboard,
@@ -10,11 +11,14 @@
 	} from '$lib/supabase/leaderboards';
 
 	type LeaderboardTab = 'daily' | 'campaign';
+	type LeaderboardErrorKind = 'config' | 'query' | '';
 
 	let activeTab = $state<LeaderboardTab>('daily');
 	let loading = $state(true);
 	let dailyLoading = $state(false);
 	let errorMessage = $state('');
+	let errorKind = $state<LeaderboardErrorKind>('');
+	let diagnosticsMessage = $state('');
 	let selectedDay = $state('');
 	let availableDays = $state<DailyLeaderboardDayRow[]>([]);
 	let dailyEntries = $state<DailyLeaderboardEntryRow[]>([]);
@@ -61,6 +65,31 @@
 		return ['First', 'Second', 'Third'][index] ?? `Top ${index + 1}`;
 	}
 
+	function resetErrorState() {
+		errorMessage = '';
+		errorKind = '';
+		diagnosticsMessage = '';
+	}
+
+	function getErrorMessage(error: unknown, fallback: string): string {
+		return error instanceof Error && error.message ? error.message : fallback;
+	}
+
+	function handleLeaderboardError(scope: 'daily' | 'initial', error: unknown, fallback: string) {
+		console.error(`[leaderboard] ${scope} load failed`, error);
+
+		if (error instanceof SupabaseConfigError) {
+			errorKind = 'config';
+			errorMessage = 'Supabase public env vars were missing when this site was built.';
+			diagnosticsMessage = 'Build diagnostics: re-run the GitHub Pages web deploy after updating PUBLIC_SUPABASE_URL and PUBLIC_SUPABASE_PUBLISHABLE_KEY.';
+			return;
+		}
+
+		errorKind = 'query';
+		errorMessage = getErrorMessage(error, fallback);
+		diagnosticsMessage = 'Query diagnostics: Supabase did not return leaderboard data. Check the browser console for the full error payload and verify the leaderboard views remain publicly readable.';
+	}
+
 	async function loadDailyEntries(shortDate: string) {
 		if (!shortDate) {
 			dailyEntries = [];
@@ -68,11 +97,11 @@
 		}
 
 		dailyLoading = true;
-		errorMessage = '';
+		resetErrorState();
 		try {
 			dailyEntries = await fetchDailyLeaderboard(shortDate);
 		} catch (error) {
-			errorMessage = error instanceof Error ? error.message : 'Failed to load the daily leaderboard.';
+			handleLeaderboardError('daily', error, 'Failed to load the daily leaderboard.');
 			dailyEntries = [];
 		} finally {
 			dailyLoading = false;
@@ -81,7 +110,7 @@
 
 	async function loadLeaderboards() {
 		loading = true;
-		errorMessage = '';
+		resetErrorState();
 		try {
 			const [days, campaign] = await Promise.all([
 				fetchDailyLeaderboardDays(),
@@ -98,7 +127,7 @@
 				dailyEntries = [];
 			}
 		} catch (error) {
-			errorMessage = error instanceof Error ? error.message : 'Failed to load the leaderboard.';
+			handleLeaderboardError('initial', error, 'Failed to load the leaderboard.');
 			availableDays = [];
 			dailyEntries = [];
 			campaignEntries = [];
@@ -164,9 +193,12 @@
 		</section>
 	{:else if errorMessage}
 		<section class="state-card error">
+			<div class:state-diagnostic-config={errorKind === 'config'} class:state-diagnostic-query={errorKind === 'query'} class="state-diagnostic">
+				{errorKind === 'config' ? 'Build diagnostics' : 'Query diagnostics'}
+			</div>
 			<div class="state-title">Leaderboard unavailable</div>
 			<p>{errorMessage}</p>
-			<p class="state-note">If Supabase is not configured locally, the page will stay offline until those public env vars are present.</p>
+			<p class="state-note">{diagnosticsMessage}</p>
 		</section>
 	{:else}
 		{#if activeTab === 'daily'}
@@ -601,6 +633,31 @@
 
 	.state-card {
 		padding: var(--space-6);
+	}
+
+	.state-diagnostic {
+		display: inline-flex;
+		align-items: center;
+		margin-bottom: var(--space-3);
+		padding: 0.35rem 0.7rem;
+		border-radius: var(--radius-full);
+		border: 1px solid rgba(255, 255, 255, 0.14);
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+	}
+
+	.state-diagnostic-config {
+		background: rgba(245, 158, 11, 0.14);
+		border-color: rgba(245, 158, 11, 0.3);
+		color: rgba(253, 224, 71, 0.95);
+	}
+
+	.state-diagnostic-query {
+		background: rgba(56, 189, 248, 0.12);
+		border-color: rgba(56, 189, 248, 0.28);
+		color: rgba(125, 211, 252, 0.98);
 	}
 
 	.state-card.error {

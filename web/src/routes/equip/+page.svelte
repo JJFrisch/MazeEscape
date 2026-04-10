@@ -22,10 +22,10 @@
 	function confirmBuy() {
 		if (!confirmSkin) return;
 		if (gameStore.buySkin(confirmSkin.id)) {
-			buyMsg = `Bought ${confirmSkin.name}!`;
+			buyMsg = `${confirmSkin.name} equipped!`;
 			gameStore.equipSkin(confirmSkin.id);
 			confirmSkin = null;
-			setTimeout(() => buyMsg = '', 2000);
+			setTimeout(() => buyMsg = '', 2500);
 		}
 	}
 </script>
@@ -34,81 +34,113 @@
 	<title>Equip – Maze Escape: Pathbound</title>
 </svelte:head>
 
+{#if buyMsg}
+	<div class="toast">{buyMsg}</div>
+{/if}
+
 <div class="equip-page">
-	<h1 class="page-title">🎨 Skins</h1>
-	<p class="page-subtitle">Customize your maze runner. Tap to equip or purchase.</p>
-	<div class="balance-row">
-		<span class="balance-item">{gameStore.player.coinCount} 🪙</span>
-		<span class="balance-item gem">{gameStore.player.gemCount} 💎</span>
+	<!-- Header -->
+	<div class="equip-header">
+		<div>
+			<div class="page-eyebrow">
+				<span class="eyebrow-dot"></span>
+				Customization
+			</div>
+			<h1 class="page-title">Skins</h1>
+			<p class="page-sub">Customize your maze runner. Tap to equip or purchase.</p>
+		</div>
+		<div class="balance-chips">
+			<div class="balance-chip coin-chip">
+				<img src="{base}/images/coin.png" alt="" class="chip-icon" aria-hidden="true" />
+				<span>{gameStore.player.coinCount.toLocaleString()}</span>
+			</div>
+			<div class="balance-chip gem-chip">
+				<span class="gem-icon">💎</span>
+				<span>{gameStore.player.gemCount}</span>
+			</div>
+		</div>
 	</div>
 
-	{#if buyMsg}
-		<div class="toast">{buyMsg}</div>
-	{/if}
-
+	<!-- Grid -->
 	<div class="skins-grid">
 		{#each SKIN_CATALOG as skin}
 			{@const owned = ownedIds.has(skin.id)}
 			{@const equipped = equippedId === skin.id}
+			{@const isSpecialLocked = !owned && skin.coinPrice === 0 && skin.gemPrice === 0 && skin.isSpecialSkin}
 			<button
 				class="skin-card"
 				class:owned
 				class:equipped
-				class:locked={!owned && skin.coinPrice === 0 && skin.gemPrice === 0 && skin.isSpecialSkin}
+				class:special-locked={isSpecialLocked}
 				onclick={() => onSkinClick(skin)}
+				title={skin.name}
+				disabled={isSpecialLocked}
 			>
-				<div class="skin-preview">
+				<!-- Equipped ring -->
+				{#if equipped}
+					<div class="equipped-ring" aria-hidden="true"></div>
+				{/if}
+
+				<div class="skin-img-wrap">
 					<img
 						src="{base}/images/{skin.imageUrl}_icon.png"
 						alt={skin.name}
 						class="skin-img"
 					/>
 				</div>
+
 				<span class="skin-name">{skin.name}</span>
+
 				{#if equipped}
-					<span class="skin-badge equipped-badge">Equipped</span>
+					<span class="skin-badge badge-equipped">Equipped</span>
 				{:else if owned}
-					<span class="skin-badge owned-badge">Owned</span>
+					<span class="skin-badge badge-owned">Owned</span>
 				{:else if skin.coinPrice > 0}
-					<span class="skin-badge price-badge">{skin.coinPrice} 🪙</span>
+					<span class="skin-badge badge-coin">{skin.coinPrice.toLocaleString()} 🪙</span>
 				{:else if skin.gemPrice > 0}
-					<span class="skin-badge gem-badge">{skin.gemPrice} 💎</span>
+					<span class="skin-badge badge-gem">{skin.gemPrice} 💎</span>
 				{:else}
-					<span class="skin-badge locked-badge">🔒 Special</span>
+					<span class="skin-badge badge-special">🔒 Special</span>
 				{/if}
 			</button>
 		{/each}
 	</div>
 </div>
 
+<!-- Purchase modal -->
 <Modal open={!!confirmSkin} onclose={() => confirmSkin = null}>
 	{#if confirmSkin}
-		<div class="confirm-buy">
-			<div class="confirm-preview">
+		<div class="confirm-modal">
+			<div class="confirm-img-wrap">
 				<img
 					src="{base}/images/{confirmSkin.imageUrl}_icon.png"
 					alt={confirmSkin.name}
-					class="confirm-skin-img"
+					class="confirm-img"
 				/>
 			</div>
-			<h2>Buy {confirmSkin.name}?</h2>
-		{#if confirmSkin.gemPrice > 0}
-			<p class="confirm-price">{confirmSkin.gemPrice} 💎</p>
-			<p class="confirm-balance">Gems: {gameStore.player.gemCount} 💎</p>
-			{#if gameStore.player.gemCount < confirmSkin.gemPrice}
-				<p class="confirm-cant-afford">Not enough gems!</p>
+			<h2 class="confirm-title">Buy {confirmSkin.name}?</h2>
+
+			{#if confirmSkin.gemPrice > 0}
+				<div class="confirm-price gem-price">{confirmSkin.gemPrice} 💎</div>
+				<p class="confirm-balance">Your gems: {gameStore.player.gemCount} 💎</p>
+				{#if gameStore.player.gemCount < confirmSkin.gemPrice}
+					<p class="confirm-error">Not enough gems!</p>
+				{/if}
+			{:else}
+				<div class="confirm-price coin-price">
+					<img src="{base}/images/coin.png" alt="" class="confirm-coin" aria-hidden="true" />
+					{confirmSkin.coinPrice.toLocaleString()}
+				</div>
+				<p class="confirm-balance">Your coins: {gameStore.player.coinCount.toLocaleString()}</p>
+				{#if gameStore.player.coinCount < confirmSkin.coinPrice}
+					<p class="confirm-error">Not enough coins!</p>
+				{/if}
 			{/if}
-		{:else}
-			<p class="confirm-price">{confirmSkin.coinPrice} 🪙</p>
-			<p class="confirm-balance">Balance: {gameStore.player.coinCount} 🪙</p>
-			{#if gameStore.player.coinCount < confirmSkin.coinPrice}
-				<p class="confirm-cant-afford">Not enough coins!</p>
-			{/if}
-			{/if}
+
 			<div class="confirm-actions">
-				<button class="btn btn-ghost" onclick={() => confirmSkin = null}>Cancel</button>
+				<button class="modal-btn btn-cancel" onclick={() => confirmSkin = null}>Cancel</button>
 				<button
-					class="btn btn-primary"
+					class="modal-btn btn-buy"
 					disabled={confirmSkin.gemPrice > 0
 						? gameStore.player.gemCount < confirmSkin.gemPrice
 						: gameStore.player.coinCount < confirmSkin.coinPrice}
@@ -122,71 +154,184 @@
 </Modal>
 
 <style>
-	.equip-page {
-		max-width: 700px;
-		margin: 0 auto;
-		padding: var(--space-4);
+	@keyframes fade-up {
+		from { opacity: 0; transform: translateY(16px); }
+		to   { opacity: 1; transform: translateY(0); }
+	}
+	@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+	@keyframes ring-spin {
+		0%   { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
 	}
 
+	.equip-page {
+		max-width: 960px;
+		margin: 0 auto;
+		animation: fade-up 0.4s ease both;
+	}
+
+	/* ── Header ─────────────────────────────────── */
+	.equip-header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--space-6);
+		margin-bottom: var(--space-10);
+		flex-wrap: wrap;
+	}
+
+	.page-eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 5px 14px;
+		background: rgba(56, 189, 248, 0.08);
+		border: 1px solid rgba(56, 189, 248, 0.25);
+		border-radius: var(--radius-full);
+		font-size: var(--text-xs);
+		font-weight: 700;
+		letter-spacing: 0.10em;
+		text-transform: uppercase;
+		color: #93c5fd;
+		margin-bottom: var(--space-3);
+	}
+	.eyebrow-dot {
+		width: 6px; height: 6px;
+		background: var(--color-accent-primary);
+		border-radius: 50%;
+		box-shadow: 0 0 6px var(--color-accent-primary);
+		animation: pulse 2s ease-in-out infinite;
+	}
 	.page-title {
 		font-family: var(--font-display);
-		font-size: var(--text-2xl);
-		margin-bottom: var(--space-1);
+		font-size: clamp(1.8rem, 4vw, 2.5rem);
+		font-weight: 700;
+		color: var(--color-text-primary);
+		letter-spacing: -0.02em;
+		margin-bottom: var(--space-2);
+	}
+	.page-sub {
+		color: var(--color-text-secondary);
+		font-size: var(--text-base);
 	}
 
-	.page-subtitle {
-		color: var(--color-text-muted);
+	/* Balance chips */
+	.balance-chips {
+		display: flex;
+		gap: var(--space-2);
+		flex-shrink: 0;
+		margin-top: var(--space-3);
+	}
+	.balance-chip {
+		display: flex;
+		align-items: center;
+		gap: var(--space-1);
+		padding: 7px 14px;
+		border-radius: var(--radius-full);
+		font-family: var(--font-display);
+		font-weight: 700;
 		font-size: var(--text-sm);
-		margin-bottom: var(--space-6);
 	}
-
-	.toast {
-		background: var(--color-accent-green);
-		color: #000;
-		padding: var(--space-2) var(--space-4);
-		border-radius: var(--radius-md);
-		text-align: center;
-		font-weight: 600;
-		margin-bottom: var(--space-4);
+	.coin-chip {
+		background: rgba(245,158,11,0.08);
+		border: 1px solid rgba(245,158,11,0.25);
+		color: var(--color-accent-gold);
 	}
+	.gem-chip {
+		background: rgba(124,58,237,0.12);
+		border: 1px solid rgba(124,58,237,0.3);
+		color: #a78bfa;
+	}
+	.chip-icon {
+		width: 16px;
+		height: 16px;
+		object-fit: contain;
+	}
+	.gem-icon { font-size: 14px; }
 
+	/* ── Skins Grid ─────────────────────────────── */
 	.skins-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
 		gap: var(--space-3);
 	}
 
 	.skin-card {
+		position: relative;
 		background: var(--color-bg-card);
-		border: 2px solid var(--color-border);
-		border-radius: var(--radius-lg);
-		padding: var(--space-3);
+		border: 1px solid rgba(255,255,255,0.07);
+		border-radius: var(--radius-xl);
+		padding: var(--space-4) var(--space-3);
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: var(--space-2);
 		cursor: pointer;
 		transition: all var(--transition-fast);
+		backdrop-filter: blur(8px);
+		box-shadow: var(--shadow-card);
+		overflow: hidden;
+	}
+	.skin-card::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(135deg, rgba(56,189,248,0.04), transparent);
+		opacity: 0;
+		transition: opacity var(--transition-fast);
+	}
+	.skin-card:hover:not(:disabled) {
+		border-color: rgba(56,189,248,0.3);
+		transform: translateY(-3px);
+		box-shadow: var(--shadow-card), 0 0 20px rgba(56,189,248,0.1);
+	}
+	.skin-card:hover:not(:disabled)::before { opacity: 1; }
+
+	.skin-card.equipped {
+		border-color: var(--color-accent-primary);
+		background: rgba(56,189,248,0.06);
+		box-shadow: var(--shadow-card), 0 0 24px rgba(56,189,248,0.2);
+	}
+	.skin-card.special-locked {
+		opacity: 0.45;
+		cursor: not-allowed;
+		filter: grayscale(0.4);
 	}
 
-	.skin-card:hover { border-color: var(--color-accent-secondary); }
-	.skin-card.equipped { border-color: var(--color-accent-primary); box-shadow: var(--shadow-glow); }
-	.skin-card.locked { opacity: 0.5; cursor: default; }
+	/* Equipped ring */
+	.equipped-ring {
+		position: absolute;
+		inset: -1px;
+		border-radius: var(--radius-xl);
+		border: 2px solid var(--color-accent-primary);
+		box-shadow: inset 0 0 16px rgba(56,189,248,0.15), 0 0 16px rgba(56,189,248,0.2);
+		pointer-events: none;
+	}
 
-	.skin-preview {
-		width: 56px;
-		height: 56px;
-		border-radius: var(--radius-full);
+	.skin-img-wrap {
+		position: relative;
+		z-index: 1;
+		width: 64px;
+		height: 64px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		background: rgba(255,255,255,0.04);
+		border-radius: var(--radius-xl);
+		border: 1px solid rgba(255,255,255,0.06);
+	}
+	.skin-img {
+		width: 50px;
+		height: 50px;
+		object-fit: contain;
 	}
 
-	.skin-img { width: 48px; height: 48px; object-fit: contain; border-radius: var(--radius-sm); }
-
 	.skin-name {
+		position: relative;
+		z-index: 1;
 		font-size: var(--text-xs);
 		font-weight: 600;
+		color: var(--color-text-primary);
 		text-align: center;
 		white-space: nowrap;
 		overflow: hidden;
@@ -195,71 +340,119 @@
 	}
 
 	.skin-badge {
+		position: relative;
+		z-index: 1;
 		font-size: 10px;
-		padding: 1px 6px;
+		font-weight: 700;
+		padding: 2px 8px;
 		border-radius: var(--radius-full);
 	}
-
-	.equipped-badge { background: var(--color-accent-primary); color: white; }
-	.owned-badge { background: var(--color-accent-green); color: #000; }
-	.price-badge { background: var(--color-accent-gold); color: #000; font-weight: 600; }
-	.gem-badge { background: #7c3aed; color: white; font-weight: 600; }
-	.locked-badge { background: var(--color-bg-secondary); }
-
-	.balance-row {
-		display: flex;
-		gap: var(--space-4);
-		margin-bottom: var(--space-4);
+	.badge-equipped {
+		background: rgba(56,189,248,0.2);
+		border: 1px solid rgba(56,189,248,0.5);
+		color: var(--color-accent-primary);
 	}
-	.balance-item {
-		font-size: var(--text-sm);
-		font-weight: 600;
-		padding: var(--space-1) var(--space-3);
-		background: var(--color-bg-secondary);
-		border-radius: var(--radius-full);
+	.badge-owned {
+		background: rgba(16,185,129,0.15);
+		border: 1px solid rgba(16,185,129,0.4);
+		color: #34d399;
 	}
-	.balance-item.gem { color: #7c3aed; }
+	.badge-coin {
+		background: rgba(245,158,11,0.12);
+		border: 1px solid rgba(245,158,11,0.3);
+		color: var(--color-accent-gold);
+	}
+	.badge-gem {
+		background: rgba(124,58,237,0.15);
+		border: 1px solid rgba(124,58,237,0.35);
+		color: #a78bfa;
+	}
+	.badge-special {
+		background: rgba(255,255,255,0.05);
+		border: 1px solid rgba(255,255,255,0.1);
+		color: rgba(255,255,255,0.35);
+	}
 
-	.confirm-buy {
-		text-align: center;
+	/* ── Confirm Modal ───────────────────────────── */
+	.confirm-modal {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: var(--space-4);
+		padding: var(--space-2);
+		text-align: center;
 	}
-
-	.confirm-preview {
-		width: 80px;
-		height: 80px;
-		border-radius: var(--radius-full);
+	.confirm-img-wrap {
+		width: 90px;
+		height: 90px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		background: rgba(255,255,255,0.04);
+		border: 1px solid rgba(255,255,255,0.1);
+		border-radius: var(--radius-xl);
 	}
-	.confirm-skin-img { width: 72px; height: 72px; object-fit: contain; border-radius: var(--radius-sm); }
-
-	.confirm-price {
+	.confirm-img {
+		width: 72px;
+		height: 72px;
+		object-fit: contain;
+	}
+	.confirm-title {
+		font-family: var(--font-display);
 		font-size: var(--text-xl);
 		font-weight: 700;
-		color: var(--color-accent-gold);
+		color: var(--color-text-primary);
 	}
-
-	.confirm-balance { color: var(--color-text-muted); font-size: var(--text-sm); }
-	.confirm-cant-afford { color: var(--color-accent-red); font-weight: 600; }
-
+	.confirm-price {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		font-family: var(--font-display);
+		font-size: var(--text-2xl);
+		font-weight: 700;
+	}
+	.coin-price { color: var(--color-accent-gold); }
+	.gem-price  { color: #a78bfa; }
+	.confirm-coin { width: 22px; height: 22px; object-fit: contain; }
+	.confirm-balance {
+		font-size: var(--text-sm);
+		color: var(--color-text-secondary);
+	}
+	.confirm-error {
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--color-accent-red);
+	}
 	.confirm-actions {
 		display: flex;
 		gap: var(--space-3);
+		width: 100%;
 	}
-
-	.btn {
-		padding: var(--space-3) var(--space-6);
+	.modal-btn {
+		flex: 1;
+		padding: 11px var(--space-5);
 		border-radius: var(--radius-lg);
-		font-weight: 600;
+		font-family: var(--font-display);
+		font-weight: 700;
+		font-size: var(--text-base);
 		cursor: pointer;
 		border: none;
+		transition: all var(--transition-fast);
 	}
-	.btn-primary { background: var(--color-accent-primary); color: white; }
-	.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-	.btn-ghost { background: transparent; color: var(--color-text-secondary); border: 1px solid var(--color-border); }
+	.btn-cancel {
+		background: rgba(255,255,255,0.06);
+		border: 1px solid rgba(255,255,255,0.12);
+		color: var(--color-text-secondary);
+	}
+	.btn-cancel:hover { background: rgba(255,255,255,0.1); color: var(--color-text-primary); }
+	.btn-buy {
+		background: var(--color-accent-primary);
+		color: #fff;
+		box-shadow: 0 0 20px rgba(56,189,248,0.25);
+	}
+	.btn-buy:hover:not(:disabled) {
+		background: #0ea5e9;
+		box-shadow: 0 0 32px rgba(56,189,248,0.4);
+	}
+	.btn-buy:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 </style>

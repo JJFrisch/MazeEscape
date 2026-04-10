@@ -38,46 +38,52 @@
 
 <div class="app-shell">
 	<header class="app-header">
-		<a href="{base}/" class="logo" aria-label="Maze Escape: Pathbound Home">
-			<!-- Inline maze-fragment SVG icon -->
-			<svg class="logo-icon" width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-				<rect x="1.5" y="1.5" width="25" height="25" rx="4" stroke="var(--color-accent-primary)" stroke-width="2"/>
-				<!-- Maze walls forming an L-spiral -->
-				<path d="M7 7h14v5H12v4h9v5H7v-5h5v-4H7z"
-					  fill="none" stroke="var(--color-accent-primary)" stroke-width="2"
-					  stroke-linejoin="round" stroke-linecap="round"/>
-				<!-- Gold centre dot (exit) -->
-				<circle cx="19" cy="20" r="2" fill="var(--color-accent-gold)"/>
-			</svg>
-			<span class="logo-text">Maze Escape: Pathbound</span>
-		</a>
-
-		<nav class="header-nav" aria-label="Main navigation">
-			<a href="{base}/" class="nav-link" class:active={isActive(`${base}/`)}>Home</a>
-			<a href="{base}/campaign/worlds" class="nav-link" class:active={isActive(`${base}/campaign`)}>Campaign</a>
-			<a href="{base}/daily" class="nav-link" class:active={isActive(`${base}/daily`)}>Daily</a>
-			<a href="{base}/shop" class="nav-link" class:active={isActive(`${base}/shop`)}>Shop</a>
-			<a href="{base}/equip" class="nav-link" class:active={isActive(`${base}/equip`)}>Equip</a>
-			<a href="{base}/algorithms" class="nav-link" class:active={isActive(`${base}/algorithms`)}>Algorithms</a>
-			<a href="{base}/settings" class="nav-link" class:active={isActive(`${base}/settings`)}>Settings</a>
-			<a href="{base}/auth" class="nav-link" class:active={isActive(`${base}/auth`)}>{authStore.isAuthenticated ? 'Account' : 'Sign In'}</a>
-			<a href="{base}/download" class="nav-link nav-link-download" class:active={isActive(`${base}/download`)}>Download</a>
-		</nav>
-
-		<div class="header-stats">
-			{#if authStore.user}
-				<span class="stat auth-stat" aria-label="Signed in account">
-					<!-- cloud sync icon -->
-					<svg width="14" height="14" viewBox="0 0 20 20" fill="var(--color-accent-primary)" aria-hidden="true">
-						<path d="M16.4 8.2A6 6 0 004.1 9H3a4 4 0 000 8h13a4 4 0 00.4-8z"/>
+		<div class="header-inner">
+			<a href="{base}/" class="logo" aria-label="Maze Escape: Pathbound Home">
+				<div class="logo-icon-wrap">
+					<svg class="logo-icon" width="22" height="22" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+						<rect x="1.5" y="1.5" width="25" height="25" rx="4" stroke="currentColor" stroke-width="2"/>
+						<path d="M7 7h14v5H12v4h9v5H7v-5h5v-4H7z"
+							  fill="none" stroke="currentColor" stroke-width="2"
+							  stroke-linejoin="round" stroke-linecap="round"/>
+						<circle cx="19" cy="20" r="2" fill="var(--color-accent-gold)"/>
 					</svg>
-					<span class="stat-value auth-email">{authStore.user.email}</span>
-				</span>
-			{/if}
-			<span class="stat coin-stat" aria-label="Coins">
-				<img src="{base}/images/coin.png" alt="" class="coin-img" aria-hidden="true" />
-				<span class="stat-value">{gameStore.player.coinCount.toLocaleString()}</span>
-			</span>
+				</div>
+				<span class="logo-text">Maze Escape<span class="logo-sub"> Pathbound</span></span>
+			</a>
+
+			<nav class="header-nav" aria-label="Main navigation">
+				<a href="{base}/" class="nav-link" class:active={isActive(`${base}/`)}>Home</a>
+				<a href="{base}/campaign/worlds" class="nav-link" class:active={isActive(`${base}/campaign`)}>Campaign</a>
+				<a href="{base}/daily" class="nav-link" class:active={isActive(`${base}/daily`)}>Daily</a>
+				<a href="{base}/shop" class="nav-link" class:active={isActive(`${base}/shop`)}>Shop</a>
+				<a href="{base}/equip" class="nav-link" class:active={isActive(`${base}/equip`)}>Equip</a>
+				<a href="{base}/algorithms" class="nav-link" class:active={isActive(`${base}/algorithms`)}>Algorithms</a>
+				<a href="{base}/settings" class="nav-link" class:active={isActive(`${base}/settings`)}>Settings</a>
+				<a href="{base}/auth" class="nav-link" class:active={isActive(`${base}/auth`)}>{authStore.isAuthenticated ? 'Account' : 'Sign In'}</a>
+				<a href="{base}/download" class="nav-cta" class:active={isActive(`${base}/download`)}>
+					<svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path d="M12 3v12M7 11l5 5 5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+						<rect x="3" y="18" width="18" height="3" rx="1.5" stroke="currentColor" stroke-width="2"/>
+					</svg>
+					Download
+				</a>
+			</nav>
+
+			<div class="header-right">
+				{#if authStore.user}
+					<span class="auth-chip" aria-label="Signed in">
+						<svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+							<path d="M16.4 8.2A6 6 0 004.1 9H3a4 4 0 000 8h13a4 4 0 00.4-8z"/>
+						</svg>
+						<span class="auth-email">{authStore.user.email}</span>
+					</span>
+				{/if}
+				<a href="{base}/shop" class="coin-chip" aria-label="Coins — go to shop">
+					<img src="{base}/images/coin.png" alt="" class="coin-img" aria-hidden="true" />
+					<span class="coin-value">{gameStore.player.coinCount.toLocaleString()}</span>
+				</a>
+			</div>
 		</div>
 	</header>
 
@@ -87,34 +93,42 @@
 
 	<footer class="app-footer">
 		<div class="footer-inner">
-			<div class="footer-col footer-col-brand">
-				<span class="footer-brand-name">Maze Escape: Pathbound</span>
+			<div class="footer-brand">
+				<div class="footer-logo">
+					<svg width="18" height="18" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+						<rect x="1.5" y="1.5" width="25" height="25" rx="4" stroke="var(--color-accent-primary)" stroke-width="2"/>
+						<path d="M7 7h14v5H12v4h9v5H7v-5h5v-4H7z" fill="none" stroke="var(--color-accent-primary)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+						<circle cx="19" cy="20" r="2" fill="var(--color-accent-gold)"/>
+					</svg>
+					<span class="footer-brand-name">Maze Escape: Pathbound</span>
+				</div>
 				<p class="footer-brand-desc">A procedural puzzle maze game.</p>
-				<p class="footer-credit">
-					Designed and built by
-					<a href="https://jakefrischmann.me" class="footer-link" target="_blank" rel="noopener noreferrer">Jake Frischmann</a>.
-				</p>
+				<p class="footer-credit">Designed and built by <a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer">Jake Frischmann</a>.</p>
 			</div>
-			<div class="footer-col">
-				<span class="footer-heading">Play</span>
-				<a href="{base}/" class="footer-link">Home</a>
-				<a href="{base}/campaign/worlds" class="footer-link">Campaign</a>
-				<a href="{base}/daily" class="footer-link">Daily Maze</a>
-				<a href="{base}/download" class="footer-link">Download Desktop App</a>
-			</div>
-			<div class="footer-col">
-				<span class="footer-heading">Legal</span>
-				<a href="{base}/privacy" class="footer-link">Privacy Policy</a>
-				<a href="{base}/terms" class="footer-link">Terms of Service</a>
-			</div>
-			<div class="footer-col">
-				<span class="footer-heading">About</span>
-				<a href="https://jakefrischmann.me" class="footer-link" target="_blank" rel="noopener noreferrer">jakefrischman.me</a>
-				<a href="https://github.com/JJFrisch/MazeEscape" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+			<div class="footer-links">
+				<div class="footer-col">
+					<span class="footer-heading">Play</span>
+					<a href="{base}/" class="footer-link">Home</a>
+					<a href="{base}/campaign/worlds" class="footer-link">Campaign</a>
+					<a href="{base}/daily" class="footer-link">Daily Maze</a>
+					<a href="{base}/download" class="footer-link">Desktop App</a>
+				</div>
+				<div class="footer-col">
+					<span class="footer-heading">Legal</span>
+					<a href="{base}/privacy" class="footer-link">Privacy Policy</a>
+					<a href="{base}/terms" class="footer-link">Terms of Service</a>
+				</div>
+				<div class="footer-col">
+					<span class="footer-heading">About</span>
+					<span>Version 1.0.0</span>
+					<a href="mailto:contact@mazeescapepathbound.com" class="footer-link-inline" target="_blank" rel="noopener noreferrer">contact@mazeescapepathbound.com</a>
+					<a href="https://jakefrischmann.me" class="footer-link" target="_blank" rel="noopener noreferrer">jakefrischman.me</a>
+					<a href="https://github.com/JJFrisch/MazeEscape" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+				</div>
 			</div>
 		</div>
 		<div class="footer-bottom">
-			<span>© 2026 Jake Frischmann · <a href="https://jakefrischmann.me" class="footer-link-inline" target="_blank" rel="noopener noreferrer">jakefrischman.me</a></span>
+			<span>© 2026 Jake Frischmann · <a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer">jakefrischman.me</a></span>
 			<span>mazeescapepathbound.com</span>
 		</div>
 	</footer>
@@ -129,17 +143,25 @@
 
 	/* ── Header ─────────────────────────────────── */
 	.app-header {
+		position: sticky;
+		top: 0;
+		z-index: 200;
+		height: var(--header-height);
+		background: rgba(6, 13, 26, 0.85);
+		backdrop-filter: blur(20px) saturate(180%);
+		-webkit-backdrop-filter: blur(20px) saturate(180%);
+		border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+		box-shadow: 0 1px 0 rgba(56, 189, 248, 0.06), 0 4px 24px rgba(0, 0, 0, 0.4);
+	}
+
+	.header-inner {
 		display: flex;
 		align-items: center;
 		gap: var(--space-4);
+		height: 100%;
+		max-width: var(--max-width);
+		margin: 0 auto;
 		padding: 0 var(--space-6);
-		background: #0a1628;
-		border-bottom: 1px solid rgba(56, 189, 248, 0.15);
-		height: var(--header-height);
-		position: sticky;
-		top: 0;
-		z-index: 100;
-		box-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
 	}
 
 	/* ── Logo ───────────────────────────────────── */
@@ -147,102 +169,162 @@
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		color: #f0f6ff;
+		color: var(--color-text-primary);
 		font-family: var(--font-display);
 		font-weight: 700;
-		font-size: var(--text-lg);
+		font-size: var(--text-base);
 		text-decoration: none;
 		flex-shrink: 0;
 		transition: opacity var(--transition-fast);
 	}
+	.logo:hover { opacity: 0.8; color: var(--color-text-primary); }
 
-	.logo:hover {
-		opacity: 0.78;
-		color: #f0f6ff;
+	.logo-icon-wrap {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		background: rgba(56, 189, 248, 0.1);
+		border: 1px solid rgba(56, 189, 248, 0.25);
+		border-radius: var(--radius-md);
+		color: var(--color-accent-primary);
+		flex-shrink: 0;
+		transition: all var(--transition-base);
+	}
+	.logo:hover .logo-icon-wrap {
+		background: rgba(56, 189, 248, 0.18);
+		border-color: rgba(56, 189, 248, 0.45);
+		box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
 	}
 
-	.logo-icon {
-		flex-shrink: 0;
-		filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.5));
+	.logo-text {
+		white-space: nowrap;
+	}
+	.logo-sub {
+		font-weight: 500;
+		color: var(--color-accent-gold);
+		margin-left: 2px;
 	}
 
 	/* ── Nav ────────────────────────────────────── */
 	.header-nav {
 		display: flex;
 		align-items: center;
-		gap: var(--space-1);
+		gap: 2px;
 		flex: 1;
 		overflow-x: auto;
+		scrollbar-width: none;
 	}
+	.header-nav::-webkit-scrollbar { display: none; }
 
 	.nav-link {
 		position: relative;
-		padding: var(--space-1) var(--space-3);
+		padding: 6px 10px;
 		border-radius: var(--radius-md);
 		font-size: var(--text-sm);
 		font-weight: 500;
-		color: rgba(255, 255, 255, 0.55);
+		color: rgba(255, 255, 255, 0.5);
 		text-decoration: none;
-		transition: color var(--transition-fast);
+		transition: color var(--transition-fast), background var(--transition-fast);
 		white-space: nowrap;
 	}
-
 	.nav-link:hover {
-		color: #f0f6ff;
+		color: var(--color-text-primary);
+		background: rgba(255, 255, 255, 0.05);
 	}
-
 	.nav-link.active {
-		color: #38bdf8;
+		color: var(--color-accent-primary);
+		background: rgba(56, 189, 248, 0.08);
 	}
-
 	.nav-link.active::after {
 		content: '';
 		position: absolute;
-		bottom: -2px;
-		left: var(--space-3);
-		right: var(--space-3);
+		bottom: -1px;
+		left: 10px;
+		right: 10px;
 		height: 2px;
-		background: #38bdf8;
-		border-radius: 1px;
-		box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+		background: var(--color-accent-primary);
+		border-radius: 1px 1px 0 0;
+		box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
 	}
 
-	/* ── Stats ──────────────────────────────────── */
-	.header-stats {
+	.nav-cta {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-1);
+		padding: 6px 14px;
+		margin-left: var(--space-2);
+		background: rgba(245, 158, 11, 0.12);
+		border: 1px solid rgba(245, 158, 11, 0.35);
+		border-radius: var(--radius-md);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--color-accent-gold);
+		text-decoration: none;
+		transition: all var(--transition-fast);
+		white-space: nowrap;
+		flex-shrink: 0;
+	}
+	.nav-cta:hover {
+		background: rgba(245, 158, 11, 0.2);
+		border-color: rgba(245, 158, 11, 0.6);
+		color: #fcd34d;
+		box-shadow: 0 0 16px rgba(245, 158, 11, 0.2);
+	}
+
+	/* ── Header right ───────────────────────────── */
+	.header-right {
 		display: flex;
 		align-items: center;
-		gap: var(--space-3);
+		gap: var(--space-2);
 		flex-shrink: 0;
 	}
 
+	.auth-chip {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		padding: 4px 10px 4px 8px;
+		background: rgba(56, 189, 248, 0.07);
+		border: 1px solid rgba(56, 189, 248, 0.2);
+		border-radius: var(--radius-full);
+		font-size: 11px;
+		font-weight: 500;
+		color: rgba(56, 189, 248, 0.8);
+	}
 	.auth-email {
-		max-width: 180px;
+		max-width: 140px;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 	}
 
-	.stat {
+	.coin-chip {
 		display: flex;
 		align-items: center;
 		gap: var(--space-1);
-		font-size: var(--text-sm);
-		font-weight: 600;
-		color: rgba(255, 255, 255, 0.7);
-	}
-
-	.coin-stat {
-		color: #fbbf24;
-		background: rgba(251, 191, 36, 0.08);
-		border: 1px solid rgba(251, 191, 36, 0.25);
+		padding: 5px 12px 5px 8px;
+		background: rgba(245, 158, 11, 0.08);
+		border: 1px solid rgba(245, 158, 11, 0.25);
 		border-radius: var(--radius-full);
-		padding: 3px var(--space-3) 3px var(--space-2);
+		text-decoration: none;
+		transition: all var(--transition-fast);
 	}
-
+	.coin-chip:hover {
+		background: rgba(245, 158, 11, 0.14);
+		border-color: rgba(245, 158, 11, 0.45);
+	}
 	.coin-img {
-		width: 18px;
-		height: 18px;
+		width: 16px;
+		height: 16px;
 		object-fit: contain;
+	}
+	.coin-value {
+		font-size: var(--text-sm);
+		font-weight: 700;
+		color: var(--color-accent-gold);
+		font-family: var(--font-display);
 	}
 
 	/* ── Main ───────────────────────────────────── */
@@ -256,45 +338,64 @@
 
 	/* ── Footer ─────────────────────────────────── */
 	.app-footer {
-		background: #060d1a;
-		border-top: 1px solid rgba(56, 189, 248, 0.12);
-		padding: var(--space-10) var(--space-6) var(--space-6);
-		margin-top: auto;
+		background: #040914;
+		border-top: 1px solid rgba(56, 189, 248, 0.08);
+		padding: var(--space-12) var(--space-6) var(--space-6);
 	}
 
 	.footer-inner {
-		display: grid;
-		grid-template-columns: 2fr 1fr 1fr 1fr;
-		gap: var(--space-8);
+		display: flex;
+		gap: var(--space-12);
 		max-width: var(--max-width);
 		margin: 0 auto var(--space-8);
+		flex-wrap: wrap;
 	}
 
-	.footer-col {
+	.footer-brand {
+		flex: 2;
+		min-width: 200px;
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-2);
+	}
+
+	.footer-logo {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		margin-bottom: var(--space-1);
 	}
 
 	.footer-brand-name {
 		font-family: var(--font-display);
 		font-weight: 700;
 		font-size: var(--text-base);
-		color: #f0f6ff;
-		margin-bottom: var(--space-1);
+		color: var(--color-text-primary);
 	}
 
-	.footer-brand-desc {
-		font-size: var(--text-sm);
-		color: rgba(255, 255, 255, 0.4);
-		line-height: 1.5;
-	}
-
+	.footer-brand-desc,
 	.footer-credit {
 		font-size: var(--text-sm);
-		color: rgba(255, 255, 255, 0.35);
+		color: rgba(255, 255, 255, 0.3);
 		line-height: 1.5;
-		margin-top: var(--space-1);
+	}
+
+	.footer-credit a {
+		color: rgba(56, 189, 248, 0.6);
+	}
+	.footer-credit a:hover { color: var(--color-accent-primary); }
+
+	.footer-links {
+		display: flex;
+		gap: var(--space-10);
+		flex-wrap: wrap;
+	}
+
+	.footer-col {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-2);
+		min-width: 100px;
 	}
 
 	.footer-heading {
@@ -303,21 +404,18 @@
 		font-weight: 700;
 		letter-spacing: 0.10em;
 		text-transform: uppercase;
-		color: rgba(255, 255, 255, 0.3);
+		color: rgba(255, 255, 255, 0.2);
 		margin-bottom: var(--space-1);
 	}
 
 	.footer-link {
 		font-size: var(--text-sm);
-		color: rgba(255, 255, 255, 0.5);
+		color: rgba(255, 255, 255, 0.4);
 		text-decoration: none;
 		transition: color var(--transition-fast);
 		width: fit-content;
 	}
-
-	.footer-link:hover {
-		color: #38bdf8;
-	}
+	.footer-link:hover { color: var(--color-accent-primary); }
 
 	.footer-bottom {
 		display: flex;
@@ -326,60 +424,27 @@
 		max-width: var(--max-width);
 		margin: 0 auto;
 		padding-top: var(--space-6);
-		border-top: 1px solid rgba(255, 255, 255, 0.06);
+		border-top: 1px solid rgba(255, 255, 255, 0.05);
 		font-size: var(--text-xs);
-		color: rgba(255, 255, 255, 0.25);
+		color: rgba(255, 255, 255, 0.18);
 		flex-wrap: wrap;
 		gap: var(--space-2);
 	}
-
-	.footer-link-inline {
-		color: rgba(56, 189, 248, 0.6);
-		text-decoration: none;
-		transition: color var(--transition-fast);
+	.footer-bottom a {
+		color: rgba(56, 189, 248, 0.45);
 	}
-
-	.footer-link-inline:hover {
-		color: #38bdf8;
-	}
-
-	.nav-link-download {
-		color: #d97706 !important;
-		border: 1px solid rgba(217, 119, 6, 0.35);
-		border-radius: var(--radius-md);
-	}
-
-	.nav-link-download:hover {
-		background: rgba(217, 119, 6, 0.12);
-		color: #fbbf24 !important;
-	}
-
-	@media (max-width: 768px) {
-		.footer-inner {
-			grid-template-columns: 1fr 1fr;
-		}
-		.footer-col-brand {
-			grid-column: 1 / -1;
-		}
-	}
+	.footer-bottom a:hover { color: var(--color-accent-primary); }
 
 	/* ── Responsive ─────────────────────────────── */
+	@media (max-width: 900px) {
+		.logo-sub { display: none; }
+	}
 	@media (max-width: 640px) {
-		.app-header {
-			padding: 0 var(--space-3);
-		}
-		.logo-text {
-			display: none;
-		}
-		.header-nav {
-			gap: 0;
-		}
-		.nav-link {
-			padding: var(--space-1) var(--space-2);
-			font-size: var(--text-xs);
-		}
-		.app-main {
-			padding: var(--space-4);
-		}
+		.header-inner { padding: 0 var(--space-3); }
+		.logo-text { display: none; }
+		.header-nav { gap: 0; }
+		.nav-link { padding: 6px 8px; font-size: var(--text-xs); }
+		.app-main { padding: var(--space-4); }
+		.footer-inner { flex-direction: column; gap: var(--space-8); }
 	}
 </style>

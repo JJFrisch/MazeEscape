@@ -13,6 +13,10 @@
 
 <div class="worlds-page">
 	<div class="page-header">
+		<div class="page-eyebrow">
+			<span class="eyebrow-dot"></span>
+			Campaign Mode
+		</div>
 		<h1 class="page-title">Campaign Worlds</h1>
 		<p class="page-sub">Select a world to begin your journey through the labyrinth.</p>
 	</div>
@@ -124,19 +128,52 @@
 	.page-header {
 		text-align: center;
 		margin-bottom: var(--space-10);
+		animation: fade-up 0.5s ease both;
+	}
+
+	@keyframes fade-up {
+		from { opacity: 0; transform: translateY(16px); }
+		to   { opacity: 1; transform: translateY(0); }
+	}
+
+	.page-eyebrow {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: 5px 14px;
+		background: rgba(56, 189, 248, 0.08);
+		border: 1px solid rgba(56, 189, 248, 0.25);
+		border-radius: var(--radius-full);
+		font-size: var(--text-xs);
+		font-weight: 700;
+		letter-spacing: 0.10em;
+		text-transform: uppercase;
+		color: #93c5fd;
+		margin-bottom: var(--space-4);
+	}
+	.eyebrow-dot {
+		width: 6px;
+		height: 6px;
+		background: var(--color-accent-primary);
+		border-radius: 50%;
+		box-shadow: 0 0 6px var(--color-accent-primary);
+		animation: pulse 2s ease-in-out infinite;
+	}
+	@keyframes pulse {
+		0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
 	}
 
 	.page-title {
 		font-family: var(--font-display);
-		font-size: var(--text-4xl);
+		font-size: clamp(2rem, 5vw, 3rem);
 		font-weight: 700;
 		color: var(--color-text-primary);
-		margin-bottom: var(--space-2);
-		letter-spacing: 0.04em;
+		margin-bottom: var(--space-3);
+		letter-spacing: -0.02em;
 	}
 
 	.page-sub {
-		color: var(--color-text-muted);
+		color: var(--color-text-secondary);
 		font-size: var(--text-lg);
 	}
 

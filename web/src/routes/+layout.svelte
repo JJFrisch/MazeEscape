@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '$lib/styles/global.css';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
+	import { themeStore } from '$lib/stores/themeStore.svelte';
 	import { initializeSupabaseAuth } from '$lib/supabase/auth';
 	import { authStore } from '$lib/supabase/authStore.svelte';
 	import { page } from '$app/stores';
@@ -16,6 +17,7 @@
 	}
 
 	onMount(() => {
+		themeStore.init();
 		gameStore.init();
 		const cleanupSupabaseAuth = initializeSupabaseAuth({
 			onSignedIn: async (userId) => {
@@ -83,6 +85,32 @@
 					<img src="{base}/images/coin.png" alt="" class="coin-img" aria-hidden="true" />
 					<span class="coin-value">{gameStore.player.coinCount.toLocaleString()}</span>
 				</a>
+				<button
+					class="theme-toggle"
+					onclick={() => themeStore.toggle()}
+					aria-label={themeStore.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+					title={themeStore.theme === 'dark' ? 'Light mode' : 'Dark mode'}
+				>
+					{#if themeStore.theme === 'dark'}
+						<!-- Sun icon -->
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<circle cx="12" cy="12" r="4"/>
+							<line x1="12" y1="2" x2="12" y2="5"/>
+							<line x1="12" y1="19" x2="12" y2="22"/>
+							<line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
+							<line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
+							<line x1="2" y1="12" x2="5" y2="12"/>
+							<line x1="19" y1="12" x2="22" y2="12"/>
+							<line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
+							<line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
+						</svg>
+					{:else}
+						<!-- Moon icon -->
+						<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+						</svg>
+					{/if}
+				</button>
 			</div>
 		</div>
 	</header>
@@ -147,11 +175,11 @@
 		top: 0;
 		z-index: 200;
 		height: var(--header-height);
-		background: rgba(6, 13, 26, 0.85);
+		background: var(--color-bg-header);
 		backdrop-filter: blur(20px) saturate(180%);
 		-webkit-backdrop-filter: blur(20px) saturate(180%);
-		border-bottom: 1px solid rgba(56, 189, 248, 0.1);
-		box-shadow: 0 1px 0 rgba(56, 189, 248, 0.06), 0 4px 24px rgba(0, 0, 0, 0.4);
+		border-bottom: 1px solid var(--color-border);
+		box-shadow: 0 1px 0 var(--color-border), var(--shadow-sm);
 	}
 
 	.header-inner {
@@ -185,17 +213,17 @@
 		justify-content: center;
 		width: 32px;
 		height: 32px;
-		background: rgba(56, 189, 248, 0.1);
-		border: 1px solid rgba(56, 189, 248, 0.25);
+		background: var(--color-logo-icon-bg);
+		border: 1px solid var(--color-logo-icon-border);
 		border-radius: var(--radius-md);
 		color: var(--color-accent-primary);
 		flex-shrink: 0;
 		transition: all var(--transition-base);
 	}
 	.logo:hover .logo-icon-wrap {
-		background: rgba(56, 189, 248, 0.18);
-		border-color: rgba(56, 189, 248, 0.45);
-		box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+		background: var(--color-border-bright);
+		border-color: var(--color-accent-primary);
+		box-shadow: var(--shadow-glow);
 	}
 
 	.logo-text {
@@ -224,14 +252,14 @@
 		border-radius: var(--radius-md);
 		font-size: var(--text-sm);
 		font-weight: 500;
-		color: rgba(255, 255, 255, 0.5);
+		color: var(--color-nav-link);
 		text-decoration: none;
 		transition: color var(--transition-fast), background var(--transition-fast);
 		white-space: nowrap;
 	}
 	.nav-link:hover {
 		color: var(--color-text-primary);
-		background: rgba(255, 255, 255, 0.05);
+		background: var(--color-nav-link-hover-bg);
 	}
 	.nav-link.active {
 		color: var(--color-accent-primary);
@@ -338,8 +366,8 @@
 
 	/* ── Footer ─────────────────────────────────── */
 	.app-footer {
-		background: #040914;
-		border-top: 1px solid rgba(56, 189, 248, 0.08);
+		background: var(--color-bg-footer);
+		border-top: 1px solid var(--color-border);
 		padding: var(--space-12) var(--space-6) var(--space-6);
 	}
 
@@ -376,12 +404,12 @@
 	.footer-brand-desc,
 	.footer-credit {
 		font-size: var(--text-sm);
-		color: rgba(255, 255, 255, 0.3);
+		color: var(--color-footer-muted);
 		line-height: 1.5;
 	}
 
 	.footer-credit a {
-		color: rgba(56, 189, 248, 0.6);
+		color: var(--color-footer-bottom-link);
 	}
 	.footer-credit a:hover { color: var(--color-accent-primary); }
 
@@ -404,13 +432,13 @@
 		font-weight: 700;
 		letter-spacing: 0.10em;
 		text-transform: uppercase;
-		color: rgba(255, 255, 255, 0.2);
+		color: var(--color-footer-heading);
 		margin-bottom: var(--space-1);
 	}
 
 	.footer-link {
 		font-size: var(--text-sm);
-		color: rgba(255, 255, 255, 0.4);
+		color: var(--color-footer-link);
 		text-decoration: none;
 		transition: color var(--transition-fast);
 		width: fit-content;
@@ -424,16 +452,38 @@
 		max-width: var(--max-width);
 		margin: 0 auto;
 		padding-top: var(--space-6);
-		border-top: 1px solid rgba(255, 255, 255, 0.05);
+		border-top: 1px solid var(--color-border-subtle);
 		font-size: var(--text-xs);
-		color: rgba(255, 255, 255, 0.18);
+		color: var(--color-footer-bottom-text);
 		flex-wrap: wrap;
 		gap: var(--space-2);
 	}
 	.footer-bottom a {
-		color: rgba(56, 189, 248, 0.45);
+		color: var(--color-footer-bottom-link);
 	}
 	.footer-bottom a:hover { color: var(--color-accent-primary); }
+
+	/* ── Theme toggle ───────────────────────────── */
+	.theme-toggle {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		padding: 0;
+		background: var(--color-bg-glass);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		color: var(--color-text-secondary);
+		cursor: pointer;
+		transition: all var(--transition-fast);
+		flex-shrink: 0;
+	}
+	.theme-toggle:hover {
+		background: var(--color-bg-glass-hover);
+		border-color: var(--color-border-bright);
+		color: var(--color-accent-primary);
+	}
 
 	/* ── Responsive ─────────────────────────────── */
 	@media (max-width: 900px) {

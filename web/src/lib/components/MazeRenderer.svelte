@@ -1,10 +1,9 @@
 <!--
-  MazeRenderer: SVG-based maze rendering with multiple visual themes.
-  Supports: neon (default), classic, dotmatrix
+  MazeRenderer: SVG-based maze rendering.
+  Declarative SVG with themed glow effects, animated exit/player, and a
+  max-cell-size guard so small mazes don't scale to giant blobs.
 -->
 <script lang="ts">
-	import { base } from '$app/paths';
-	import { getMazeThemePalette, type MazeVisualTheme } from '$lib/core/mazeVisualThemes';
 	import type { MazeCell, MazeData, Position } from '$lib/core/types';
 
 	let {
@@ -12,19 +11,17 @@
 		playerPos,
 		wallColor = '#38bdf8',
 		hintPath = null,
-		skinImageUrl = 'player_image0',
+		skinEmoji = '🟣',
 		showVisited = false,
-		visitedCells = new Set<string>(),
-		visualTheme = 'neon' as MazeVisualTheme
+		visitedCells = new Set<string>()
 	}: {
 		maze: MazeData;
 		playerPos: Position;
 		wallColor?: string;
 		hintPath?: Position[] | null;
-		skinImageUrl?: string;
+		skinEmoji?: string;
 		showVisited?: boolean;
 		visitedCells?: Set<string>;
-		visualTheme?: MazeVisualTheme;
 	} = $props();
 
 	// Internal coordinate space
@@ -33,7 +30,10 @@
 	// Maximum rendered pixel size per cell — prevents tiny mazes from blowing up
 	const MAX_CELL_PX = 80;
 
-	const palette = $derived(getMazeThemePalette(visualTheme, wallColor));
+	const FALLBACK_WALL_COLOR = '#38bdf8';
+	const strokeColor = $derived(
+		!wallColor || wallColor === '#000000' ? FALLBACK_WALL_COLOR : wallColor
+	);
 
 	const viewBoxWidth = $derived(maze.width * CELL_SIZE + PADDING * 2);
 	const viewBoxHeight = $derived(maze.height * CELL_SIZE + PADDING * 2);
@@ -87,7 +87,6 @@
 	aria-label="Maze grid"
 	style:max-width="{maxDisplayWidth}px"
 	style:max-height="{maxDisplayHeight}px"
-	style:background={palette.bgColor}
 >
 	<svg
 		class="maze-svg"
@@ -125,28 +124,18 @@
 		</defs>
 
 		<!-- Background -->
-		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill={palette.bgColor} />
+		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill="#080e1e" />
 
 		<!-- Subtle grid lines -->
 		{#each maze.cells as row}
 			{#each row as cell (`grid-${cell.x},${cell.y}`)}
-				{#if palette.useDotMatrixGrid}
-					<!-- Dot matrix: small dot at each cell center -->
-					<circle
-						cx={cx(cell.x)}
-						cy={cy(cell.y)}
-						r={CELL_SIZE * 0.06}
-						fill={palette.gridColor}
-					/>
-				{:else}
-					<rect
-						x={cl(cell.x) + 0.5}
-						y={ct(cell.y) + 0.5}
-						width={CELL_SIZE - 1}
-						height={CELL_SIZE - 1}
-						fill={palette.cellBgColor}
-					/>
-				{/if}
+				<rect
+					x={cl(cell.x) + 0.5}
+					y={ct(cell.y) + 0.5}
+					width={CELL_SIZE - 1}
+					height={CELL_SIZE - 1}
+					fill="rgba(255,255,255,0.015)"
+				/>
 			{/each}
 		{/each}
 
@@ -154,14 +143,16 @@
 		{#each maze.cells as row}
 			{#each row as cell (`hi-${cell.x},${cell.y}`)}
 				{#if cell.value === 2}
+					<!-- Start cell -->
 					{@const r = innerRect(cell.x, cell.y)}
-					<rect {...r} fill={palette.startCellColor} stroke={palette.startCellStroke} stroke-width="1" />
+					<rect {...r} fill="rgba(109,40,217,0.18)" stroke="rgba(139,92,246,0.3)" stroke-width="1" />
 				{:else if cell.value === 3}
+					<!-- Exit cell background -->
 					{@const r = innerRect(cell.x, cell.y)}
-					<rect {...r} fill={palette.exitCellColor} stroke={palette.exitCellStroke} stroke-width="1" class="exit-cell" />
+					<rect {...r} fill="rgba(52,211,153,0.15)" stroke="rgba(52,211,153,0.35)" stroke-width="1" class="exit-cell" />
 				{:else if showVisited && visitedCells.has(`${cell.x},${cell.y}`)}
 					{@const r = innerRect(cell.x, cell.y)}
-					<rect {...r} fill={palette.visitedColor} />
+					<rect {...r} fill="rgba(139,92,246,0.06)" />
 				{/if}
 			{/each}
 		{/each}
@@ -175,8 +166,8 @@
 						cx={cx(cell.x)}
 						cy={cy(cell.y)}
 						r={CELL_SIZE * 0.24}
-						fill={palette.exitDotColor}
-						filter={palette.exitGlow ? 'url(#mglow-exit)' : undefined}
+						fill="url(#mgrad-exit)"
+						filter="url(#mglow-exit)"
 					/>
 				{/if}
 			{/each}
@@ -194,21 +185,17 @@
 			/>
 		{/if}
 
-		<!-- Walls — glow layer (neon/dotmatrix only) -->
-		{#if palette.wallGlowWidth > 0}
-			<g stroke={palette.strokeColor} stroke-width={palette.wallGlowWidth} stroke-linecap="round" stroke-linejoin="round" opacity="0.45" filter="url(#mglow-wall)">
-				{#each maze.cells as row}
-					{#each row as cell (`wg-${cell.x},${cell.y}`)}
-						{#each wallSegments(cell) as seg (`${seg.x1}-${seg.y1}-${seg.x2}-${seg.y2}-g`)}
-							<line x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2} />
-						{/each}
+		<!-- Walls — drawn twice: glow layer then solid layer -->
+		<g stroke={strokeColor} stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.45" filter="url(#mglow-wall)">
+			{#each maze.cells as row}
+				{#each row as cell (`wg-${cell.x},${cell.y}`)}
+					{#each wallSegments(cell) as seg (`${seg.x1}-${seg.y1}-${seg.x2}-${seg.y2}-g`)}
+						<line x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2} />
 					{/each}
 				{/each}
-			</g>
-		{/if}
-
-		<!-- Walls — solid layer -->
-		<g stroke={palette.strokeColor} stroke-width={palette.wallWidth} stroke-linecap={palette.wallLineCap} stroke-linejoin={palette.wallLineJoin}>
+			{/each}
+		</g>
+		<g stroke={strokeColor} stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 			{#each maze.cells as row}
 				{#each row as cell (`ws-${cell.x},${cell.y}`)}
 					{#each wallSegments(cell) as seg (`${seg.x1}-${seg.y1}-${seg.x2}-${seg.y2}-s`)}
@@ -218,47 +205,31 @@
 			{/each}
 		</g>
 
-		<!-- Dot-matrix: wall intersection dots -->
-		{#if palette.useDotMatrixGrid}
-			{#each maze.cells as row}
-				{#each row as cell (`dot-${cell.x},${cell.y}`)}
-					{#each wallSegments(cell) as seg}
-						<circle cx={seg.x1} cy={seg.y1} r={CELL_SIZE * 0.05} fill={palette.intersectionDotColor} />
-						<circle cx={seg.x2} cy={seg.y2} r={CELL_SIZE * 0.05} fill={palette.intersectionDotColor} />
-					{/each}
-				{/each}
-			{/each}
-		{/if}
-
-		<!-- Player glow halo (neon only) -->
-		{#if palette.playerGlow}
-			<circle
-				class="player-halo"
-				cx={cx(playerPos.x)}
-				cy={cy(playerPos.y)}
-				r={CELL_SIZE * 0.42}
-				fill={palette.playerHaloColor}
-				filter="url(#mglow-player)"
-			/>
-		{/if}
+		<!-- Player glow halo -->
+		<circle
+			class="player-halo"
+			cx={cx(playerPos.x)}
+			cy={cy(playerPos.y)}
+			r={CELL_SIZE * 0.42}
+			fill="rgba(139,92,246,0.18)"
+			filter="url(#mglow-player)"
+		/>
 		<!-- Player body -->
 		<circle
 			cx={cx(playerPos.x)}
 			cy={cy(playerPos.y)}
 			r={CELL_SIZE * 0.3}
-			fill={palette.playerColor}
-			stroke={palette.playerStroke}
-			stroke-width={palette.playerStrokeWidth}
+			fill="url(#mgrad-player)"
 		/>
-		<!-- Player skin image -->
-		<image
-			href="{base}/images/{skinImageUrl}_icon.png"
-			x={cx(playerPos.x) - CELL_SIZE * 0.3}
-			y={cy(playerPos.y) - CELL_SIZE * 0.3}
-			width={CELL_SIZE * 0.6}
-			height={CELL_SIZE * 0.6}
-			class="player-skin"
-		/>
+		<!-- Player emoji -->
+		<text
+			x={cx(playerPos.x)}
+			y={cy(playerPos.y) + 1}
+			text-anchor="middle"
+			dominant-baseline="middle"
+			font-size={CELL_SIZE * 0.42}
+			font-family="Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif"
+		>{skinEmoji}</text>
 	</svg>
 </div>
 
@@ -270,6 +241,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		background: #080e1e;
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 	}
@@ -310,11 +282,5 @@
 	@keyframes player-breathe {
 		0%, 100% { opacity: 0.5; }
 		50%       { opacity: 1; }
-	}
-
-	/* Player skin image */
-	.player-skin {
-		pointer-events: none;
-		image-rendering: pixelated;
 	}
 </style>

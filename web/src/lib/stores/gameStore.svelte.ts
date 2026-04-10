@@ -15,8 +15,6 @@ const STORAGE_KEY = 'mazeescape_player';
 const LEVEL_STORAGE_KEY = 'mazeescape_levels';
 const DAILY_STORAGE_KEY = 'mazeescape_daily';
 const SYNC_METADATA_STORAGE_KEY = 'mazeescape_sync_metadata';
-const MAP_COLLECTIBLES_STORAGE_KEY = 'mazeescape_map_collectibles';
-const MAP_KEYS_STORAGE_KEY = 'mazeescape_map_keys';
 
 type CloudSyncStatus = 'offline' | 'syncing' | 'synced' | 'error';
 
@@ -90,7 +88,6 @@ function defaultPlayerData(): PlayerData {
 		playerId: crypto.randomUUID(),
 		playerName: 'Player',
 		coinCount: 0,
-		gemCount: 0,
 		hintsOwned: 0,
 		extraTimesOwned: 0,
 		extraMovesOwned: 0,
@@ -202,7 +199,6 @@ function mapProfileRowToPlayerData(profile: ProfileRow | null, ownedSkins: Owned
 		playerId: profile.id,
 		playerName: profile.player_name,
 		coinCount: profile.coin_count,
-		gemCount: 0, // not in cloud profile, persist locally only
 		hintsOwned: profile.hints_owned,
 		extraTimesOwned: profile.extra_times_owned,
 		extraMovesOwned: profile.extra_moves_owned,
@@ -231,6 +227,7 @@ function mapLevelRowToCampaignLevel(row: LevelProgressRow): CampaignLevel | unde
 		bestTime: Number(row.best_time_seconds)
 	};
 }
+
 function mapDailyRowToDailyLevel(row: DailyMazeResultRow): DailyMazeLevel {
 	const base = getDailyMazeForDate(parseShortDate(row.short_date));
 	return {
@@ -252,10 +249,6 @@ function createGameStore() {
 	let worlds = $state<WorldDefinition[]>(getAllWorlds());
 	let levelProgress = $state<Record<string, CampaignLevel>>({});
 	let dailyResults = $state<Record<string, DailyMazeLevel>>({});
-	/** Map collectibles collected: key = `${worldId}:${collectibleId}` → true */
-	let mapCollectiblesCollected = $state<Record<string, boolean>>({});
-	/** Keys owned: key = keyItemId → true */
-	let mapKeysOwned = $state<Record<string, boolean>>({});
 	let syncMetadata = $state<SyncMetadata>({
 		playerUpdatedAt: 0,
 		levelUpdatedAt: {},
@@ -275,8 +268,6 @@ function createGameStore() {
 		player = loadFromStorage(STORAGE_KEY, defaultPlayerData());
 		levelProgress = loadFromStorage(LEVEL_STORAGE_KEY, {});
 		dailyResults = loadFromStorage(DAILY_STORAGE_KEY, {});
-		mapCollectiblesCollected = loadFromStorage(MAP_COLLECTIBLES_STORAGE_KEY, {});
-		mapKeysOwned = loadFromStorage(MAP_KEYS_STORAGE_KEY, {});
 		syncMetadata = normalizeSyncMetadata(loadFromStorage<SyncMetadata | null>(SYNC_METADATA_STORAGE_KEY, null), player, levelProgress, dailyResults);
 		worlds = getAllWorlds();
 		initialized = true;
@@ -286,8 +277,6 @@ function createGameStore() {
 		saveToStorage(STORAGE_KEY, player);
 		saveToStorage(LEVEL_STORAGE_KEY, levelProgress);
 		saveToStorage(DAILY_STORAGE_KEY, dailyResults);
-		saveToStorage(MAP_COLLECTIBLES_STORAGE_KEY, mapCollectiblesCollected);
-		saveToStorage(MAP_KEYS_STORAGE_KEY, mapKeysOwned);
 		saveToStorage(SYNC_METADATA_STORAGE_KEY, syncMetadata);
 		scheduleCloudPush();
 	}
@@ -571,20 +560,6 @@ function createGameStore() {
 		save();
 	}
 
-	function addGems(amount: number) {
-		player.gemCount += amount;
-		touchPlayer();
-		save();
-	}
-
-	function spendGems(amount: number): boolean {
-		if (player.gemCount < amount) return false;
-		player.gemCount -= amount;
-		touchPlayer();
-		save();
-		return true;
-	}
-
 	function spendCoins(amount: number): boolean {
 		if (player.coinCount < amount) return false;
 		player.coinCount -= amount;
@@ -625,11 +600,7 @@ function createGameStore() {
 		const skin = SKIN_CATALOG.find((s) => s.id === skinId);
 		if (!skin || skin.isSpecialSkin) return false;
 		if (player.unlockedSkinIds.includes(skinId)) return false;
-		if (skin.gemPrice > 0) {
-			if (!spendGems(skin.gemPrice)) return false;
-		} else if (!spendCoins(skin.coinPrice)) {
-			return false;
-		}
+		if (!spendCoins(skin.coinPrice)) return false;
 		unlockSkin(skinId);
 		return true;
 	}
@@ -674,33 +645,18 @@ function createGameStore() {
 		const key = `${worldId}:${level.levelNumber}`;
 		const existing = levelProgress[key];
 
-		const wasAlreadyStar3 = existing?.star3 === true;
-		const wasAlreadyStar4 = existing?.star4 === true;
-		const wasAlreadyStar5 = existing?.star5 === true;
-
 		if (existing) {
 			// Only improve — never overwrite with worse stats
 			level.star1 = level.star1 || existing.star1;
 			level.star2 = level.star2 || existing.star2;
 			level.star3 = level.star3 || existing.star3;
-			level.star4 = level.star4 || existing.star4;
-			level.star5 = level.star5 || existing.star5;
-			level.numberOfStars = (level.star1 ? 1 : 0) + (level.star2 ? 1 : 0) + (level.star3 ? 1 : 0) + (level.star4 ? 1 : 0) + (level.star5 ? 1 : 0);
+			level.numberOfStars = (level.star1 ? 1 : 0) + (level.star2 ? 1 : 0) + (level.star3 ? 1 : 0);
 			level.bestMoves = existing.bestMoves > 0 ? Math.min(level.bestMoves || Infinity, existing.bestMoves) : level.bestMoves;
 			level.bestTime = existing.bestTime > 0 ? Math.min(level.bestTime || Infinity, existing.bestTime) : level.bestTime;
 			level.completed = level.completed || existing.completed;
 		}
 
 		levelProgress[key] = { ...level };
-		if (level.star3 && !wasAlreadyStar3) {
-			addGems(1);
-		}
-		if (level.star4 && !wasAlreadyStar4) {
-			addGems(2);
-		}
-		if (level.star5 && !wasAlreadyStar5) {
-			addGems(3);
-		}
 		touchLevel(key);
 		save();
 	}
@@ -732,38 +688,6 @@ function createGameStore() {
 		return w1l10?.star1 === true;
 	}
 
-	// --- Map collectibles ---
-
-	function isMapItemCollected(worldId: number, collectibleId: string): boolean {
-		return mapCollectiblesCollected[`${worldId}:${collectibleId}`] === true;
-	}
-
-	function collectMapItem(worldId: number, collectibleId: string): void {
-		mapCollectiblesCollected = { ...mapCollectiblesCollected, [`${worldId}:${collectibleId}`]: true };
-		save();
-	}
-
-	function hasKey(keyItemId: string): boolean {
-		return mapKeysOwned[keyItemId] === true;
-	}
-
-	function addKey(keyItemId: string): void {
-		mapKeysOwned = { ...mapKeysOwned, [keyItemId]: true };
-		save();
-	}
-
-	function getHighestAreaUnlocked(worldId: number): number {
-		const world = worlds.find((w) => w.worldId === worldId);
-		if (!world) return 1;
-		const stars = getWorldStarCount(worldId);
-		let area = 1;
-		for (const required of world.gateStarRequired) {
-			if (stars >= required) area++;
-			else break;
-		}
-		return area;
-	}
-
 	function getCloudSyncStatusLabel(): string {
 		if (cloudSyncStatus === 'offline') return cloudUserId ? 'Offline' : 'Local only';
 		if (cloudSyncStatus === 'syncing') return 'Syncing...';
@@ -793,8 +717,6 @@ function createGameStore() {
 		handleAuthStateChanged,
 		syncNow,
 		addCoins,
-		addGems,
-		spendGems,
 		spendCoins,
 		setPlayerName,
 		setWallColor,
@@ -808,11 +730,6 @@ function createGameStore() {
 		getWorldStarCount,
 		getDailyResult,
 		saveDailyResult,
-		isDailyMazeUnlocked,
-		isMapItemCollected,
-		collectMapItem,
-		hasKey,
-		addKey,
-		getHighestAreaUnlocked
+		isDailyMazeUnlocked
 	};
 }

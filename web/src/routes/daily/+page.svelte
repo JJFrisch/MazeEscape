@@ -79,9 +79,10 @@
 	}
 
 	function isFuture(dateStr: string) {
-		const d = new Date(dateStr);
-		d.setHours(23,59,59);
-		return d > today;
+		const selected = new Date(dateStr);
+		const selectedDayStart = new Date(selected.getFullYear(), selected.getMonth(), selected.getDate());
+		const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+		return selectedDayStart > todayStart;
 	}
 
 	function getDayResult(dateStr: string) {

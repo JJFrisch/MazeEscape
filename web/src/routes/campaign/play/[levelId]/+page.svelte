@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
@@ -6,17 +7,88 @@
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
 	import { createGameSession, getHint, getCompassPath, calculateStars, buildReplayPositions } from '$lib/core/session';
-	import type { GameSessionState, GameSessionConfig } from '$lib/core/session';
 	import type { MasteryRewardUnlock } from '$lib/core/deities';
 	import { canMove, applyMove } from '$lib/core/maze';
-	import type { Direction, MapCollectible } from '$lib/core/types';
+	import {
+		generateHexMaze,
+		generateHexMazeKruskals,
+		generateHexMazePrims,
+		canMoveHex,
+		applyMoveHex,
+		keyToHexDir
+	} from '$lib/core/hexMaze';
+	import {
+		generateCircularMaze,
+		generateCircularMazePrims,
+		canMoveCircular,
+		keyToCircularDir
+	} from '$lib/core/circularMaze';
+	import {
+		generateTriMaze,
+		generateTriMazeHuntAndKill,
+		generateTriMazeKruskals,
+		canMoveTri,
+		applyMoveTri,
+		keyToTriDir
+	} from '$lib/core/triMaze';
+	import { getResponsiveCampaignLevelConfig, type CampaignViewport } from '$lib/core/campaignSizing';
+	import type { CircularMazeData, Direction, HexMazeData, MapCollectible, MazeData, Position, TriMazeData } from '$lib/core/types';
 	import { getWorldTheme } from '$lib/worldThemes';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
+	import HexMazeRenderer from '$lib/components/HexMazeRenderer.svelte';
+	import CircularMazeRenderer from '$lib/components/CircularMazeRenderer.svelte';
+	import TriMazeRenderer from '$lib/components/TriMazeRenderer.svelte';
 	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
 	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
 	import AchievementUnlockPopup from '../../../../lib/components/AchievementUnlockPopup.svelte';
 	import MasteryRewardPopup from '$lib/components/MasteryRewardPopup.svelte';
 	import MapCollectiblePopup from '$lib/components/MapCollectiblePopup.svelte';
+
+	type RectCampaignSession = {
+		shape: 'rectangular';
+		maze: MazeData;
+		playerPos: Position;
+		moves: number;
+		elapsed: number;
+		hintsUsed: number;
+		isComplete: boolean;
+		hintPath: Position[] | null;
+	};
+
+	type HexCampaignSession = {
+		shape: 'hexagonal';
+		maze: HexMazeData;
+		playerPos: { col: number; row: number };
+		moves: number;
+		elapsed: number;
+		hintsUsed: number;
+		isComplete: boolean;
+		hintPath: null;
+	};
+
+	type CircularCampaignSession = {
+		shape: 'circular';
+		maze: CircularMazeData;
+		playerPos: { ring: number; sector: number };
+		moves: number;
+		elapsed: number;
+		hintsUsed: number;
+		isComplete: boolean;
+		hintPath: null;
+	};
+
+	type TriCampaignSession = {
+		shape: 'triangular';
+		maze: TriMazeData;
+		playerPos: { col: number; row: number };
+		moves: number;
+		elapsed: number;
+		hintsUsed: number;
+		isComplete: boolean;
+		hintPath: null;
+	};
+
+	type CampaignSessionState = RectCampaignSession | HexCampaignSession | CircularCampaignSession | TriCampaignSession;
 
 	// Parse route: "worldId-levelNumber" e.g. "1-5" or "2-3b"
 	const levelKey = $derived($page.params.levelId as string);
@@ -25,6 +97,13 @@
 	const worldDef = $derived(getAllWorlds().find((w) => w.worldId === worldId));
 	const levelDef = $derived(worldDef ? getLevelByNumber(worldDef, levelNumber) : undefined);
 	const theme = $derived(getWorldTheme(worldId));
+	let viewport = $state<CampaignViewport>(browser ? { width: window.innerWidth, height: window.innerHeight } : { width: 0, height: 0 });
+	const activeLevelConfig = $derived(levelDef ? getResponsiveCampaignLevelConfig(levelDef, viewport) : null);
+	const activeLevelDimensions = $derived(activeLevelConfig ? { width: activeLevelConfig.width, height: activeLevelConfig.height } : null);
+	const activeTwoStarMoves = $derived(activeLevelConfig?.twoStarMoves ?? levelDef?.twoStarMoves ?? 0);
+	const activeThreeStarTime = $derived(activeLevelConfig?.threeStarTime ?? levelDef?.threeStarTime ?? 0);
+	const activeFiveStarMoves = $derived(activeLevelConfig?.fiveStarMoves ?? levelDef?.fiveStarMoves ?? 0);
+	const activeFiveStarTime = $derived(activeLevelConfig?.fiveStarTime ?? levelDef?.fiveStarTime ?? 0);
 
 	// Per-world intro phrases keyed by motif
 	const INTRO_PHRASES: Record<'tech' | 'space' | 'elemental', string[]> = {
@@ -54,7 +133,7 @@
 	const introPhrases = $derived(INTRO_PHRASES[theme.motif]);
 	const ENABLE_LEVEL_INTRO = false; // temporary fallback while debugging intro/browser behavior
 
-	let session = $state<GameSessionState | null>(null);
+	let session = $state<CampaignSessionState | null>(null);
 	let elapsed = $state(0);
 	let timerInterval: ReturnType<typeof setInterval> | undefined;
 	let showIntro = $state(false);
@@ -84,6 +163,221 @@
 	let shownMasteryUnlock = $derived(masteryUnlocks[0] ?? null);
 	let shownAchievementId = $derived(newlyUnlocked[0] ?? null);
 
+	function updateViewport() {
+		if (!browser) return;
+		viewport = {
+			width: window.innerWidth,
+			height: window.innerHeight
+		};
+	}
+
+	function createHexCampaignSession(width: number, height: number, algorithm: string, seed: number): HexCampaignSession {
+		const maze = algorithm === 'prims'
+			? generateHexMazePrims(width, height, seed)
+			: algorithm === 'kruskals'
+				? generateHexMazeKruskals(width, height, seed)
+				: generateHexMaze(width, height, seed);
+
+		return {
+			shape: 'hexagonal',
+			maze,
+			playerPos: { ...maze.start },
+			moves: 0,
+			elapsed: 0,
+			hintsUsed: 0,
+			isComplete: false,
+			hintPath: null
+		};
+	}
+
+	function createCircularCampaignSession(size: number, algorithm: string, seed: number): CircularCampaignSession {
+		const maze = algorithm === 'prims'
+			? generateCircularMazePrims(size, seed)
+			: generateCircularMaze(size, seed);
+
+		return {
+			shape: 'circular',
+			maze,
+			playerPos: { ...maze.start },
+			moves: 0,
+			elapsed: 0,
+			hintsUsed: 0,
+			isComplete: false,
+			hintPath: null
+		};
+	}
+
+	function createTriCampaignSession(width: number, height: number, algorithm: string, seed: number): TriCampaignSession {
+		const maze = algorithm === 'huntAndKill'
+			? generateTriMazeHuntAndKill(width, height, seed)
+			: algorithm === 'kruskals'
+				? generateTriMazeKruskals(width, height, seed)
+				: generateTriMaze(width, height, seed);
+
+		return {
+			shape: 'triangular',
+			maze,
+			playerPos: { ...maze.start },
+			moves: 0,
+			elapsed: 0,
+			hintsUsed: 0,
+			isComplete: false,
+			hintPath: null
+		};
+	}
+
+	function createCampaignSession(seed: number): CampaignSessionState {
+		if (!levelDef || !activeLevelConfig) {
+			throw new Error('Level configuration is unavailable.');
+		}
+
+		switch (levelDef.mazeShape) {
+			case 'hexagonal':
+				return createHexCampaignSession(activeLevelConfig.width, activeLevelConfig.height, levelDef.levelType, seed);
+			case 'circular':
+				return createCircularCampaignSession(activeLevelConfig.height, levelDef.levelType, seed);
+			case 'triangular':
+				return createTriCampaignSession(activeLevelConfig.width, activeLevelConfig.height, levelDef.levelType, seed);
+			default: {
+				const rectangularSession = createGameSession({
+					width: activeLevelConfig.width,
+					height: activeLevelConfig.height,
+					algorithm: levelDef.levelType,
+					seed,
+					twoStarMoves: activeLevelConfig.twoStarMoves,
+					threeStarTime: activeLevelConfig.threeStarTime
+				});
+
+				return {
+					shape: 'rectangular',
+					...rectangularSession
+				};
+			}
+		}
+	}
+
+	function supportsHintOverlay(activeSession: CampaignSessionState | null): activeSession is RectCampaignSession {
+		return !!activeSession && activeSession.shape === 'rectangular';
+	}
+
+	function getSessionGridSize(activeSession: CampaignSessionState | null): { width: number; height: number } {
+		if (!activeSession) {
+			return activeLevelDimensions ?? { width: levelDef?.width ?? 0, height: levelDef?.height ?? 0 };
+		}
+
+		switch (activeSession.shape) {
+			case 'rectangular':
+				return { width: activeSession.maze.width, height: activeSession.maze.height };
+			case 'hexagonal':
+				return { width: activeSession.maze.cols, height: activeSession.maze.rows };
+			case 'triangular':
+				return { width: activeSession.maze.cols, height: activeSession.maze.rows };
+			case 'circular':
+				return { width: activeSession.maze.numRings, height: activeSession.maze.numRings };
+		}
+	}
+
+	function tryMoveCampaignSession(activeSession: CampaignSessionState, direction: Direction): CampaignSessionState | null {
+		switch (activeSession.shape) {
+			case 'rectangular': {
+				if (!canMove(activeSession.maze.cells, activeSession.playerPos, direction, activeSession.maze.width, activeSession.maze.height)) {
+					return null;
+				}
+
+				const playerPos = applyMove(activeSession.playerPos, direction);
+				return {
+					...activeSession,
+					playerPos,
+					moves: activeSession.moves + 1,
+					hintPath: null,
+					isComplete: playerPos.x === activeSession.maze.end.x && playerPos.y === activeSession.maze.end.y
+				};
+			}
+			case 'hexagonal': {
+				for (const candidate of keyToHexDir(direction)) {
+					if (!canMoveHex(activeSession.maze.cells, activeSession.playerPos.col, activeSession.playerPos.row, candidate)) continue;
+					const playerPos = applyMoveHex(activeSession.playerPos.col, activeSession.playerPos.row, candidate);
+					return {
+						...activeSession,
+						playerPos,
+						moves: activeSession.moves + 1,
+						isComplete: playerPos.col === activeSession.maze.end.col && playerPos.row === activeSession.maze.end.row
+					};
+				}
+
+				return null;
+			}
+			case 'circular': {
+				const directions = keyToCircularDir(activeSession.playerPos.sector, activeSession.maze.rings[activeSession.playerPos.ring].length, direction);
+				for (const candidate of directions) {
+					const next = canMoveCircular(activeSession.maze, activeSession.playerPos.ring, activeSession.playerPos.sector, candidate);
+					if (!next.canMove) continue;
+					const playerPos = { ring: next.ring, sector: next.sector };
+					return {
+						...activeSession,
+						playerPos,
+						moves: activeSession.moves + 1,
+						isComplete: playerPos.ring === activeSession.maze.end.ring && playerPos.sector === activeSession.maze.end.sector
+					};
+				}
+
+				return null;
+			}
+			case 'triangular': {
+				const pointsUp = activeSession.maze.cells[activeSession.playerPos.row][activeSession.playerPos.col].pointsUp;
+				for (const candidate of keyToTriDir(pointsUp, direction)) {
+					if (!canMoveTri(activeSession.maze.cells, activeSession.playerPos.col, activeSession.playerPos.row, candidate, activeSession.maze.cols, activeSession.maze.rows)) continue;
+					const playerPos = applyMoveTri(activeSession.playerPos.col, activeSession.playerPos.row, pointsUp, candidate);
+					return {
+						...activeSession,
+						playerPos,
+						moves: activeSession.moves + 1,
+						isComplete: playerPos.col === activeSession.maze.end.col && playerPos.row === activeSession.maze.end.row
+					};
+				}
+
+				return null;
+			}
+		}
+	}
+
+	function getBlinkDestination(activeSession: CampaignSessionState): CampaignSessionState['playerPos'] | null {
+		switch (activeSession.shape) {
+			case 'rectangular': {
+				const candidates: Position[] = [];
+				for (let y = 0; y < activeSession.maze.height; y++) {
+					for (let x = 0; x < activeSession.maze.width; x++) {
+						if (x !== activeSession.playerPos.x || y !== activeSession.playerPos.y) candidates.push({ x, y });
+					}
+				}
+				return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
+			}
+			case 'hexagonal': {
+				const candidates = Array.from(activeSession.maze.cells.values())
+					.filter((cell) => cell.col !== activeSession.playerPos.col || cell.row !== activeSession.playerPos.row)
+					.map((cell) => ({ col: cell.col, row: cell.row }));
+				return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
+			}
+			case 'circular': {
+				const candidates: Array<{ ring: number; sector: number }> = [];
+				for (let ring = 0; ring < activeSession.maze.numRings; ring++) {
+					for (let sector = 0; sector < activeSession.maze.rings[ring].length; sector++) {
+						if (ring !== activeSession.playerPos.ring || sector !== activeSession.playerPos.sector) {
+							candidates.push({ ring, sector });
+						}
+					}
+				}
+				return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
+			}
+			case 'triangular': {
+				const candidates = activeSession.maze.cells.flat()
+					.filter((cell) => cell.col !== activeSession.playerPos.col || cell.row !== activeSession.playerPos.row)
+					.map((cell) => ({ col: cell.col, row: cell.row }));
+				return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
+			}
+		}
+	}
+
 	function startGame() {
 		hourglassFrozen = false;
 		clearTimeout(hourglassTimer);
@@ -104,24 +398,21 @@
 			const seed = worldId * 10000 + (parseInt(levelDef.levelNumber) || 0) * 100 +
 				(levelDef.levelNumber.includes('b') ? 50 : 0);
 
-			const config: GameSessionConfig = {
-				width: levelDef.width,
-				height: levelDef.height,
-				algorithm: levelDef.levelType,
-				seed,
-				twoStarMoves: levelDef.twoStarMoves,
-				threeStarTime: levelDef.threeStarTime
-			};
-
-			session = createGameSession(config);
+			session = createCampaignSession(seed);
 			loadError = '';
 			elapsed = 0;
 			showOutro = false;
-			visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
+			visitedCells = session.shape === 'rectangular'
+				? new Set([`${session.maze.start.x},${session.maze.start.y}`])
+				: new Set();
 			moveQueue = [];
 			currentRunMoves = [];
-			const savedGhost = gameStore.getGhostRun(worldId, levelDef.levelNumber);
-			ghostPositions = savedGhost?.moves?.length ? buildReplayPositions(session.maze, savedGhost.moves) : [];
+			const savedGhost = session.shape === 'rectangular'
+				? gameStore.getGhostRun(worldId, levelDef.levelNumber)
+				: undefined;
+			ghostPositions = session.shape === 'rectangular' && savedGhost?.moves?.length
+				? buildReplayPositions(session.maze, savedGhost.moves)
+				: [];
 			ghostIndex = 0;
 			ghostPos = ghostPositions[0] ?? null;
 			clearInterval(timerInterval);
@@ -149,7 +440,7 @@
 				elapsed += 0.01;
 			}
 		}, 10);
-		if (ghostPositions.length > 1) {
+		if (session.shape === 'rectangular' && ghostPositions.length > 1) {
 			ghostTimer = setInterval(() => {
 				if (showOutro) return;
 				ghostIndex = (ghostIndex + 1) % ghostPositions.length;
@@ -161,23 +452,17 @@
 	function handleMove(direction: Direction) {
 		if (!session || session.isComplete || showIntro) return;
 
-		if (!canMove(session.maze.cells, session.playerPos, direction, session.maze.width, session.maze.height)) {
-			return;
+		const nextSession = tryMoveCampaignSession(session, direction);
+		if (!nextSession) return;
+
+		currentRunMoves = [...currentRunMoves, direction];
+		session = nextSession;
+
+		if (nextSession.shape === 'rectangular') {
+			visitedCells = new Set([...visitedCells, `${nextSession.playerPos.x},${nextSession.playerPos.y}`]);
 		}
 
-		const newPos = applyMove(session.playerPos, direction);
-		currentRunMoves = [...currentRunMoves, direction];
-		session = {
-			...session,
-			playerPos: newPos,
-			moves: session.moves + 1,
-			hintPath: null
-		};
-
-		visitedCells = new Set([...visitedCells, `${newPos.x},${newPos.y}`]);
-
-		if (newPos.x === session.maze.end.x && newPos.y === session.maze.end.y) {
-			session.isComplete = true;
+		if (nextSession.isComplete) {
 			onLevelComplete();
 		}
 	}
@@ -210,10 +495,10 @@
 			session.moves,
 			elapsed,
 			session.hintsUsed,
-			levelDef.twoStarMoves,
-			levelDef.threeStarTime,
-			levelDef.fiveStarMoves,
-			levelDef.fiveStarTime
+			activeTwoStarMoves,
+			activeThreeStarTime,
+			activeFiveStarMoves,
+			activeFiveStarTime
 		);
 		victoryStars = stars;
 
@@ -283,7 +568,7 @@
 	}
 
 	function useHint() {
-		if (!session || session.isComplete || showIntro) return;
+		if (!supportsHintOverlay(session) || session.isComplete || showIntro) return;
 		if (gameStore.usePowerup('hint')) {
 			const nextSession = { ...session };
 			const hintPath = getHint(nextSession);
@@ -292,7 +577,7 @@
 	}
 
 	function useCompass() {
-		if (!session || session.isComplete || showIntro) return;
+		if (!supportsHintOverlay(session) || session.isComplete || showIntro) return;
 		if (gameStore.usePowerup('compass')) {
 			const nextSession = { ...session };
 			const hintPath = getCompassPath(nextSession);
@@ -317,15 +602,9 @@
 	function useBlinkScroll() {
 		if (!session || session.isComplete || showIntro) return;
 		if (gameStore.usePowerup('blinkScroll')) {
-			const { maze, playerPos } = session;
-			const candidates: { x: number; y: number }[] = [];
-			for (let y = 0; y < maze.height; y++) {
-				for (let x = 0; x < maze.width; x++) {
-					if (x !== playerPos.x || y !== playerPos.y) candidates.push({ x, y });
-				}
-			}
-			const pick = candidates[Math.floor(Math.random() * candidates.length)];
-			session = { ...session, playerPos: pick, hintPath: null };
+			const destination = getBlinkDestination(session);
+			if (!destination) return;
+			session = { ...session, playerPos: destination, hintPath: null } as CampaignSessionState;
 		}
 	}
 
@@ -405,7 +684,7 @@
 	});
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} onresize={updateViewport} />
 
 <svelte:head>
 	<title>Level {levelNumber} – MazeEscape</title>
@@ -436,43 +715,66 @@
 			<div class="hud-stats">
 				<div class="hud-stat">
 					<span class="hud-stat-label">⏱️</span>
-					<span class="hud-stat-value" class:over-threshold={elapsed > levelDef.threeStarTime}>
+					<span class="hud-stat-value" class:over-threshold={elapsed > activeThreeStarTime}>
 						{elapsed.toFixed(1)}s
 					</span>
 					{#if hourglassFrozen}
 						<span class="frozen-badge">FROZEN</span>
 					{:else}
-						<span class="hud-stat-target">/ {levelDef.threeStarTime}s</span>
+						<span class="hud-stat-target">/ {activeThreeStarTime}s</span>
 					{/if}
 				</div>
 				<div class="hud-stat">
 					<span class="hud-stat-label">👣</span>
-					<span class="hud-stat-value" class:over-threshold={session.moves > levelDef.twoStarMoves}>
+					<span class="hud-stat-value" class:over-threshold={session.moves > activeTwoStarMoves}>
 						{session.moves}
 					</span>
-					<span class="hud-stat-target">/ {levelDef.twoStarMoves}</span>
+					<span class="hud-stat-target">/ {activeTwoStarMoves}</span>
 				</div>
 			</div>
 		</div>
 
 		<!-- Maze -->
 		<div class="maze-area">
-			<MazeRenderer
-				maze={session.maze}
-				playerPos={session.playerPos}
-				ghostPos={ghostPos}
-				wallColor={gameStore.player.wallColor}
-				backgroundColor={gameStore.player.mazeBackgroundColor}
-				hintPath={session.hintPath}
-				showVisited={true}
-				{visitedCells}
-			/>
+			{#if session.shape === 'rectangular'}
+				<MazeRenderer
+					maze={session.maze}
+					playerPos={session.playerPos}
+					ghostPos={ghostPos}
+					wallColor={gameStore.player.wallColor}
+					backgroundColor={gameStore.player.mazeBackgroundColor}
+					hintPath={session.hintPath}
+					showVisited={true}
+					{visitedCells}
+				/>
+			{:else if session.shape === 'hexagonal'}
+				<HexMazeRenderer
+					maze={session.maze}
+					playerPos={session.playerPos}
+					wallColor={gameStore.player.wallColor}
+					backgroundColor={gameStore.player.mazeBackgroundColor}
+				/>
+			{:else if session.shape === 'circular'}
+				<CircularMazeRenderer
+					maze={session.maze}
+					playerPos={session.playerPos}
+					wallColor={gameStore.player.wallColor}
+					backgroundColor={gameStore.player.mazeBackgroundColor}
+				/>
+			{:else}
+				<TriMazeRenderer
+					maze={session.maze}
+					playerPos={session.playerPos}
+					wallColor={gameStore.player.wallColor}
+					backgroundColor={gameStore.player.mazeBackgroundColor}
+				/>
+			{/if}
 		</div>
 
 		<!-- Powerups & Controls -->
 		<div class="controls-bar">
 			<div class="powerups">
-				<button class="powerup-btn" onclick={useHint} disabled={gameStore.player.hintsOwned <= 0}>
+				<button class="powerup-btn" onclick={useHint} disabled={gameStore.player.hintsOwned <= 0 || !supportsHintOverlay(session)}>
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" aria-hidden="true">
 						<circle cx="12" cy="12" r="10"/>
 						<path d="M12 8v4M12 16h.01"/>
@@ -480,7 +782,7 @@
 					Hint
 					<span class="powerup-count">({gameStore.player.hintsOwned})</span>
 				</button>
-				<button class="powerup-btn" onclick={useCompass} disabled={(gameStore.player.compassOwned ?? 0) <= 0}>
+				<button class="powerup-btn" onclick={useCompass} disabled={(gameStore.player.compassOwned ?? 0) <= 0 || !supportsHintOverlay(session)}>
 					🧭
 					Compass
 					<span class="powerup-count">({gameStore.player.compassOwned ?? 0})</span>
@@ -528,7 +830,7 @@
 			</div>
 		</div>
 
-		{#if ghostPositions.length > 1}
+		{#if session.shape === 'rectangular' && ghostPositions.length > 1}
 			<div class="ghost-banner">
 				<span class="ghost-label">Ghost mode</span>
 				<span class="ghost-copy">Best run replaying in the background</span>
@@ -571,17 +873,17 @@
 		time={elapsed}
 		moves={session.moves}
 		stars={victoryStars.total}
-		twoStarMoves={levelDef.twoStarMoves}
-		threeStarTime={levelDef.threeStarTime}
-		fiveStarMoves={levelDef.fiveStarMoves}
-		fiveStarTime={levelDef.fiveStarTime}
+		twoStarMoves={activeTwoStarMoves}
+		threeStarTime={activeThreeStarTime}
+		fiveStarMoves={activeFiveStarMoves}
+		fiveStarTime={activeFiveStarTime}
 		coins={coinsEarned}
 		accentColor={theme.accentColor}
 		rewardSummary={levelDef.levelKind === 'boss'
 			? `Boss rewards secured. ${levelDef.levelReward?.label ?? 'A relic'} is now archived if this was your first clear.`
 			: 'Stars, coins, and mastery progress have been recorded for this run.'}
-		mazeWidth={levelDef.width}
-		mazeHeight={levelDef.height}
+		mazeWidth={getSessionGridSize(session).width}
+		mazeHeight={getSessionGridSize(session).height}
 		algoName={levelDef.levelType}
 		algoId={levelDef.levelType}
 		algoLinkBase={base}

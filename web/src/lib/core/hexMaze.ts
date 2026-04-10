@@ -155,6 +155,36 @@ export function keyToHexDir(key: 'up' | 'down' | 'left' | 'right'): HexDirection
 	}
 }
 
+export function getHexOptimalPathLength(data: HexMazeData): number {
+	const startKey = cellKey(data.start.col, data.start.row);
+	const endKey = cellKey(data.end.col, data.end.row);
+	const queue: Array<{ col: number; row: number; dist: number }> = [
+		{ col: data.start.col, row: data.start.row, dist: 0 }
+	];
+	const visited = new Set<string>([startKey]);
+
+	while (queue.length > 0) {
+		const current = queue.shift()!;
+		if (cellKey(current.col, current.row) === endKey) {
+			return current.dist;
+		}
+
+		const cell = data.cells.get(cellKey(current.col, current.row));
+		if (!cell) continue;
+
+		for (const dir of DIRECTIONS) {
+			if (cell.walls[DIR_INDEX[dir]]) continue;
+			const next = getNeighbor(current.col, current.row, dir);
+			const nextKey = cellKey(next.col, next.row);
+			if (!data.cells.has(nextKey) || visited.has(nextKey)) continue;
+			visited.add(nextKey);
+			queue.push({ col: next.col, row: next.row, dist: current.dist + 1 });
+		}
+	}
+
+	return 0;
+}
+
 // ---------------------------------------------------------------------------
 // Internal helper: remove wall between two adjacent hex cells
 // ---------------------------------------------------------------------------

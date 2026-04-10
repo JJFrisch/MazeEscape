@@ -94,3 +94,11 @@ export function calculateStars(
 		total: (star1 ? 1 : 0) + (star2 ? 1 : 0) + (star3 ? 1 : 0) + (star4 ? 1 : 0) + (star5 ? 1 : 0)
 	};
 }
+
+export function getMoveThresholdsForOptimalPath(optimalPathLength: number): { twoStarMoves: number; fiveStarMoves: number } {
+	const optimalMoves = Math.max(1, Math.floor(optimalPathLength));
+	return {
+		twoStarMoves: optimalMoves + Math.max(2, Math.ceil(optimalMoves * 0.22)),
+		fiveStarMoves: optimalMoves + Math.max(0, Math.ceil(optimalMoves * 0.08))
+	};
+}

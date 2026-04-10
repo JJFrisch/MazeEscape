@@ -345,35 +345,42 @@ html[data-theme="dark"][data-maze-theme="blueprint"] {
 }
 
 html[data-theme="dark"][data-maze-theme="forest"] {
-	--color-bg-primary:    #06140b;
-	--color-bg-secondary:  #0b1d12;
-	--color-bg-card:       rgba(10, 27, 17, 0.9);
-	--color-bg-card-hover: rgba(14, 38, 24, 0.96);
-	--color-bg-glass:      rgba(74, 222, 128, 0.05);
-	--color-bg-glass-hover: rgba(74, 222, 128, 0.1);
-	--color-bg-header:     rgba(6, 20, 11, 0.88);
-	--color-bg-footer:     #041008;
-	--color-accent-primary:   #4ade80;
-	--color-accent-secondary: #22c55e;
-	--color-accent-glow:      rgba(74, 222, 128, 0.28);
+	--color-bg-primary:    #f7fff8;
+	--color-bg-secondary:  #edfdf0;
+	--color-bg-card:       rgba(255, 255, 255, 0.92);
+	--color-bg-card-hover: rgba(255, 255, 255, 0.98);
+	--color-bg-glass:      rgba(22, 163, 74, 0.05);
+	--color-bg-glass-hover: rgba(22, 163, 74, 0.1);
+	--color-bg-header:     rgba(247, 255, 248, 0.88);
+	--color-bg-footer:     #e5f7e9;
+	--color-accent-primary:   #16a34a;
+	--color-accent-secondary: #15803d;
+	--color-accent-glow:      rgba(22, 163, 74, 0.22);
 	--color-accent-deep:      #166534;
-	--color-text-primary:     #f0fdf4;
-	--color-text-secondary:   #bbf7d0;
-	--color-text-muted:       #5e8b69;
-	--color-text-accent:      #86efac;
-	--color-nav-link-hover-bg: rgba(74, 222, 128, 0.06);
-	--color-border:           rgba(74, 222, 128, 0.14);
-	--color-border-bright:    rgba(74, 222, 128, 0.3);
-	--color-border-active:    #4ade80;
-	--shadow-glow:            0 0 28px rgba(74, 222, 128, 0.16);
-	--shadow-glow-lg:         0 0 56px rgba(74, 222, 128, 0.22);
-	--shadow-card:            0 4px 24px rgba(0, 0, 0, 0.48), 0 0 0 1px rgba(74,222,128,0.05);
-	--color-logo-icon-bg:     rgba(74, 222, 128, 0.08);
-	--color-logo-icon-border: rgba(74, 222, 128, 0.22);
-	--app-bg-radial-color:    rgba(74, 222, 128, 0.07);
-	--app-grid-line-color:    rgba(74, 222, 128, 0.025);
-	--app-scrollbar-thumb:    rgba(74, 222, 128, 0.28);
-	--app-scrollbar-thumb-hover: rgba(74, 222, 128, 0.48);
+	--color-text-primary:     #0f172a;
+	--color-text-secondary:   #3f6b4e;
+	--color-text-muted:       #78a086;
+	--color-text-accent:      #15803d;
+	--color-nav-link:         rgba(15, 23, 42, 0.58);
+	--color-nav-link-hover-bg: rgba(22, 163, 74, 0.06);
+	--color-footer-muted:     rgba(15, 23, 42, 0.45);
+	--color-footer-link:      rgba(15, 23, 42, 0.56);
+	--color-footer-heading:   rgba(15, 23, 42, 0.32);
+	--color-footer-bottom-text: rgba(15, 23, 42, 0.34);
+	--color-footer-bottom-link: rgba(21, 128, 61, 0.72);
+	--color-border:           rgba(22, 163, 74, 0.14);
+	--color-border-bright:    rgba(22, 163, 74, 0.32);
+	--color-border-active:    #16a34a;
+	--color-border-subtle:    rgba(15, 23, 42, 0.08);
+	--shadow-glow:            0 0 28px rgba(22, 163, 74, 0.14);
+	--shadow-glow-lg:         0 0 56px rgba(22, 163, 74, 0.18);
+	--shadow-card:            0 4px 24px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(22,163,74,0.04);
+	--color-logo-icon-bg:     rgba(22, 163, 74, 0.08);
+	--color-logo-icon-border: rgba(22, 163, 74, 0.22);
+	--app-bg-radial-color:    rgba(22, 163, 74, 0.045);
+	--app-grid-line-color:    rgba(22, 163, 74, 0.028);
+	--app-scrollbar-thumb:    rgba(22, 163, 74, 0.28);
+	--app-scrollbar-thumb-hover: rgba(22, 163, 74, 0.48);
 }
 
 html[data-theme="light"][data-maze-theme="classic"] {

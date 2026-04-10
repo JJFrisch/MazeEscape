@@ -6,13 +6,13 @@
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
 	import { getSkinById } from '$lib/core/skins';
-	import { createGameSession, getHint, calculateStars } from '$lib/core/session';
+	import { createGameSession, getHint, calculateStars, getMoveThresholdsForOptimalPath } from '$lib/core/session';
 	import type { GameSessionState, GameSessionConfig } from '$lib/core/session';
 	import { canMove, applyMove } from '$lib/core/maze';
 	import type { Direction, HexMazeData, CircularMazeData, TriMazeData } from '$lib/core/types';
-	import { generateHexMaze, canMoveHex, applyMoveHex, keyToHexDir } from '$lib/core/hexMaze';
-	import { generateCircularMaze, canMoveCircular, keyToCircularDir } from '$lib/core/circularMaze';
-	import { generateTriMaze, canMoveTri, applyMoveTri, keyToTriDir } from '$lib/core/triMaze';
+	import { generateHexMaze, canMoveHex, applyMoveHex, keyToHexDir, getHexOptimalPathLength } from '$lib/core/hexMaze';
+	import { generateCircularMaze, canMoveCircular, keyToCircularDir, getCircularOptimalPathLength } from '$lib/core/circularMaze';
+	import { generateTriMaze, canMoveTri, applyMoveTri, keyToTriDir, getTriOptimalPathLength } from '$lib/core/triMaze';
 	import { getWorldTheme } from '$lib/worldThemes';
 	import { mazeThemeStore } from '$lib/stores/mazeThemeStore.svelte';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
@@ -107,6 +107,7 @@
 	let prevBestTime = $state(0);
 	let prevBestMoves = $state(0);
 	let visitedCells = $state(new Set<string>());
+ 	let moveTargets = $state({ twoStarMoves: 0, fiveStarMoves: 0 });
         /** Set after level completion if this level has a reward; cleared when player collects it */
         let pendingLevelReward = $state<LevelReward | null>(null);
         let showLevelRewardPopup = $state(false);
@@ -148,14 +149,17 @@
 
 			if (shape === 'hexagonal') {
 				const maze = generateHexMaze(levelDef.width, levelDef.height, seed);
+				moveTargets = getMoveThresholdsForOptimalPath(getHexOptimalPathLength(maze));
 				hexState = { maze, pos: { col: maze.start.col, row: maze.start.row }, moves: 0, isComplete: false };
 				visitedCells = new Set([`${maze.start.col},${maze.start.row}`]);
 			} else if (shape === 'circular') {
 				const maze = generateCircularMaze(levelDef.width, seed); // width = numRings
+				moveTargets = getMoveThresholdsForOptimalPath(getCircularOptimalPathLength(maze));
 				circState = { maze, pos: { ring: maze.start.ring, sector: maze.start.sector }, moves: 0, isComplete: false };
 				visitedCells = new Set([`${maze.start.ring},${maze.start.sector}`]);
 			} else if (shape === 'triangular') {
 				const maze = generateTriMaze(levelDef.width, levelDef.height, seed);
+				moveTargets = getMoveThresholdsForOptimalPath(getTriOptimalPathLength(maze));
 				triState = { maze, pos: { col: maze.start.col, row: maze.start.row }, moves: 0, isComplete: false };
 				visitedCells = new Set([`${maze.start.col},${maze.start.row}`]);
 			} else {
@@ -168,6 +172,7 @@
 					threeStarTime: levelDef.threeStarTime
 				};
 				session = createGameSession(config);
+				moveTargets = getMoveThresholdsForOptimalPath(session.maze.pathLength);
 				visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
 			}
 
@@ -273,9 +278,9 @@
 			currentMoves,
 			elapsed,
 			session?.hintsUsed ?? 0,
-			levelDef.twoStarMoves,
+			moveTargets.twoStarMoves,
 			levelDef.threeStarTime,
-			levelDef.fiveStarMoves,
+			moveTargets.fiveStarMoves,
 			levelDef.fiveStarTime
 		);
 		victoryStars = stars;
@@ -293,6 +298,8 @@
 		// Save progress
 		const updatedLevel = {
 			...levelDef,
+			twoStarMoves: moveTargets.twoStarMoves,
+			fiveStarMoves: moveTargets.fiveStarMoves,
 			completed: true,
 			star1: stars.star1,
 			star2: stars.star2,
@@ -449,10 +456,10 @@
 				</div>
 				<div class="hud-stat">
 					<span class="hud-stat-label">👣</span>
-					<span class="hud-stat-value" class:over-threshold={currentMoves > levelDef.twoStarMoves}>
+					<span class="hud-stat-value" class:over-threshold={currentMoves > moveTargets.twoStarMoves}>
 						{currentMoves}
 					</span>
-					<span class="hud-stat-target">/ {levelDef.twoStarMoves}</span>
+					<span class="hud-stat-target">/ {moveTargets.twoStarMoves}</span>
 				</div>
 			</div>
 		</div>
@@ -584,9 +591,9 @@
 		time={elapsed}
 		moves={currentMoves}
 		stars={victoryStars.total}
-		twoStarMoves={levelDef.twoStarMoves}
+		twoStarMoves={moveTargets.twoStarMoves}
 		threeStarTime={levelDef.threeStarTime}
-		fiveStarMoves={levelDef.fiveStarMoves}
+		fiveStarMoves={moveTargets.fiveStarMoves}
 		fiveStarTime={levelDef.fiveStarTime}
 		coins={coinsEarned}
 		accentColor={theme.accentColor}

@@ -3,7 +3,7 @@
 	import { onDestroy, tick } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getDailyMazeForDate, getDailyMazesForMonth, getDailyMazeSeed } from '$lib/core/daily';
-	import { createGameSession, getHint, calculateStars } from '$lib/core/session';
+	import { createGameSession, getHint, calculateStars, getMoveThresholdsForOptimalPath } from '$lib/core/session';
 	import type { GameSessionState } from '$lib/core/session';
 	import { canMove, applyMove } from '$lib/core/maze';
 	import type { Direction, DailyMazeLevel } from '$lib/core/types';
@@ -30,6 +30,7 @@
 	let coinsEarned = $state(0);
 	let visitedCells = $state(new Set<string>());
 	let playing = $state(false);
+	let moveTargets = $state({ twoStarMoves: 0, fiveStarMoves: 0 });
 
 	const DAILY_PHRASES = [
 		"Shuffling today's challenge…",
@@ -43,6 +44,7 @@
 	// Check if daily unlocked (requires World 1 Level 10 completed)
 	const unlocked = $derived(gameStore.isDailyMazeUnlocked());
 	const canAcceptInput = $derived(playing && session !== null && !session.isComplete && !showIntro && !showOutro);
+	const selectedDateLabel = $derived(selectedDate ? formatDisplayDate(selectedDate) : '');
 
 	const monthNames = [
 		'January', 'February', 'March', 'April', 'May', 'June',
@@ -64,6 +66,16 @@
 
 	function getDayResult(dateStr: string) {
 		return gameStore.getDailyResult(dateStr);
+	}
+
+	function formatDisplayDate(dateStr: string) {
+		const parsed = new Date(dateStr);
+		if (Number.isNaN(parsed.getTime())) return dateStr;
+		return new Intl.DateTimeFormat('en-US', {
+			month: 'short',
+			day: 'numeric',
+			year: 'numeric'
+		}).format(parsed);
 	}
 
 	function prevMonth() {
@@ -92,7 +104,7 @@
 		showOutro = false;
 		elapsed = 0;
 		coinsEarned = 0;
-victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: false, total: 0 };
+		victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: false, total: 0 };
 
 		const d = new Date(dateStr);
 		const dailyLevel = getDailyMazeForDate(d);
@@ -106,6 +118,7 @@ victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: 
 			twoStarMoves: dailyLevel.movesNeeded,
 			threeStarTime: dailyLevel.timeNeeded
 		});
+		moveTargets = getMoveThresholdsForOptimalPath(session.maze.pathLength);
 		selectedDate = dateStr;
 		selectedDaily = dailyLevel;
 		playing = true;
@@ -156,9 +169,9 @@ victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: 
 			session.moves,
 			elapsed,
 			session.hintsUsed,
-			selectedDaily.movesNeeded,
+			moveTargets.twoStarMoves,
 			selectedDaily.timeNeeded,
-			Math.floor(selectedDaily.movesNeeded * 0.6),
+			moveTargets.fiveStarMoves,
 			Math.floor(selectedDaily.timeNeeded * 0.6)
 		);
 		victoryStars = stars;
@@ -313,10 +326,10 @@ victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: 
 	>
 		<div class="game-hud">
 			<button class="hud-back" onclick={backToCalendar}>← Calendar</button>
-			<span class="hud-label">📅 {selectedDate}</span>
+			<span class="hud-label">📅 {selectedDateLabel}</span>
 			<div class="hud-stats">
 				<span class="hud-stat">⏱️ {elapsed.toFixed(1)}s</span>
-				<span class="hud-stat">👣 {session.moves}</span>
+				<span class="hud-stat">👣 {session.moves} / {moveTargets.twoStarMoves}</span>
 			</div>
 		</div>
 
@@ -354,7 +367,7 @@ victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: 
 {#if showIntro}
 	<MazeIntroOverlay
 		title="Daily Maze"
-		subtitle={selectedDate ?? ''}
+		subtitle={selectedDateLabel}
 		phrases={DAILY_PHRASES}
 		accentColor="#34d399"
 		ondismiss={startGameplay}
@@ -368,9 +381,9 @@ victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: 
 		time={elapsed}
 		moves={session.moves}
 		stars={victoryStars.total}
-		twoStarMoves={selectedDaily.movesNeeded}
+		twoStarMoves={moveTargets.twoStarMoves}
 		threeStarTime={selectedDaily.timeNeeded}
-		fiveStarMoves={Math.floor(selectedDaily.movesNeeded * 0.6)}
+		fiveStarMoves={moveTargets.fiveStarMoves}
 		fiveStarTime={Math.floor(selectedDaily.timeNeeded * 0.6)}
 		coins={coinsEarned}
 		accentColor="#34d399"
@@ -621,12 +634,19 @@ victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: 
 	.hud-label {
 		font-family: var(--font-display);
 		font-weight: 700;
+		font-size: var(--text-lg);
+		max-width: min(42vw, 260px);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.hud-stats {
 		display: flex;
 		gap: var(--space-3);
 		font-size: var(--text-sm);
+		flex-wrap: wrap;
+		justify-content: flex-end;
 	}
 
 	.hud-stat {
@@ -639,6 +659,8 @@ victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: 
 		border-radius: var(--radius-lg);
 		border: 1px solid var(--color-border);
 		overflow: hidden;
+		background: color-mix(in srgb, var(--color-accent-primary) 4%, var(--color-bg-card));
+		box-shadow: var(--shadow-card), 0 0 30px color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
 	}
 
 	.controls-bar {

@@ -222,6 +222,31 @@ export function keyToCircularDir(
 	}
 }
 
+export function getCircularOptimalPathLength(data: CircularMazeData): number {
+	const queue: Array<{ ring: number; sector: number; dist: number }> = [
+		{ ring: data.start.ring, sector: data.start.sector, dist: 0 }
+	];
+	const visited = new Set<string>([cellKey(data.start.ring, data.start.sector)]);
+
+	while (queue.length > 0) {
+		const current = queue.shift()!;
+		if (current.ring === data.end.ring && current.sector === data.end.sector) {
+			return current.dist;
+		}
+
+		for (const dir of ['cw', 'ccw', 'in', 'out'] as const) {
+			const next = canMoveCircular(data, current.ring, current.sector, dir);
+			if (!next.canMove) continue;
+			const nextKey = cellKey(next.ring, next.sector);
+			if (visited.has(nextKey)) continue;
+			visited.add(nextKey);
+			queue.push({ ring: next.ring, sector: next.sector, dist: current.dist + 1 });
+		}
+	}
+
+	return 0;
+}
+
 // ---------------------------------------------------------------------------
 // Prim's on circular (polar) grid
 // ---------------------------------------------------------------------------

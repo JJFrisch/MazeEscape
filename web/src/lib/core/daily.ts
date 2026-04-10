@@ -38,8 +38,8 @@ export function getDailyMazeForDate(date: Date): DailyMazeLevel {
 	const dayOfMonth = date.getDate();
 	const difficulty = Math.min(dayOfMonth / 31, 1); // 0.0 – 1.0
 
-	const minSize = 4 + Math.floor(difficulty * 6); // 4–10
-	const maxSize = minSize + 3;
+	const minSize = 20 + Math.floor(difficulty * 35); // 20–55
+	const maxSize = Math.min(70, minSize + 15); // 35–70 cap
 	const width = rng.nextInt(minSize, maxSize + 1);
 	const height = rng.nextInt(minSize, maxSize + 1);
 

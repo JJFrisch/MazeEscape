@@ -210,6 +210,32 @@ export function keyToTriDir(
 	}
 }
 
+export function getTriOptimalPathLength(data: TriMazeData): number {
+	const queue: Array<{ col: number; row: number; dist: number }> = [
+		{ col: data.start.col, row: data.start.row, dist: 0 }
+	];
+	const visited = new Set<string>([cellKey(data.start.col, data.start.row)]);
+
+	while (queue.length > 0) {
+		const current = queue.shift()!;
+		if (current.col === data.end.col && current.row === data.end.row) {
+			return current.dist;
+		}
+
+		const pointsUp = (current.col + current.row) % 2 === 0;
+		for (const dir of ['left', 'right', 'base'] as const) {
+			if (!canMoveTri(data.cells, current.col, current.row, dir, data.cols, data.rows)) continue;
+			const next = applyMoveTri(current.col, current.row, pointsUp, dir);
+			const nextKey = cellKey(next.col, next.row);
+			if (visited.has(nextKey)) continue;
+			visited.add(nextKey);
+			queue.push({ col: next.col, row: next.row, dist: current.dist + 1 });
+		}
+	}
+
+	return 0;
+}
+
 // ---------------------------------------------------------------------------
 // Hunt and Kill on triangular grid
 // ---------------------------------------------------------------------------

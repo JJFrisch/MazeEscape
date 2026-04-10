@@ -578,10 +578,20 @@
 		display: flex;
 		flex-direction: column;
 		justify-content: flex-end;
-		border: 1px solid rgba(255, 255, 255, 0.07);
+		border: 1px solid color-mix(in srgb, var(--accent, var(--color-accent-primary)) 22%, rgba(255, 255, 255, 0.1));
 		transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
 		animation: card-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 120ms) both;
 		cursor: default;
+		box-shadow: 0 18px 40px rgba(0,0,0,0.3), inset 0 -140px 120px rgba(6,13,26,0.55);
+	}
+	.world-card::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background:
+			radial-gradient(circle at top right, color-mix(in srgb, var(--accent, #38bdf8) 22%, transparent) 0%, transparent 38%),
+			linear-gradient(180deg, rgba(6,13,26,0.02) 0%, rgba(6,13,26,0.55) 100%);
+		pointer-events: none;
 	}
 
 	.card-shimmer {
@@ -642,6 +652,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-2);
+		background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--accent, #38bdf8) 8%, rgba(6,13,26,0.72)) 100%);
 	}
 
 	.world-number-tag {
@@ -759,21 +770,24 @@
 		box-shadow: var(--shadow-card);
 		overflow: hidden;
 		backdrop-filter: blur(12px);
+		background-image:
+			radial-gradient(circle at top center, color-mix(in srgb, var(--color-accent-primary) 12%, transparent) 0%, transparent 58%),
+			linear-gradient(180deg, color-mix(in srgb, var(--color-accent-primary) 3%, transparent) 0%, transparent 100%);
 	}
 	.quick-card::before {
 		content: '';
 		position: absolute;
 		inset: 0;
-		background: linear-gradient(135deg, rgba(56,189,248,0.04) 0%, transparent 60%);
+		background: linear-gradient(135deg, color-mix(in srgb, var(--color-accent-primary) 10%, transparent) 0%, transparent 60%);
 		opacity: 0;
 		transition: opacity var(--transition-base);
 		border-radius: var(--radius-xl);
 	}
 	.quick-card:hover::before { opacity: 1; }
 	.quick-card:hover {
-		border-color: rgba(56, 189, 248, 0.3);
+		border-color: color-mix(in srgb, var(--color-accent-primary) 34%, transparent);
 		transform: translateY(-4px);
-		box-shadow: var(--shadow-card), 0 0 28px rgba(56, 189, 248, 0.12);
+		box-shadow: var(--shadow-card), 0 0 28px color-mix(in srgb, var(--color-accent-primary) 20%, transparent);
 		background: var(--color-bg-card-hover);
 	}
 
@@ -794,15 +808,15 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: rgba(56, 189, 248, 0.08);
-		border: 1px solid rgba(56, 189, 248, 0.15);
+		background: color-mix(in srgb, var(--color-accent-primary) 10%, transparent);
+		border: 1px solid color-mix(in srgb, var(--color-accent-primary) 18%, transparent);
 		border-radius: var(--radius-xl);
 		margin-bottom: var(--space-1);
 		transition: all var(--transition-base);
 	}
 	.quick-card:hover .quick-icon-wrap {
-		background: rgba(56, 189, 248, 0.14);
-		border-color: rgba(56, 189, 248, 0.3);
+		background: color-mix(in srgb, var(--color-accent-primary) 16%, transparent);
+		border-color: color-mix(in srgb, var(--color-accent-primary) 34%, transparent);
 		transform: scale(1.05);
 	}
 	.quick-card-highlight .quick-icon-wrap {
@@ -858,8 +872,8 @@
 		gap: var(--space-2);
 		margin: 0 var(--space-6) var(--space-8);
 		padding: var(--space-3) var(--space-6);
-		background: rgba(56, 189, 248, 0.06);
-		border: 1px solid rgba(56, 189, 248, 0.2);
+		background: color-mix(in srgb, var(--color-accent-primary) 8%, transparent);
+		border: 1px solid color-mix(in srgb, var(--color-accent-primary) 24%, transparent);
 		border-radius: var(--radius-lg);
 		font-size: var(--text-sm);
 		color: var(--color-text-secondary);

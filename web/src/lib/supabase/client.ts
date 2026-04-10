@@ -10,6 +10,50 @@ export class SupabaseConfigError extends Error {
 	}
 }
 
+export class SupabaseUrlError extends Error {
+	constructor(message = 'Supabase public URL is invalid.') {
+		super(message);
+		this.name = 'SupabaseUrlError';
+	}
+}
+
+export interface SupabasePublicConfigDiagnostics {
+	configured: boolean;
+	url: string;
+	hostname: string;
+	validUrl: boolean;
+}
+
+export function getSupabasePublicConfigDiagnostics(): SupabasePublicConfigDiagnostics {
+	const supabaseUrl = PUBLIC_SUPABASE_URL;
+
+	if (!supabaseUrl) {
+		return {
+			configured: false,
+			url: '',
+			hostname: '',
+			validUrl: false
+		};
+	}
+
+	try {
+		const parsedUrl = new URL(supabaseUrl);
+		return {
+			configured: true,
+			url: parsedUrl.toString(),
+			hostname: parsedUrl.hostname,
+			validUrl: true
+		};
+	} catch {
+		return {
+			configured: true,
+			url: supabaseUrl,
+			hostname: '',
+			validUrl: false
+		};
+	}
+	}
+
 export function getSupabaseBrowserClient(): SupabaseClient {
 	const supabaseUrl = PUBLIC_SUPABASE_URL;
 	const supabasePublishableKey = PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -20,8 +64,17 @@ export function getSupabaseBrowserClient(): SupabaseClient {
 		);
 	}
 
+	let parsedSupabaseUrl: URL;
+	try {
+		parsedSupabaseUrl = new URL(supabaseUrl);
+	} catch {
+		throw new SupabaseUrlError(
+			`Supabase public URL is invalid: ${supabaseUrl}. Update PUBLIC_SUPABASE_URL and re-run the web deploy.`
+		);
+	}
+
 	if (!browserClient) {
-		browserClient = createClient(supabaseUrl, supabasePublishableKey, {
+		browserClient = createClient(parsedSupabaseUrl.toString(), supabasePublishableKey, {
 			auth: {
 				persistSession: true,
 				autoRefreshToken: true,

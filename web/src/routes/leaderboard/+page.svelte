@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { SupabaseConfigError } from '$lib/supabase/client';
+	import {
+		getSupabasePublicConfigDiagnostics,
+		SupabaseConfigError,
+		SupabaseUrlError
+	} from '$lib/supabase/client';
 	import {
 		fetchCampaignLeaderboard,
 		fetchDailyLeaderboard,
@@ -75,8 +79,18 @@
 		return error instanceof Error && error.message ? error.message : fallback;
 	}
 
+	function isFetchFailure(error: unknown): boolean {
+		if (error instanceof TypeError && error.message.includes('Failed to fetch')) return true;
+		if (typeof error !== 'object' || error === null) return false;
+		const maybeError = error as { message?: unknown; details?: unknown };
+		return [maybeError.message, maybeError.details].some(
+			(value) => typeof value === 'string' && value.includes('Failed to fetch')
+		);
+	}
+
 	function handleLeaderboardError(scope: 'daily' | 'initial', error: unknown, fallback: string) {
 		console.error(`[leaderboard] ${scope} load failed`, error);
+		const configDiagnostics = getSupabasePublicConfigDiagnostics();
 
 		if (error instanceof SupabaseConfigError) {
 			errorKind = 'config';
@@ -85,8 +99,22 @@
 			return;
 		}
 
+		if (error instanceof SupabaseUrlError) {
+			errorKind = 'config';
+			errorMessage = error.message;
+			diagnosticsMessage = `Build diagnostics: PUBLIC_SUPABASE_URL is not a valid URL. Current value: ${configDiagnostics.url || 'missing'}.`;
+			return;
+		}
+
 		errorKind = 'query';
 		errorMessage = getErrorMessage(error, fallback);
+
+		if (isFetchFailure(error)) {
+			const hostLabel = configDiagnostics.hostname || configDiagnostics.url || 'unknown host';
+			diagnosticsMessage = `Query diagnostics: the browser could not reach the configured Supabase host, ${hostLabel}. Check PUBLIC_SUPABASE_URL in the deployed build and confirm the hostname resolves.`;
+			return;
+		}
+
 		diagnosticsMessage = 'Query diagnostics: Supabase did not return leaderboard data. Check the browser console for the full error payload and verify the leaderboard views remain publicly readable.';
 	}
 

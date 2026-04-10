@@ -5,12 +5,14 @@
 	import { getDailyMazeForDate, getDailyMazesForMonth, getDailyMazeSeed } from '$lib/core/daily';
 	import { createGameSession, getHint, getCompassPath, calculateStars, getMoveThresholdsForOptimalPath } from '$lib/core/session';
 	import type { GameSessionState } from '$lib/core/session';
+	import type { MasteryRewardUnlock } from '$lib/core/deities';
 	import { canMove, applyMove } from '$lib/core/maze';
 	import type { Direction, DailyMazeLevel } from '$lib/core/types';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
 	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
 	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
 	import AchievementUnlockPopup from '$lib/components/AchievementUnlockPopup.svelte';
+	import MasteryRewardPopup from '$lib/components/MasteryRewardPopup.svelte';
 
 	const today = new Date();
 	let viewYear = $state(today.getFullYear());
@@ -33,7 +35,9 @@
 	let hourglassFrozen = $state(false);
 	let hourglassTimer: ReturnType<typeof setTimeout> | undefined;
 	let compassTimer: ReturnType<typeof setTimeout> | undefined;
+	let masteryUnlocks = $state<MasteryRewardUnlock[]>([]);
 	let newlyUnlocked = $state<string[]>([]);
+	let shownMasteryUnlock = $derived(masteryUnlocks[0] ?? null);
 	let shownAchievementId = $derived(newlyUnlocked[0] ?? null);
 
 	const DAILY_PHRASES = [
@@ -119,6 +123,7 @@
 		elapsed = 0;
 		coinsEarned = 0;
 		hourglassFrozen = false;
+		masteryUnlocks = [];
 		newlyUnlocked = [];
 		victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: false, total: 0 };
 
@@ -201,7 +206,10 @@
 
 		// Track algorithm mastery for the deity system
 		if (selectedDaily.levelType) {
-			gameStore.recordAlgoMastery(selectedDaily.levelType);
+			const unlockedMasteryRewards = gameStore.recordAlgoMastery(selectedDaily.levelType);
+			if (unlockedMasteryRewards.length > 0) {
+				masteryUnlocks = [...unlockedMasteryRewards];
+			}
 		}
 
 		gameStore.incrementMazesCompleted();
@@ -552,7 +560,14 @@
 	/>
 {/if}
 
-{#if shownAchievementId}
+{#if shownMasteryUnlock}
+	<MasteryRewardPopup
+		unlock={shownMasteryUnlock}
+		ondismiss={() => {
+			masteryUnlocks = masteryUnlocks.slice(1);
+		}}
+	/>
+{:else if shownAchievementId}
 	<AchievementUnlockPopup
 		achievementId={shownAchievementId}
 		ondismiss={() => {

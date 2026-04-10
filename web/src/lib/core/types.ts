@@ -100,6 +100,13 @@ export interface SkinModel {
 	isUnlocked: boolean;
 	isEquipped: boolean;
 	isSpecialSkin: boolean;
+	masteryAlgorithm?: MazeAlgorithm;
+}
+
+export interface MasteryRewardClaimState {
+	item20: boolean;
+	coins80: boolean;
+	skin120: boolean;
 }
 
 export interface DailyMazeLevel {
@@ -147,6 +154,7 @@ export interface PlayerData {
 	lastDailyDate: string; // 'M/D/YYYY'
 	// Algorithm mastery (completions per algorithm type)
 	algoMasteryCount: Partial<Record<MazeAlgorithm, number>>;
+	masteryRewardsClaimed: Partial<Record<MazeAlgorithm, MasteryRewardClaimState>>;
 	// Lifetime stats
 	coinsEarnedLifetime: number;
 	// Achievements

@@ -26,12 +26,29 @@
 	let { worldId, layout }: { worldId: number; layout: WorldMapLayout } = $props();
 
 	// Filter bar state
-	type MapFilter = 'all' | 'incomplete' | 'bonus' | 'collectibles';
+	type MapFilter = 'all' | 'incomplete' | 'bonus' | 'collectibles' | 'deity';
 	let activeFilter = $state<MapFilter>('all');
+	let selectedDeityAlgorithm = $state<string>('all');
+	let portalTransitioning = $state(false);
+	let portalTargetWorldId = $state<number | null>(null);
 
 	const T = $derived(layout.tileSize);
 	const svgWidth = $derived(layout.cols * T);
 	const svgHeight = $derived(layout.rows * T);
+	const worldDef = $derived(getAllWorlds().find((w) => w.worldId === worldId));
+	const availableDeities = $derived.by(() => {
+		const seen = new Set<string>();
+		const deities = [];
+		for (const level of worldDef?.levels ?? []) {
+			if (seen.has(level.levelType)) continue;
+			const deity = getDeityByAlgorithm(level.levelType);
+			if (deity) {
+				seen.add(level.levelType);
+				deities.push(deity);
+			}
+		}
+		return deities;
+	});
 
 	// Pan / zoom state
 	let panX = $state(0);
@@ -115,6 +132,16 @@
 		}
 		return best;
 	})());
+	const viewportBox = $derived.by(() => {
+		const el = containerEl;
+		if (!el) return null;
+		return {
+			x: Math.max(0, -panX / scale),
+			y: Math.max(0, -panY / scale),
+			width: Math.min(svgWidth, el.clientWidth / scale),
+			height: Math.min(svgHeight, el.clientHeight / scale)
+		};
+	});
 
 	// ---------------------------------------------------------------------------
 	// Auto-pan to player position on mount
@@ -263,7 +290,13 @@
 			showTooltip(e, hasIt ? 'Gate Open!' : `Requires the ${node.keyItemId?.replace(/_/g, ' ') ?? 'key'}`);
 		} else if (node.type === 'portal') {
 			const stars = gameStore.getWorldStarCount(worldId);
-			if (stars >= 300) showTooltip(e, 'Portal to World 2!');
+			if (stars >= 300) {
+				portalTargetWorldId = worldId + 1;
+				portalTransitioning = true;
+				setTimeout(() => {
+					void goto(`${base}/campaign/worlds/${worldId + 1}`);
+				}, 900);
+			}
 			else showTooltip(e, `Portal locked — need 300 ★ (you have ${stars})`);
 		}
 	}
@@ -359,6 +392,13 @@
 		return deity?.color ?? null;
 	}
 
+	function deityForNode(node: MapNode) {
+		if ((node.type !== 'level' && node.type !== 'bonus_level') || !node.levelNumber || !worldDef) return null;
+		const levelDef = getLevelByNumber(worldDef, node.levelNumber);
+		if (!levelDef) return null;
+		return getDeityByAlgorithm(levelDef.levelType) ?? null;
+	}
+
 	function levelNodeFillDeity(node: MapNode): string {
 		const prog = gameStore.getLevelProgress(worldId, node.levelNumber ?? '');
 		if (prog?.completed) {
@@ -383,6 +423,11 @@
 	function nodeMatchesFilter(node: MapNode): boolean {
 		if (activeFilter === 'all') return true;
 		if (activeFilter === 'bonus') return node.type === 'bonus_level';
+		if (activeFilter === 'deity') {
+			if (selectedDeityAlgorithm === 'all') return true;
+			const deity = deityForNode(node);
+			return deity?.algorithm === selectedDeityAlgorithm;
+		}
 		if (activeFilter === 'incomplete') {
 			if (node.type !== 'level' && node.type !== 'bonus_level') return false;
 			const unlocked = isLevelUnlocked(node.levelNumber ?? '');
@@ -433,6 +478,7 @@
 			{ id: 'incomplete',   label: 'Incomplete',  icon: '⬡'  },
 			{ id: 'bonus',        label: 'Bonus',       icon: '✦'  },
 			{ id: 'collectibles', label: 'Collectibles',icon: '📦' },
+			{ id: 'deity',        label: 'Deity',       icon: '🜂' },
 		] as const) as f}
 			<button
 				class="filter-pill"
@@ -444,6 +490,65 @@
 				<span class="filter-label">{f.label}</span>
 			</button>
 		{/each}
+		{#if activeFilter === 'deity'}
+			<label class="deity-select-wrap">
+				<span class="sr-only">Select deity filter</span>
+				<select bind:value={selectedDeityAlgorithm} class="deity-select">
+					<option value="all">All Deities</option>
+					{#each availableDeities as deity}
+						<option value={deity.algorithm}>{deity.name}</option>
+					{/each}
+				</select>
+			</label>
+		{/if}
+	</div>
+
+	<div class="minimap" role="img" aria-label="Mini-map overview" onpointerdown={(e) => e.stopPropagation()}>
+		<div class="minimap-header">
+			<span>Mini-map</span>
+			<span>{Math.round(scale * 100)}%</span>
+		</div>
+		<svg viewBox="0 0 {svgWidth} {svgHeight}" class="minimap-svg">
+			<rect width={svgWidth} height={svgHeight} fill="#08101d" rx="12" ry="12" />
+			{#each layout.pathSegments as seg}
+				<line
+					x1={cx(seg.from.col)}
+					y1={cy(seg.from.row)}
+					x2={cx(seg.to.col)}
+					y2={cy(seg.to.row)}
+					stroke={seg.bonus ? '#36556c' : worldTheme.accentColor}
+					stroke-width={seg.bonus ? T * 0.12 : T * 0.16}
+					stroke-linecap="round"
+					opacity={seg.bonus ? 0.5 : 0.8}
+				/>
+			{/each}
+			{#each layout.nodes as node}
+				{#if node.type === 'level' || node.type === 'bonus_level' || node.type === 'portal'}
+					<circle
+						cx={cx(node.tile.col)}
+						cy={cy(node.tile.row)}
+						r={node.type === 'portal' ? T * 0.18 : T * 0.14}
+						fill={node.type === 'portal' ? '#c084fc' : levelNodeFillDeity(node)}
+						opacity={nodeMatchesFilter(node) ? 0.9 : 0.25}
+					/>
+				{/if}
+			{/each}
+			{#if playerMarkerNode}
+				<circle cx={cx(playerMarkerNode.tile.col)} cy={cy(playerMarkerNode.tile.row)} r={T * 0.2} fill="#f8fafc" stroke={worldTheme.accentColor} stroke-width={T * 0.06} />
+			{/if}
+			{#if viewportBox}
+				<rect
+					x={viewportBox.x}
+					y={viewportBox.y}
+					width={viewportBox.width}
+					height={viewportBox.height}
+					fill="none"
+					stroke="#f8fafc"
+					stroke-width={T * 0.06}
+					opacity="0.9"
+				/>
+			{/if}
+		</svg>
 	</div>
 
 	<div
@@ -992,6 +1097,17 @@
 	</div>
 </div>
 
+{#if portalTransitioning}
+	<div class="portal-transition" aria-hidden="true">
+		<div class="portal-rings">
+			<div class="portal-ring"></div>
+			<div class="portal-ring ring-two"></div>
+			<div class="portal-core">🌀</div>
+		</div>
+		<p>Crossing into World {portalTargetWorldId}</p>
+	</div>
+{/if}
+
 <!-- Tooltip -->
 {#if tooltip}
 	<div class="map-tooltip" style="left:{tooltip.x + 12}px; top:{tooltip.y - 8}px">
@@ -1175,5 +1291,129 @@
 		backdrop-filter: blur(6px);
 		max-width: 220px;
 		box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+	}
+	.deity-select-wrap {
+		display: flex;
+		align-items: center;
+	}
+	.deity-select {
+		padding: 0.35rem 0.65rem;
+		border-radius: 999px;
+		border: 1px solid rgba(56, 189, 248, 0.3);
+		background: rgba(7, 18, 34, 0.95);
+		color: #dbeafe;
+		font-size: 0.72rem;
+		font-weight: 600;
+	}
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	.minimap {
+		position: absolute;
+		left: 1.1rem;
+		bottom: 1.1rem;
+		z-index: 12;
+		width: min(220px, 34vw);
+		padding: 0.55rem;
+		border-radius: 18px;
+		border: 1px solid rgba(56, 189, 248, 0.2);
+		background: rgba(5, 12, 28, 0.88);
+		box-shadow: 0 10px 30px rgba(0,0,0,0.42);
+		backdrop-filter: blur(8px);
+	}
+	.minimap-header {
+		display: flex;
+		justify-content: space-between;
+		gap: 0.5rem;
+		font-size: 0.7rem;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: #cbd5e1;
+		margin-bottom: 0.45rem;
+	}
+	.minimap-svg {
+		display: block;
+		width: 100%;
+		height: auto;
+		border-radius: 12px;
+	}
+
+	.portal-transition {
+		position: absolute;
+		inset: 0;
+		z-index: 40;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 1rem;
+		background: radial-gradient(circle at center, rgba(168,85,247,0.26), rgba(4,7,18,0.94) 60%);
+		backdrop-filter: blur(10px);
+		animation: portal-fade 0.9s ease both;
+	}
+	.portal-rings {
+		position: relative;
+		width: 180px;
+		height: 180px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.portal-ring {
+		position: absolute;
+		inset: 0;
+		border-radius: 50%;
+		border: 3px solid rgba(192,132,252,0.8);
+		animation: portal-pulse 0.9s ease forwards;
+	}
+	.portal-ring.ring-two {
+		inset: 18px;
+		border-color: rgba(216,180,254,0.7);
+		animation-delay: 0.08s;
+	}
+	.portal-core {
+		font-size: 4rem;
+		filter: drop-shadow(0 0 24px rgba(216,180,254,0.65));
+	}
+	.portal-transition p {
+		font-family: var(--font-display);
+		font-size: clamp(1.1rem, 3vw, 1.5rem);
+		font-weight: 700;
+		color: #f5d0fe;
+	}
+	@keyframes portal-pulse {
+		0% { transform: scale(0.55); opacity: 0; }
+		55% { opacity: 1; }
+		100% { transform: scale(1.2); opacity: 0; }
+	}
+	@keyframes portal-fade {
+		0% { opacity: 0; }
+		10% { opacity: 1; }
+		100% { opacity: 1; }
+	}
+
+	@media (max-width: 720px) {
+		.filter-bar {
+			left: 0.8rem;
+			right: 0.8rem;
+			transform: none;
+			justify-content: flex-start;
+			overflow-x: auto;
+		}
+		.minimap {
+			width: min(180px, 42vw);
+			left: 0.85rem;
+			bottom: 0.85rem;
+		}
 	}
 </style>

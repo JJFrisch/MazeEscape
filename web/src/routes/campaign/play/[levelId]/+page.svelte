@@ -7,6 +7,7 @@
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
 	import { createGameSession, getHint, getCompassPath, calculateStars } from '$lib/core/session';
 	import type { GameSessionState, GameSessionConfig } from '$lib/core/session';
+	import type { MasteryRewardUnlock } from '$lib/core/deities';
 	import { canMove, applyMove } from '$lib/core/maze';
 	import type { Direction } from '$lib/core/types';
 	import { getWorldTheme } from '$lib/worldThemes';
@@ -14,6 +15,7 @@
 	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
 	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
 	import AchievementUnlockPopup from '../../../../lib/components/AchievementUnlockPopup.svelte';
+	import MasteryRewardPopup from '$lib/components/MasteryRewardPopup.svelte';
 
 	// Parse route: "worldId-levelNumber" e.g. "1-5" or "2-3b"
 	const levelKey = $derived($page.params.levelId as string);
@@ -67,14 +69,17 @@
 	let hourglassFrozen = $state(false);
 	let hourglassTimer: ReturnType<typeof setTimeout> | undefined;
 	let compassTimer: ReturnType<typeof setTimeout> | undefined;
-	// Achievement unlock queue
+	// Completion reward queues
+	let masteryUnlocks = $state<MasteryRewardUnlock[]>([]);
 	let newlyUnlocked = $state<string[]>([]);
+	let shownMasteryUnlock = $derived(masteryUnlocks[0] ?? null);
 	let shownAchievementId = $derived(newlyUnlocked[0] ?? null);
 
 	function startGame() {
 		hourglassFrozen = false;
 		clearTimeout(hourglassTimer);
 		clearTimeout(compassTimer);
+		masteryUnlocks = [];
 		newlyUnlocked = [];
 		if (!levelDef) {
 			loadError = `Level ${levelNumber} could not be loaded.`;
@@ -192,7 +197,10 @@
 		gameStore.addCrystalShards(stars.total);
 
 		// Track algorithm mastery for the deity system
-		gameStore.recordAlgoMastery(levelDef.levelType);
+		const masteryRewardUnlocks = gameStore.recordAlgoMastery(levelDef.levelType);
+ 		if (masteryRewardUnlocks.length > 0) {
+			masteryUnlocks = [...masteryRewardUnlocks];
+		}
 
 		// Increment total mazes completed
 		gameStore.incrementMazesCompleted();
@@ -508,7 +516,12 @@
 	/>
 {/if}
 
-{#if shownAchievementId}
+{#if shownMasteryUnlock}
+	<MasteryRewardPopup
+		unlock={shownMasteryUnlock}
+		ondismiss={() => { masteryUnlocks = masteryUnlocks.slice(1); }}
+	/>
+{:else if shownAchievementId}
 	<AchievementUnlockPopup
 		achievementId={shownAchievementId}
 		ondismiss={() => { newlyUnlocked = newlyUnlocked.slice(1); }}

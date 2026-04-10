@@ -23,7 +23,22 @@ export const SKIN_CATALOG: SkinModel[] = [
 	{ id: 14, name: 'Brain', imageUrl: 'player_image14', coinPrice: 19000, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: false },
 	{ id: 15, name: 'Chucky', imageUrl: 'player_image15', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true },
 	{ id: 16, name: 'Fire Elemental', imageUrl: 'player_image16', coinPrice: 8500, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: false },
-	{ id: 17, name: 'Da Butler', imageUrl: 'player_image17', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true }
+	{ id: 17, name: 'Da Butler', imageUrl: 'player_image17', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true },
+	{ id: 100, name: 'Serpent Ascendant', imageUrl: 'player_image13', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'backtracking' },
+	{ id: 101, name: 'Obsidian Pursuer', imageUrl: 'player_image15', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'huntAndKill' },
+	{ id: 102, name: 'Seedforged Bloom', imageUrl: 'player_image16', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'prims' },
+	{ id: 103, name: 'Threadbound Prism', imageUrl: 'player_image17', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'kruskals' },
+	{ id: 104, name: 'Balanced Reliquary', imageUrl: 'player_image13', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'growingTree_50_50' },
+	{ id: 105, name: 'Favored Remnant', imageUrl: 'player_image15', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'growingTree_75_25' },
+	{ id: 106, name: 'Wild Probability', imageUrl: 'player_image16', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'growingTree_25_75' },
+	{ id: 107, name: 'Lasting Echo', imageUrl: 'player_image17', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'growingTree_50_0' },
+	{ id: 108, name: 'Erased Atlas', imageUrl: 'player_image13', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'wilsons' },
+	{ id: 109, name: 'Forgotten Drift', imageUrl: 'player_image15', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'aldousBroder' },
+	{ id: 110, name: 'Fork-Tongue Vestment', imageUrl: 'player_image16', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'binaryTree' },
+	{ id: 111, name: 'Currentborne Flow', imageUrl: 'player_image17', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'sidewinder' },
+	{ id: 112, name: 'Row-Stitched Mantle', imageUrl: 'player_image13', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'ellers' },
+	{ id: 113, name: 'Fractured Bastion', imageUrl: 'player_image15', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'recursiveDivision' },
+	{ id: 114, name: 'Coiling Reverie', imageUrl: 'player_image16', coinPrice: 0, gemPrice: 0, isUnlocked: false, isEquipped: false, isSpecialSkin: true, masteryAlgorithm: 'spiralBacktracker' }
 ];
 
 export function getSkinById(id: number): SkinModel | undefined {

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { gameStore } from '$lib/stores/gameStore.svelte';
-	import { DEITY_CATALOG } from '$lib/core/deities';
+	import { DEITY_CATALOG, getDeityMasteryRewards } from '$lib/core/deities';
+	import { getSkinById } from '$lib/core/skins';
 	import { POWERUP_COSTS } from '$lib/core/types';
 	import type { PowerupName } from '$lib/core/types';
 	import { ACHIEVEMENT_CATALOG, type AchievementCategory, type AchievementDef } from '$lib/core/achievements';
@@ -32,20 +33,24 @@
 	};
 
 	// ── Bestiary helpers ───────────────────────────────────────
-	const MASTERY_MILESTONES = [10, 20, 30] as const;
+	const MASTERY_MILESTONES = [20, 80, 120] as const;
 
 	function getMastery(algo: string): number {
 		return (gameStore.player.algoMasteryCount ?? {})[algo as keyof typeof gameStore.player.algoMasteryCount] ?? 0;
 	}
 
+	function getMasteryClaims(algo: string) {
+		return gameStore.player.masteryRewardsClaimed?.[algo as keyof typeof gameStore.player.masteryRewardsClaimed] ?? { item20: false, coins80: false, skin120: false };
+	}
+
 	function masteryTier(count: number): 0 | 1 | 2 | 3 {
-		if (count >= 30) return 3;
-		if (count >= 20) return 2;
-		if (count >= 10) return 1;
+		if (count >= 120) return 3;
+		if (count >= 80) return 2;
+		if (count >= 20) return 1;
 		return 0;
 	}
 
-	const MASTERY_TIER_LABELS = ['Uninitiated', 'Student', 'Disciple', 'Champion'];
+	const MASTERY_TIER_LABELS = ['Uninitiated', 'Favored', 'Ascendant', 'Mythic'];
 	const MASTERY_TIER_COLORS = ['#475569', '#34d399', '#38bdf8', '#a78bfa'];
 	const ACHIEVEMENT_CATEGORY_ORDER: AchievementCategory[] = ['Daily', 'Exploration', 'Mastery', 'Collection', 'Prestige'];
 	const TROPHY_ACHIEVEMENT_IDS = ['world1_clear', 'world2_clear', 'world3_clear', 'century_explorer'] as const;
@@ -188,8 +193,8 @@
 	function getUnlockedTrophyCount(): number {
 		const worldHonors = TROPHY_ACHIEVEMENT_IDS.filter((id) => getAchievementEntry(id).unlocked).length;
 		const masteryHonors = DEITY_CATALOG.reduce((total, deity) => {
-			const mastery = getMastery(deity.algorithm);
-			return total + (mastery >= 10 ? 1 : 0) + (mastery >= 20 ? 1 : 0) + (mastery >= 30 ? 1 : 0);
+			const claims = getMasteryClaims(deity.algorithm);
+			return total + (claims.item20 ? 1 : 0) + (claims.coins80 ? 1 : 0) + (claims.skin120 ? 1 : 0);
 		}, 0);
 		return worldHonors + masteryHonors;
 	}
@@ -510,6 +515,9 @@
 				<div class="mastery-trophy-grid">
 					{#each DEITY_CATALOG as deity}
 						{@const mastery = getMastery(deity.algorithm)}
+						{@const claims = getMasteryClaims(deity.algorithm)}
+						{@const rewardDef = getDeityMasteryRewards(deity.algorithm)}
+						{@const masterySkin = getSkinById(rewardDef.skin120Id)}
 						<div class="mastery-trophy-card" style="--deity-color:{deity.color}; --deity-dim:{deity.colorDim};">
 							<div class="mastery-trophy-head">
 								<div class="deity-sigil-wrap small">
@@ -525,14 +533,14 @@
 
 							<div class="mastery-reward-list">
 								{#each [
-									{ at: 10, label: 'Sigil Badge', icon: '🏅' },
-									{ at: 20, label: 'Rare Relic', icon: '💎' },
-									{ at: 30, label: 'Mastery Skin', icon: '✨' }
+									{ at: 20, label: `${rewardDef.item20.amount}x ${POWERUP_COSTS.find((powerup) => powerup.name === rewardDef.item20.powerup)?.displayName ?? rewardDef.item20.label}`, icon: '🎁', claimed: claims.item20 },
+									{ at: 80, label: `${rewardDef.coins80.toLocaleString()} Coins`, icon: '🪙', claimed: claims.coins80 },
+									{ at: 120, label: masterySkin?.name ?? rewardDef.skin120Name, icon: '✨', claimed: claims.skin120 }
 								] as reward}
-									<div class="mastery-reward-row" class:unlocked={mastery >= reward.at}>
+									<div class="mastery-reward-row" class:unlocked={reward.claimed}>
 										<span class="reward-threshold">{reward.icon} {reward.at}</span>
 										<span>{reward.label}</span>
-										<strong>{mastery >= reward.at ? 'Unlocked' : 'Locked'}</strong>
+										<strong>{reward.claimed ? 'Claimed' : 'Locked'}</strong>
 									</div>
 								{/each}
 							</div>
@@ -547,7 +555,7 @@
 		<div class="tab-content" role="tabpanel">
 			<div class="bestiary-intro">
 				<p>The fifteen Algorithm Deities who conjure every labyrinth you traverse. Study them. Master them.</p>
-				{#each [DEITY_CATALOG.filter(d => getMastery(d.algorithm) >= 10).length] as totalMastered}
+				{#each [DEITY_CATALOG.filter(d => getMasteryClaims(d.algorithm).item20).length] as totalMastered}
 				<div class="mastery-summary">
 					<div class="mastery-bar-wrap">
 						<div class="mastery-bar-track">
@@ -562,8 +570,10 @@
 			<div class="bestiary-list">
 				{#each DEITY_CATALOG as deity}
 					{@const mastery = getMastery(deity.algorithm)}
+					{@const claims = getMasteryClaims(deity.algorithm)}
+					{@const rewardDef = getDeityMasteryRewards(deity.algorithm)}
 					{@const tier = masteryTier(mastery)}
-					{@const nextMilestone = MASTERY_MILESTONES.find(m => m > mastery) ?? 30}
+					{@const nextMilestone = MASTERY_MILESTONES.find(m => m > mastery) ?? 120}
 					{@const progressToNext = tier < 3 ? (mastery - (MASTERY_MILESTONES[tier - 1] ?? 0)) / (nextMilestone - (MASTERY_MILESTONES[tier - 1] ?? 0)) : 1}
 					{@const isExpanded = expandedDeity === deity.algorithm}
 
@@ -658,15 +668,15 @@
 								<div class="milestone-track">
 									<div class="milestone-header">
 										<span class="milestone-title">Mastery Progress</span>
-										<span class="milestone-count" style="color:{deity.color};">{mastery} / 30 encounters</span>
+										<span class="milestone-count" style="color:{deity.color};">{mastery} / 120 encounters</span>
 									</div>
 									<div class="milestone-bar-outer">
-										<div class="milestone-bar-fill" style="width:{Math.min((mastery / 30) * 100, 100)}%; background: linear-gradient(90deg, {deity.color}80, {deity.color});"></div>
+										<div class="milestone-bar-fill" style="width:{Math.min((mastery / 120) * 100, 100)}%; background: linear-gradient(90deg, {deity.color}80, {deity.color});"></div>
 										{#each MASTERY_MILESTONES as m}
 											<div
 												class="milestone-pip"
 												class:reached={mastery >= m}
-												style="left:{(m / 30) * 100}%; --pip-color:{deity.color};"
+												style="left:{(m / 120) * 100}%; --pip-color:{deity.color};"
 											>
 												<span class="pip-label">{m}</span>
 											</div>
@@ -674,11 +684,11 @@
 									</div>
 									<div class="milestone-rewards">
 										{#each [
-											{ at: 10, label: 'Sigil Badge', icon: '🏅' },
-											{ at: 20, label: 'Rare Item', icon: '💎' },
-											{ at: 30, label: 'Algorithm Skin', icon: '✨' },
+											{ at: 20, label: `${rewardDef.item20.amount}x ${POWERUP_COSTS.find((powerup) => powerup.name === rewardDef.item20.powerup)?.displayName ?? rewardDef.item20.label}`, icon: '🎁', claimed: claims.item20 },
+											{ at: 80, label: `${rewardDef.coins80.toLocaleString()} coins`, icon: '🪙', claimed: claims.coins80 },
+											{ at: 120, label: rewardDef.skin120Name, icon: '✨', claimed: claims.skin120 },
 										] as reward}
-											<div class="reward-pip" class:unlocked={mastery >= reward.at}>
+											<div class="reward-pip" class:unlocked={reward.claimed}>
 												<span class="reward-icon">{reward.icon}</span>
 												<span class="reward-label">{reward.at} — {reward.label}</span>
 											</div>

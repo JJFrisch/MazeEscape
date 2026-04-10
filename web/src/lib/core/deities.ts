@@ -4,7 +4,7 @@
  * lore, visual identity, and mastery reward structure.
  */
 
-import type { MazeAlgorithm } from './types';
+import type { MazeAlgorithm, PowerupName } from './types';
 
 export interface AlgorithmDeity {
 	/** Matches the MazeAlgorithm key */
@@ -30,6 +30,28 @@ export interface AlgorithmDeity {
 	};
 	/** SVG path data for the deity's sigil (simple geometric shape) */
 	sigilPath: string;
+}
+
+export interface DeityMasteryRewardDefinition {
+	item20: {
+		powerup: PowerupName;
+		amount: number;
+		label: string;
+	};
+	coins80: number;
+	skin120Id: number;
+	skin120Name: string;
+}
+
+export interface MasteryRewardUnlock {
+	algorithm: MazeAlgorithm;
+	milestone: 20 | 80 | 120;
+	rewardType: 'powerup' | 'coins' | 'skin';
+	powerupName?: PowerupName;
+	amount?: number;
+	coinAmount?: number;
+	skinId?: number;
+	skinName?: string;
 }
 
 export const DEITY_CATALOG: AlgorithmDeity[] = [
@@ -202,6 +224,103 @@ export const DEITY_CATALOG: AlgorithmDeity[] = [
 
 export function getDeityByAlgorithm(algorithm: MazeAlgorithm): AlgorithmDeity | undefined {
 	return DEITY_CATALOG.find(d => d.algorithm === algorithm);
+}
+
+export const DEITY_MASTERY_REWARDS: Record<MazeAlgorithm, DeityMasteryRewardDefinition> = {
+	backtracking: {
+		item20: { powerup: 'compass', amount: 1, label: 'Serpent Compass' },
+		coins80: 600,
+		skin120Id: 100,
+		skin120Name: 'Serpent Ascendant'
+	},
+	huntAndKill: {
+		item20: { powerup: 'streakShield', amount: 1, label: 'Hunter Ward' },
+		coins80: 650,
+		skin120Id: 101,
+		skin120Name: 'Obsidian Pursuer'
+	},
+	prims: {
+		item20: { powerup: 'doubleCoinsToken', amount: 1, label: 'Arborist Sigil' },
+		coins80: 700,
+		skin120Id: 102,
+		skin120Name: 'Seedforged Bloom'
+	},
+	kruskals: {
+		item20: { powerup: 'blinkScroll', amount: 1, label: 'Weaver Slip' },
+		coins80: 700,
+		skin120Id: 103,
+		skin120Name: 'Threadbound Prism'
+	},
+	growingTree_50_50: {
+		item20: { powerup: 'hourglass', amount: 1, label: 'Shaper Hourglass' },
+		coins80: 750,
+		skin120Id: 104,
+		skin120Name: 'Balanced Reliquary'
+	},
+	growingTree_75_25: {
+		item20: { powerup: 'compass', amount: 2, label: 'Elder Compass' },
+		coins80: 750,
+		skin120Id: 105,
+		skin120Name: 'Favored Remnant'
+	},
+	growingTree_25_75: {
+		item20: { powerup: 'blinkScroll', amount: 1, label: 'Gambler Slip' },
+		coins80: 800,
+		skin120Id: 106,
+		skin120Name: 'Wild Probability'
+	},
+	growingTree_50_0: {
+		item20: { powerup: 'extraMoves', amount: 3, label: 'Relentless Steps' },
+		coins80: 650,
+		skin120Id: 107,
+		skin120Name: 'Lasting Echo'
+	},
+	wilsons: {
+		item20: { powerup: 'hint', amount: 3, label: 'Cartographer Notes' },
+		coins80: 650,
+		skin120Id: 108,
+		skin120Name: 'Erased Atlas'
+	},
+	aldousBroder: {
+		item20: { powerup: 'extraTime', amount: 3, label: 'Wanderer Minutes' },
+		coins80: 650,
+		skin120Id: 109,
+		skin120Name: 'Forgotten Drift'
+	},
+	binaryTree: {
+		item20: { powerup: 'doubleCoinsToken', amount: 1, label: 'Oracle Tithe' },
+		coins80: 600,
+		skin120Id: 110,
+		skin120Name: 'Fork-Tongue Vestment'
+	},
+	sidewinder: {
+		item20: { powerup: 'extraMoves', amount: 2, label: 'River Stride' },
+		coins80: 600,
+		skin120Id: 111,
+		skin120Name: 'Currentborne Flow'
+	},
+	ellers: {
+		item20: { powerup: 'hourglass', amount: 1, label: 'Stitched Hourglass' },
+		coins80: 700,
+		skin120Id: 112,
+		skin120Name: 'Row-Stitched Mantle'
+	},
+	recursiveDivision: {
+		item20: { powerup: 'streakShield', amount: 1, label: 'Divider Bulwark' },
+		coins80: 750,
+		skin120Id: 113,
+		skin120Name: 'Fractured Bastion'
+	},
+	spiralBacktracker: {
+		item20: { powerup: 'hourglass', amount: 1, label: 'Dreamer Coil' },
+		coins80: 800,
+		skin120Id: 114,
+		skin120Name: 'Coiling Reverie'
+	}
+};
+
+export function getDeityMasteryRewards(algorithm: MazeAlgorithm): DeityMasteryRewardDefinition {
+	return DEITY_MASTERY_REWARDS[algorithm];
 }
 
 /** Procedurally generate a level encounter name from deity + level number */

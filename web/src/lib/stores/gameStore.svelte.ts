@@ -5,9 +5,10 @@
  */
 
 import { browser } from '$app/environment';
-import type { PlayerData, CampaignLevel, DailyMazeLevel } from '$lib/core/types';
+import type { PlayerData, CampaignLevel, DailyMazeLevel, MazeAlgorithm, MasteryRewardClaimState, PowerupName } from '$lib/core/types';
 import { ACHIEVEMENT_CATALOG } from '$lib/core/achievements';
 import { SKIN_CATALOG } from '$lib/core/skins';
+import { getDeityMasteryRewards, type MasteryRewardUnlock } from '$lib/core/deities';
 import { getDailyMazeForDate } from '$lib/core/daily';
 import { getAllWorlds, getLevelByNumber, type WorldDefinition } from '$lib/core/levels';
 import { getSupabaseBrowserClient } from '$lib/supabase/client';
@@ -113,6 +114,7 @@ function defaultPlayerData(): PlayerData {
 		lastDailyDate: '',
 		// Mastery
 		algoMasteryCount: {},
+		masteryRewardsClaimed: {},
 		// Lifetime
 		coinsEarnedLifetime: 0,
 		// Achievements
@@ -133,6 +135,7 @@ function normalizePlayerData(value: Partial<PlayerData> | null | undefined): Pla
 		...value,
 		unlockedSkinIds: Array.from(new Set([0, ...(value.unlockedSkinIds ?? defaults.unlockedSkinIds)])).sort((a, b) => a - b),
 		algoMasteryCount: value.algoMasteryCount ?? defaults.algoMasteryCount,
+		masteryRewardsClaimed: value.masteryRewardsClaimed ?? defaults.masteryRewardsClaimed,
 		achievements: value.achievements ?? defaults.achievements
 	};
 }
@@ -310,9 +313,13 @@ function createGameStore() {
 		player = normalizePlayerData(loadFromStorage<Partial<PlayerData>>(STORAGE_KEY, defaultPlayerData()));
 		levelProgress = loadFromStorage(LEVEL_STORAGE_KEY, {});
 		dailyResults = loadFromStorage(DAILY_STORAGE_KEY, {});
+		const retroactiveMasteryRewards = reconcileAllMasteryRewards(false);
 		syncMetadata = normalizeSyncMetadata(loadFromStorage<SyncMetadata | null>(SYNC_METADATA_STORAGE_KEY, null), player, levelProgress, dailyResults);
 		worlds = getAllWorlds();
 		initialized = true;
+		if (retroactiveMasteryRewards.length > 0) {
+			save();
+		}
 	}
 
 	function save() {
@@ -664,6 +671,90 @@ function createGameStore() {
 		save();
 	}
 
+	function grantPowerupDirect(name: PowerupName, amount = 1) {
+		for (let count = 0; count < amount; count += 1) {
+			if (name === 'hint') player.hintsOwned++;
+			else if (name === 'extraTime') player.extraTimesOwned++;
+			else if (name === 'extraMoves') player.extraMovesOwned++;
+			else if (name === 'compass') player.compassOwned = (player.compassOwned ?? 0) + 1;
+			else if (name === 'hourglass') player.hourglassOwned = (player.hourglassOwned ?? 0) + 1;
+			else if (name === 'blinkScroll') player.blinkScrollsOwned = (player.blinkScrollsOwned ?? 0) + 1;
+			else if (name === 'streakShield') player.streakShieldsOwned = (player.streakShieldsOwned ?? 0) + 1;
+			else if (name === 'doubleCoinsToken') player.doubleCoinsTokensOwned = (player.doubleCoinsTokensOwned ?? 0) + 1;
+		}
+	}
+
+	function grantCoinsDirect(amount: number) {
+		player.coinCount += amount;
+		player.coinsEarnedLifetime = (player.coinsEarnedLifetime ?? 0) + amount;
+	}
+
+	function ensureMasteryClaimState(algorithm: MazeAlgorithm): MasteryRewardClaimState {
+		if (!player.masteryRewardsClaimed) player.masteryRewardsClaimed = {};
+		const existing = player.masteryRewardsClaimed[algorithm];
+		if (existing) return existing;
+		const fresh: MasteryRewardClaimState = { item20: false, coins80: false, skin120: false };
+		player.masteryRewardsClaimed[algorithm] = fresh;
+		return fresh;
+	}
+
+	function collectPendingMasteryRewards(algorithm: MazeAlgorithm): MasteryRewardUnlock[] {
+		const masteryCount = player.algoMasteryCount?.[algorithm] ?? 0;
+		const claims = ensureMasteryClaimState(algorithm);
+		const rewardDef = getDeityMasteryRewards(algorithm);
+		const unlocks: MasteryRewardUnlock[] = [];
+
+		if (masteryCount >= 20 && !claims.item20) {
+			grantPowerupDirect(rewardDef.item20.powerup, rewardDef.item20.amount);
+			claims.item20 = true;
+			unlocks.push({
+				algorithm,
+				milestone: 20,
+				rewardType: 'powerup',
+				powerupName: rewardDef.item20.powerup,
+				amount: rewardDef.item20.amount
+			});
+		}
+
+		if (masteryCount >= 80 && !claims.coins80) {
+			grantCoinsDirect(rewardDef.coins80);
+			claims.coins80 = true;
+			unlocks.push({
+				algorithm,
+				milestone: 80,
+				rewardType: 'coins',
+				coinAmount: rewardDef.coins80
+			});
+		}
+
+		if (masteryCount >= 120 && !claims.skin120) {
+			if (!player.unlockedSkinIds.includes(rewardDef.skin120Id)) {
+				player.unlockedSkinIds.push(rewardDef.skin120Id);
+				touchSkin(rewardDef.skin120Id);
+			}
+			claims.skin120 = true;
+			unlocks.push({
+				algorithm,
+				milestone: 120,
+				rewardType: 'skin',
+				skinId: rewardDef.skin120Id,
+				skinName: rewardDef.skin120Name
+			});
+		}
+
+		return unlocks;
+	}
+
+	function reconcileAllMasteryRewards(saveAfter = true): MasteryRewardUnlock[] {
+		const algorithms = Object.keys(player.algoMasteryCount ?? {}) as MazeAlgorithm[];
+		const unlocks = algorithms.flatMap((algorithm) => collectPendingMasteryRewards(algorithm));
+		if (unlocks.length > 0) {
+			touchPlayer();
+			if (saveAfter) save();
+		}
+		return unlocks;
+	}
+
 	function usePowerup(name: import('$lib/core/types').PowerupName): boolean {
 		if (name === 'hint' && player.hintsOwned > 0) {
 			player.hintsOwned--;
@@ -742,11 +833,13 @@ function createGameStore() {
 	}
 
 	/** Track algorithm mastery whenever a maze is completed */
-	function recordAlgoMastery(algorithm: import('$lib/core/types').MazeAlgorithm) {
+	function recordAlgoMastery(algorithm: MazeAlgorithm): MasteryRewardUnlock[] {
 		if (!player.algoMasteryCount) player.algoMasteryCount = {};
 		player.algoMasteryCount[algorithm] = (player.algoMasteryCount[algorithm] ?? 0) + 1;
+		const unlocks = collectPendingMasteryRewards(algorithm);
 		touchPlayer();
 		save();
+		return unlocks;
 	}
 
 	// --- Level progress ---
@@ -1063,6 +1156,7 @@ function createGameStore() {
 		addCrystalShards,
 		spendCrystalShards,
 		incrementMazesCompleted,
+		reconcileAllMasteryRewards,
 		checkAchievements,
 		markAchievementProgress
 	};

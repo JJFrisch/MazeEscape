@@ -733,6 +733,7 @@
 							onmouseenter={(e) => onNodeHover(e, node)}
 							onmouseleave={() => { tooltip = null; }}
 							role="button"
+							tabindex="0"
 							aria-label="Star gate — requires {node.starsRequired} stars"
 						>
 							<!-- Gate bar -->
@@ -770,6 +771,7 @@
 							onmouseenter={(e) => onNodeHover(e, node)}
 							onmouseleave={() => { tooltip = null; }}
 							role="button"
+							tabindex="0"
 							aria-label="Key gate — requires a key"
 						>
 							<!-- Vertical bars (portcullis look) -->
@@ -809,6 +811,7 @@
 							class="portal-node"
 							onclick={(e) => onNodeClick(e, node)}
 							role="button"
+							tabindex="0"
 							aria-label="World portal"
 						>
 							<circle cx={px} cy={py} r={T * 0.45}
@@ -854,7 +857,7 @@
 				{@const w = (fog.bottomRight.col - fog.topLeft.col + 1) * T}
 				{@const h = (fog.bottomRight.row - fog.topLeft.row + 1) * T}
 				<rect
-					{x} {y} {w} {h}
+					x={x} y={y} width={w} height={h}
 					fill="#050d1a"
 					opacity={lifted ? 0 : 0.88}
 					style="transition: opacity 1.8s ease-out; pointer-events: none;"
@@ -862,7 +865,7 @@
 				<!-- Fog texture (only when visible) -->
 				{#if !lifted}
 					<rect
-						{x} {y} {w} {h}
+						x={x} y={y} width={w} height={h}
 						fill="none"
 						stroke="#1e3a5c"
 						stroke-width="1"

@@ -145,8 +145,10 @@
 		justify-content: center;
 		cursor: pointer;
 		/* Dark base with subtle accent-tinted grid texture */
-		background-color: rgba(4, 8, 22, 0.95);
+		background-color: color-mix(in srgb, var(--color-bg-primary, #040816) 88%, rgba(4, 8, 22, 0.95));
 		background-image:
+			radial-gradient(circle at top center, color-mix(in srgb, var(--accent) 18%, transparent) 0%, transparent 34%),
+			radial-gradient(circle at bottom left, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 40%),
 			repeating-linear-gradient(
 				0deg,
 				transparent,
@@ -175,6 +177,11 @@
 		padding: 2rem;
 		max-width: 640px;
 		width: 100%;
+		border: 1px solid color-mix(in srgb, var(--accent) 24%, rgba(255,255,255,0.1));
+		border-radius: 1.75rem;
+		background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, rgba(255,255,255,0.04)) 0%, color-mix(in srgb, var(--color-bg-card, #0b1220) 88%, transparent) 100%);
+		box-shadow: 0 24px 80px color-mix(in srgb, var(--accent) 12%, rgba(0,0,0,0.45));
+		backdrop-filter: blur(14px);
 	}
 
 	.intro-subtitle {
@@ -183,7 +190,7 @@
 		letter-spacing: 0.14em;
 		text-transform: uppercase;
 		color: var(--accent);
-		opacity: 0.8;
+		opacity: 0.9;
 		animation: content-rise 500ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
 	}
 
@@ -192,7 +199,7 @@
 		font-size: clamp(3rem, 11vw, 6rem);
 		font-weight: 700;
 		line-height: 1;
-		color: #f0f6ff;
+		color: var(--color-text-primary, #f0f6ff);
 		text-shadow:
 			0 0 60px color-mix(in srgb, var(--accent) 45%, transparent),
 			0 2px 6px rgba(0, 0, 0, 0.5);
@@ -211,7 +218,7 @@
 
 	.phrase-text {
 		font-size: 1.0625rem;
-		color: rgba(240, 246, 255, 0.55);
+		color: color-mix(in srgb, var(--color-text-secondary, #cbd5e1) 88%, transparent);
 		font-family: var(--font-mono);
 		animation: phrase-swap 280ms ease both;
 	}
@@ -269,18 +276,18 @@
 	}
 
 	.intro-action-secondary {
-		background: rgba(255, 255, 255, 0.05);
-		color: rgba(240, 246, 255, 0.92);
+		background: color-mix(in srgb, var(--accent) 10%, rgba(255, 255, 255, 0.04));
+		color: var(--color-text-primary, rgba(240, 246, 255, 0.92));
 	}
 
 	.intro-action-secondary:hover {
-		background: rgba(255, 255, 255, 0.1);
+		background: color-mix(in srgb, var(--accent) 16%, rgba(255, 255, 255, 0.08));
 		border-color: color-mix(in srgb, var(--accent) 70%, rgba(255, 255, 255, 0.18));
 	}
 
 	.tap-hint {
 		font-size: 0.75rem;
-		color: rgba(240, 246, 255, 0.35);
+		color: color-mix(in srgb, var(--color-text-secondary, #cbd5e1) 62%, transparent);
 		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		animation: content-rise 400ms 180ms cubic-bezier(0.16, 1, 0.3, 1) both;

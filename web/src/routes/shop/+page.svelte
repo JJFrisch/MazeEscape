@@ -126,6 +126,10 @@
 		max-width: 860px;
 		margin: 0 auto;
 		animation: fade-up 0.4s ease both;
+		padding: clamp(var(--space-2), 1vw, var(--space-4));
+		background-image:
+			radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent-primary) 8%, transparent) 0%, transparent 34%),
+			linear-gradient(180deg, color-mix(in srgb, var(--color-accent-secondary) 3%, transparent) 0%, transparent 100%);
 	}
 
 	/* ── Header ─────────────────────────────────── */
@@ -143,14 +147,14 @@
 		align-items: center;
 		gap: var(--space-2);
 		padding: 5px 14px;
-		background: rgba(56, 189, 248, 0.08);
-		border: 1px solid rgba(56, 189, 248, 0.25);
+		background: color-mix(in srgb, var(--color-accent-primary) 10%, transparent);
+		border: 1px solid color-mix(in srgb, var(--color-accent-primary) 24%, transparent);
 		border-radius: var(--radius-full);
 		font-size: var(--text-xs);
 		font-weight: 700;
 		letter-spacing: 0.10em;
 		text-transform: uppercase;
-		color: #93c5fd;
+		color: color-mix(in srgb, var(--color-accent-primary) 72%, white 28%);
 		margin-bottom: var(--space-3);
 	}
 	.eyebrow-dot {
@@ -181,18 +185,21 @@
 		align-items: flex-end;
 		gap: var(--space-1);
 		padding: var(--space-4) var(--space-6);
-		background: rgba(245, 158, 11, 0.07);
-		border: 1px solid rgba(245, 158, 11, 0.25);
+		background:
+			radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent-secondary) 22%, transparent), transparent 55%),
+			linear-gradient(180deg, color-mix(in srgb, var(--color-bg-card) 94%, var(--color-accent-primary) 6%), color-mix(in srgb, var(--color-bg-elevated) 94%, transparent));
+		border: 1px solid color-mix(in srgb, var(--color-accent-secondary) 30%, transparent);
 		border-radius: var(--radius-xl);
 		backdrop-filter: blur(12px);
 		flex-shrink: 0;
+		box-shadow: var(--shadow-card);
 	}
 	.balance-label {
 		font-size: var(--text-xs);
 		font-weight: 700;
 		letter-spacing: 0.10em;
 		text-transform: uppercase;
-		color: rgba(245, 158, 11, 0.6);
+		color: color-mix(in srgb, var(--color-accent-secondary) 68%, transparent);
 	}
 	.balance-amount {
 		display: flex;
@@ -229,6 +236,9 @@
 		transition: all var(--transition-base);
 		position: relative;
 		overflow: hidden;
+		background-image:
+			radial-gradient(circle at top right, color-mix(in srgb, var(--color-accent-primary) 9%, transparent) 0%, transparent 42%),
+			linear-gradient(180deg, color-mix(in srgb, var(--color-accent-secondary) 4%, transparent) 0%, transparent 100%);
 	}
 	.shop-card::before {
 		content: '';
@@ -286,7 +296,7 @@
 		gap: var(--space-3);
 		margin-top: auto;
 		padding-top: var(--space-3);
-		border-top: 1px solid rgba(255,255,255,0.06);
+		border-top: 1px solid color-mix(in srgb, var(--color-accent-primary) 12%, rgba(255,255,255,0.06));
 	}
 
 	.owned-badge {
@@ -312,11 +322,11 @@
 		font-size: var(--text-base);
 		cursor: pointer;
 		transition: all var(--transition-fast);
-		box-shadow: 0 0 20px rgba(56,189,248,0.2);
+		box-shadow: 0 0 20px color-mix(in srgb, var(--color-accent-primary) 22%, transparent);
 	}
 	.buy-btn:hover:not(:disabled) {
-		background: #0ea5e9;
-		box-shadow: 0 0 32px rgba(56,189,248,0.4);
+		background: color-mix(in srgb, var(--color-accent-primary) 82%, white 18%);
+		box-shadow: 0 0 32px color-mix(in srgb, var(--color-accent-primary) 36%, transparent);
 		transform: translateY(-1px);
 	}
 	.buy-btn.cant-afford {

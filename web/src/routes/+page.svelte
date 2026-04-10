@@ -1,10 +1,16 @@
 <script lang="ts">
 	import { base } from '$app/paths';
+	import { BOSS_RELICS } from '$lib/core/bossRelics';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds } from '$lib/core/levels';
 	import { WORLD_THEMES } from '$lib/worldThemes';
 
 	const worlds = getAllWorlds();
+	const totalRelics = BOSS_RELICS.length;
+	const ownedRelicCount = $derived(gameStore.player.specialItemIds.length);
+	const latestRelic = $derived(
+		BOSS_RELICS.find((relic) => relic.id === gameStore.player.latestSpecialItemId) ?? null
+	);
 </script>
 
 <svelte:head>
@@ -64,7 +70,7 @@
 			<!-- Mini stats row -->
 			<div class="hero-stats">
 				<div class="hero-stat">
-					<span class="hero-stat-val">3</span>
+					<span class="hero-stat-val">{worlds.length}</span>
 					<span class="hero-stat-lbl">Worlds</span>
 				</div>
 				<div class="hero-stat-divider"></div>
@@ -76,6 +82,11 @@
 				<div class="hero-stat">
 					<span class="hero-stat-val">∞</span>
 					<span class="hero-stat-lbl">Procedural</span>
+				</div>
+				<div class="hero-stat-divider"></div>
+				<div class="hero-stat">
+					<span class="hero-stat-val">{ownedRelicCount}/{totalRelics}</span>
+					<span class="hero-stat-lbl">Relics</span>
 				</div>
 			</div>
 		</div>
@@ -165,6 +176,21 @@
 	<!-- ── Quick Nav ────────────────────────────── -->
 	<section class="quick-section">
 		<div class="quick-grid">
+			<a href="{base}/stats#relic-vault" class="quick-card quick-card-relic">
+				<div class="quick-icon-wrap quick-icon-svg quick-icon-relic">
+					<svg viewBox="0 0 120 120" fill="none" aria-hidden="true">
+						<path d="M60 18 90 36 90 84 60 102 30 84 30 36Z" stroke="currentColor" stroke-width="5" opacity="0.35" stroke-linejoin="round"/>
+						<path d="M60 30 78 40 78 80 60 90 42 80 42 40Z" stroke="currentColor" stroke-width="5" opacity="0.72" stroke-linejoin="round"/>
+						<path d="M60 36V84M42 40H78M42 80H78M48 52H72M48 68H72M50 52V68H70V52" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				</div>
+				<span class="quick-label">Relic Vault</span>
+				<span class="quick-desc">{ownedRelicCount} of {totalRelics} boss relics archived</span>
+				{#if latestRelic}
+					<span class="quick-note">Latest: {latestRelic.name}</span>
+				{/if}
+				<div class="quick-arrow" aria-hidden="true">→</div>
+			</a>
 			<a href="{base}/shop" class="quick-card">
 				<div class="quick-icon-wrap">
 					<img src="{base}/images/chest.png" alt="" class="quick-img" aria-hidden="true" />
@@ -802,6 +828,22 @@
 		box-shadow: var(--shadow-card), 0 0 28px rgba(245, 158, 11, 0.12);
 	}
 
+	.quick-card-relic {
+		border-color: rgba(56, 189, 248, 0.22);
+		background-image:
+			radial-gradient(circle at top center, rgba(56, 189, 248, 0.16) 0%, transparent 60%),
+			linear-gradient(180deg, rgba(56, 189, 248, 0.06) 0%, transparent 100%);
+	}
+
+	.quick-card-relic::before {
+		background: linear-gradient(135deg, rgba(56, 189, 248, 0.14) 0%, transparent 60%);
+	}
+
+	.quick-card-relic:hover {
+		border-color: rgba(56, 189, 248, 0.4);
+		box-shadow: var(--shadow-card), 0 0 28px rgba(56, 189, 248, 0.16);
+	}
+
 	.quick-icon-wrap {
 		width: 52px;
 		height: 52px;
@@ -841,6 +883,12 @@
 		stroke: currentColor;
 	}
 
+	.quick-icon-relic svg {
+		width: 30px;
+		height: 30px;
+		color: #7dd3fc;
+	}
+
 	.quick-label {
 		font-family: var(--font-display);
 		font-weight: 700;
@@ -850,6 +898,12 @@
 	.quick-desc {
 		font-size: var(--text-xs);
 		color: var(--color-text-secondary);
+	}
+
+	.quick-note {
+		font-size: 11px;
+		font-weight: 600;
+		color: #7dd3fc;
 	}
 	.quick-arrow {
 		position: absolute;

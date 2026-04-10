@@ -44,6 +44,7 @@ interface ProfileRow {
 	month_prize2_achieved: boolean;
 	most_recent_month: string;
 	special_item_ids?: string[];
+	latest_special_item_id?: string | null;
 	updated_at?: string;
 }
 
@@ -138,6 +139,7 @@ function defaultPlayerData(): PlayerData {
 		// Total mazes completed
 		mazesCompleted: 0,
 		specialItemIds: [],
+		latestSpecialItemId: null,
 	};
 }
 
@@ -150,6 +152,7 @@ function normalizePlayerData(value: Partial<PlayerData> | null | undefined): Pla
 		...value,
 		unlockedSkinIds: Array.from(new Set([0, ...(value.unlockedSkinIds ?? defaults.unlockedSkinIds)])).sort((a, b) => a - b),
 		specialItemIds: Array.from(new Set(value.specialItemIds ?? defaults.specialItemIds)).sort(),
+		latestSpecialItemId: value.latestSpecialItemId ?? defaults.latestSpecialItemId,
 		algoMasteryCount: value.algoMasteryCount ?? defaults.algoMasteryCount,
 		masteryRewardsClaimed: value.masteryRewardsClaimed ?? defaults.masteryRewardsClaimed,
 		achievements: value.achievements ?? defaults.achievements
@@ -272,7 +275,8 @@ function mapProfileRowToPlayerData(
 		monthPrize1Achieved: profile.month_prize1_achieved,
 		monthPrize2Achieved: profile.month_prize2_achieved,
 		mostRecentMonth: profile.most_recent_month,
-		specialItemIds: Array.from(new Set(profile.special_item_ids ?? fallback.specialItemIds)).sort()
+		specialItemIds: Array.from(new Set(profile.special_item_ids ?? fallback.specialItemIds)).sort(),
+		latestSpecialItemId: profile.latest_special_item_id ?? fallback.latestSpecialItemId
 	};
 }
 
@@ -592,7 +596,8 @@ function createGameStore() {
 				month_prize1_achieved: player.monthPrize1Achieved,
 				month_prize2_achieved: player.monthPrize2Achieved,
 				most_recent_month: player.mostRecentMonth,
-				special_item_ids: [...player.specialItemIds]
+				special_item_ids: [...player.specialItemIds],
+				latest_special_item_id: player.latestSpecialItemId
 			};
 
 			const levelRows: LevelProgressRow[] = Object.entries(levelProgress).map(([key, level]) => {
@@ -757,6 +762,7 @@ function createGameStore() {
 	function awardSpecialItem(specialItemId: string): boolean {
 		if (player.specialItemIds.includes(specialItemId)) return false;
 		player.specialItemIds = [...player.specialItemIds, specialItemId].sort();
+		player.latestSpecialItemId = specialItemId;
 		touchPlayer();
 		save();
 		return true;

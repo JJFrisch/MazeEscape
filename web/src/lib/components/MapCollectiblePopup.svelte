@@ -3,6 +3,7 @@
   an uncollected item on the campaign map (chest, key, gem, cloak, or powerup).
 -->
 <script lang="ts">
+	import { base } from '$app/paths';
 	import type { MapCollectible } from '$lib/core/types';
 
 	let {
@@ -53,6 +54,7 @@
 	const icon = $derived(ICON[collectible.type]);
 	const color = $derived(COLOR[collectible.type]);
 	const description = $derived(rewardLabel());
+	const relicVaultHref = $derived(`${base}/stats#relic-vault`);
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -73,6 +75,9 @@
 		<!-- Text -->
 		<h2 class="item-name">{collectible.label}</h2>
 		<p class="reward-desc">{description}</p>
+		{#if collectible.type === 'boss_relic'}
+			<a class="vault-link" href={relicVaultHref}>View in Relic Vault</a>
+		{/if}
 
 		<!-- Action -->
 		<button class="collect-btn" onclick={onCollect}>
@@ -188,8 +193,27 @@
 	.reward-desc {
 		font-size: 0.95rem;
 		color: rgba(255,255,255,0.75);
-		margin-bottom: 1.6rem;
+		margin-bottom: 0.8rem;
 		line-height: 1.5;
+	}
+
+	.vault-link {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		margin-bottom: 1rem;
+		padding: 0.5rem 0.9rem;
+		border-radius: 999px;
+		border: 1px solid color-mix(in srgb, var(--item-color, #38bdf8) 40%, transparent);
+		background: color-mix(in srgb, var(--item-color, #38bdf8) 10%, transparent);
+		color: #f8fafc;
+		font-size: 0.82rem;
+		font-weight: 700;
+		text-decoration: none;
+	}
+
+	.vault-link:hover {
+		background: color-mix(in srgb, var(--item-color, #38bdf8) 16%, transparent);
 	}
 
 	.collect-btn {

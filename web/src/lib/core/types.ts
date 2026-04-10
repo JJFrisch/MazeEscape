@@ -167,6 +167,7 @@ export interface PlayerData {
 	mazesCompleted: number;
 	// Boss rewards / relic inventory
 	specialItemIds: string[];
+	latestSpecialItemId: string | null;
 }
 
 export interface GhostRunData {

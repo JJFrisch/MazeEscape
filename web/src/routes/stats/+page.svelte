@@ -98,11 +98,15 @@
 	const relicEntries = $derived(
 		BOSS_RELICS.map((relic) => ({
 			...relic,
-			owned: gameStore.player.specialItemIds.includes(relic.id)
+			owned: gameStore.player.specialItemIds.includes(relic.id),
+			isLatestDiscovery:
+				gameStore.player.specialItemIds.includes(relic.id) &&
+				gameStore.player.latestSpecialItemId === relic.id
 		}))
 	);
 
 	const ownedRelicCount = $derived(relicEntries.filter((relic) => relic.owned).length);
+	const latestRelic = $derived(relicEntries.find((relic) => relic.isLatestDiscovery) ?? null);
 
 	// Format seconds → m:ss
 	function fmtTime(secs: number): string {
@@ -282,17 +286,39 @@
 	</section>
 
 	<section class="stats-section">
+		<div id="relic-vault"></div>
 		<h2 class="section-title">
 			<span class="section-icon">🜂</span>
 			Relic Vault
 		</h2>
 		<div class="vault-summary">
 			<span>{ownedRelicCount} of {relicEntries.length} boss relics claimed</span>
+			{#if latestRelic}
+				<span class="vault-summary-pill">Newest discovery: {latestRelic.name}</span>
+			{/if}
 		</div>
 		<div class="relic-grid">
 			{#each relicEntries as relic}
-				<div class="relic-card" class:owned={relic.owned} style="--relic-accent:{relic.accent}">
-					<div class="relic-icon">{relic.icon}</div>
+				<div class="relic-card" class:owned={relic.owned} class:discovered={relic.isLatestDiscovery} style="--relic-accent:{relic.accent}">
+					{#if relic.isLatestDiscovery}
+						<div class="relic-badge">New relic discovered</div>
+					{/if}
+					<div class="relic-art" style="--relic-aura:{relic.art.aura}; --relic-frame:{relic.art.frame}">
+						<div class="relic-art-ring"></div>
+						<svg class="relic-sigil" viewBox={relic.art.viewBox} aria-hidden="true">
+							{#each relic.art.sigilPaths as segment}
+								<path
+									d={segment.d}
+									fill={segment.fill ?? 'none'}
+									stroke={segment.fill ? 'none' : 'currentColor'}
+									stroke-width={segment.strokeWidth ?? 4}
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									opacity={segment.opacity ?? 1}
+								/>
+							{/each}
+						</svg>
+					</div>
 					<div class="relic-meta">
 						<div class="relic-name">{relic.owned ? relic.name : 'Unknown Relic'}</div>
 						<div class="relic-title">{relic.owned ? relic.title : 'Unclaimed'}</div>
@@ -300,6 +326,12 @@
 					<p class="relic-description">
 						{relic.owned ? relic.description : 'Defeat the corresponding world boss for the first time to archive this relic.'}
 					</p>
+					<p class="relic-lore">
+						{relic.owned ? relic.lore : 'Its chamber remains sealed. Only a first victory will reveal its history.'}
+					</p>
+					<blockquote class="relic-inscription">
+						{relic.owned ? relic.inscription : 'The inscription is still hidden behind locked stone.'}
+					</blockquote>
 					<div class="relic-origin">{relic.owned ? relic.origin : 'Boss encounter not yet cleared'}</div>
 				</div>
 			{/each}
@@ -481,6 +513,20 @@
 	.vault-summary {
 		font-size: 0.75rem;
 		color: #94a3b8;
+		display: flex;
+		align-items: center;
+		gap: 0.65rem;
+		flex-wrap: wrap;
+	}
+
+	.vault-summary-pill {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.26rem 0.6rem;
+		border-radius: 999px;
+		border: 1px solid rgba(245, 158, 11, 0.22);
+		background: rgba(245, 158, 11, 0.08);
+		color: #fbbf24;
 	}
 
 	.relic-grid {
@@ -503,6 +549,12 @@
 		border: 1px solid #1e293b;
 		background: #0f172a;
 		opacity: 0.72;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.relic-card.discovered {
+		box-shadow: 0 0 0 1px color-mix(in srgb, var(--relic-accent) 55%, transparent), 0 18px 40px color-mix(in srgb, var(--relic-accent) 16%, transparent);
 	}
 
 	.relic-card.owned {
@@ -511,15 +563,69 @@
 		opacity: 1;
 	}
 
-	.relic-icon {
-		width: 46px;
-		height: 46px;
+	.relic-card::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(180deg, color-mix(in srgb, var(--relic-accent) 9%, transparent), transparent 55%);
+		opacity: 0;
+		pointer-events: none;
+	}
+
+	.relic-card.owned::before {
+		opacity: 1;
+	}
+
+	.relic-badge {
+		position: absolute;
+		top: 0.8rem;
+		right: 0.8rem;
+		z-index: 2;
+		padding: 0.28rem 0.6rem;
+		border-radius: 999px;
+		font-size: 0.64rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #fef3c7;
+		background: color-mix(in srgb, var(--relic-accent) 28%, rgba(15, 23, 42, 0.92));
+		border: 1px solid color-mix(in srgb, var(--relic-accent) 45%, transparent);
+		box-shadow: 0 0 20px color-mix(in srgb, var(--relic-accent) 18%, transparent);
+	}
+
+	.relic-art {
+		position: relative;
+		height: 132px;
+		border-radius: 16px;
+		border: 1px solid color-mix(in srgb, var(--relic-accent) 28%, #1e293b);
+		background:
+			var(--relic-aura),
+			linear-gradient(180deg, rgba(15,23,42,0.92), rgba(2,6,23,0.98));
 		display: grid;
 		place-items: center;
-		border-radius: 12px;
-		font-size: 1.4rem;
-		background: rgba(15, 23, 42, 0.88);
-		border: 1px solid color-mix(in srgb, var(--relic-accent, #475569) 28%, #1e293b);
+		overflow: hidden;
+	}
+
+	.relic-art-ring {
+		position: absolute;
+		width: 86px;
+		height: 86px;
+		border-radius: 50%;
+		border: 1px solid color-mix(in srgb, var(--relic-accent) 42%, transparent);
+		box-shadow: 0 0 30px color-mix(in srgb, var(--relic-accent) 20%, transparent);
+	}
+
+	.relic-sigil {
+		width: 92px;
+		height: 92px;
+		position: relative;
+		z-index: 1;
+		color: color-mix(in srgb, var(--relic-accent) 72%, white 28%);
+		filter: drop-shadow(0 0 22px color-mix(in srgb, var(--relic-accent) 28%, transparent));
+	}
+
+	.relic-card.discovered .relic-sigil {
+		transform: scale(1.04);
 	}
 
 	.relic-meta {
@@ -545,6 +651,25 @@
 		font-size: 0.75rem;
 		line-height: 1.55;
 		color: #94a3b8;
+	}
+
+	.relic-lore {
+		margin: 0;
+		font-size: 0.74rem;
+		line-height: 1.6;
+		color: #cbd5e1;
+	}
+
+	.relic-inscription {
+		margin: 0;
+		padding: 0.65rem 0.75rem;
+		border-left: 2px solid color-mix(in srgb, var(--relic-accent) 42%, transparent);
+		background: rgba(15, 23, 42, 0.46);
+		border-radius: 0 10px 10px 0;
+		font-size: 0.72rem;
+		font-style: italic;
+		line-height: 1.55;
+		color: #e2e8f0;
 	}
 
 	.relic-origin {

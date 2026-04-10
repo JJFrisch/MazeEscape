@@ -22,11 +22,13 @@ create table if not exists profiles (
   month_prize2_achieved boolean not null default false,
   most_recent_month text not null default '',
   special_item_ids text[] not null default '{}',
+  latest_special_item_id text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table profiles add column if not exists special_item_ids text[] not null default '{}';
+alter table profiles add column if not exists latest_special_item_id text;
 
 -- RLS: users can only read/write their own profile
 alter table profiles enable row level security;

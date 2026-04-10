@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { onDestroy, tick } from 'svelte';
+	import { onDestroy, onMount, tick } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getDailyMazeForDate, getDailyMazesForMonth, getDailyMazeSeed } from '$lib/core/daily';
 	import { createGameSession, getHint, calculateStars, getMoveThresholdsForOptimalPath } from '$lib/core/session';
@@ -17,7 +17,8 @@
 	const skinImageUrl = $derived(getSkinById(gameStore.player.currentSkinId)?.imageUrl ?? 'player_image0');
 	let viewYear = $state(today.getFullYear());
 	let viewMonth = $state(today.getMonth());
-	let calendarDays = $derived(getDailyMazesForMonth(viewYear, viewMonth));
+	let viewport = $state({ width: 0, height: 0 });
+	let calendarDays = $derived(getDailyMazesForMonth(viewYear, viewMonth, viewport));
 
 	let selectedDate = $state<string | null>(null);
 	let selectedDaily = $state<DailyMazeLevel | null>(null);
@@ -50,6 +51,14 @@
 		'January', 'February', 'March', 'April', 'May', 'June',
 		'July', 'August', 'September', 'October', 'November', 'December'
 	];
+
+	function updateViewport() {
+		if (typeof window === 'undefined') return;
+		viewport = {
+			width: window.innerWidth,
+			height: window.innerHeight
+		};
+	}
 
 	function isToday(dateStr: string) {
 		const d = new Date(dateStr);
@@ -107,7 +116,7 @@
 		victoryStars = { star1: false, star2: false, star3: false, star4: false, star5: false, total: 0 };
 
 		const d = new Date(dateStr);
-		const dailyLevel = getDailyMazeForDate(d);
+		const dailyLevel = getDailyMazeForDate(d, viewport);
 		const seed = getDailyMazeSeed(d);
 
 		session = createGameSession({
@@ -237,9 +246,12 @@
 	}
 
 	onDestroy(() => clearInterval(timerInterval));
+	onMount(() => {
+		updateViewport();
+	});
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
+<svelte:window onkeydown={handleKeydown} onresize={updateViewport} />
 
 <svelte:head>
 	<title>Daily Maze – Maze Escape: Pathbound</title>

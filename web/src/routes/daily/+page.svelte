@@ -29,6 +29,8 @@
 	let showOutro = $state(false);
     let victoryStars = $state({ star1: false, star2: false, star3: false, star4: false, star5: false, total: 0 });
 	let coinsEarned = $state(0);
+	let previousBestTime = $state(0);
+	let previousBestMoves = $state(0);
 	let visitedCells = $state(new Set<string>());
 	let playing = $state(false);
 	let moveTargets = $state({ twoStarMoves: 0, fiveStarMoves: 0 });
@@ -225,6 +227,9 @@
 			completionTime: elapsed,
 			completionMoves: session.moves
 		};
+		const priorResult = gameStore.getDailyResult(selectedDate);
+		previousBestTime = priorResult?.completionTime ?? 0;
+		previousBestMoves = priorResult?.completionMoves ?? 0;
 		gameStore.saveDailyResult(result);
 		if (activeEvent) {
 			gameStore.incrementEventProgress(activeEvent.id, 1);
@@ -509,6 +514,7 @@
 				maze={session.maze}
 				playerPos={session.playerPos}
 				wallColor={gameStore.player.wallColor}
+				backgroundColor={gameStore.player.mazeBackgroundColor}
 				hintPath={session.hintPath}
 				showVisited={true}
 				{visitedCells}
@@ -564,7 +570,9 @@
 
 {#if showOutro && session && selectedDaily}
 	<MazeOutroOverlay
+		open={showOutro}
 		title="Daily Maze Complete!"
+		subtitle={selectedDateLabel}
 		playerName={gameStore.player.playerName}
 		time={elapsed}
 		moves={session.moves}
@@ -575,6 +583,16 @@
 		fiveStarTime={Math.floor(selectedDaily.timeNeeded * 0.6)}
 		coins={coinsEarned}
 		accentColor="#34d399"
+		rewardSummary={activeEvent
+			? `${activeEvent.name} progress has advanced with this clear, along with your coins and mastery records.`
+			: 'Today’s clear has been archived with your stars, coins, and mastery progress.'}
+		mazeWidth={selectedDaily.width}
+		mazeHeight={selectedDaily.height}
+		algoName={selectedDaily.levelType}
+		algoId={selectedDaily.levelType}
+		algoLinkBase={base}
+		bestTime={previousBestTime}
+		bestMoves={previousBestMoves}
 		actions={[
 			{ label: 'Retry', onclick: () => { showOutro = false; if (selectedDate) startDailyMaze(selectedDate); } },
 			{ label: '← Calendar', primary: true, onclick: () => { showOutro = false; backToCalendar(); } }

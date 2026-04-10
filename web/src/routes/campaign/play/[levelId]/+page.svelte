@@ -63,6 +63,8 @@
 	let initializedLevelKey = $state('');
 	let victoryStars = $state({ star1: false, star2: false, star3: false, total: 0 });
 	let coinsEarned = $state(0);
+	let previousBestTime = $state(0);
+	let previousBestMoves = $state(0);
 	let visitedCells = $state(new Set<string>());
 	let moveQueue: Direction[] = [];
 	const MOVE_QUEUE_MAX = 2;
@@ -237,6 +239,9 @@
 		if (session.hintsUsed === 0) gameStore.markAchievementProgress('hint_free', 1);
 
 		// Save progress
+		const priorProgress = gameStore.getLevelProgress(worldId, levelDef.levelNumber);
+		previousBestTime = priorProgress?.bestTime ?? 0;
+		previousBestMoves = priorProgress?.bestMoves ?? 0;
 		const updatedLevel = {
 			...levelDef,
 			completed: true,
@@ -457,6 +462,7 @@
 				playerPos={session.playerPos}
 				ghostPos={ghostPos}
 				wallColor={gameStore.player.wallColor}
+				backgroundColor={gameStore.player.mazeBackgroundColor}
 				hintPath={session.hintPath}
 				showVisited={true}
 				{visitedCells}
@@ -558,15 +564,29 @@
 
 {#if showOutro && session && levelDef}
 	<MazeOutroOverlay
+		open={showOutro}
 		title="Level Complete!"
+		subtitle={levelDef.levelKind === 'boss' ? 'Boss encounter cleared' : `World ${worldId} • Level ${levelNumber}`}
 		playerName={gameStore.player.playerName}
 		time={elapsed}
 		moves={session.moves}
 		stars={victoryStars.total}
 		twoStarMoves={levelDef.twoStarMoves}
 		threeStarTime={levelDef.threeStarTime}
+		fiveStarMoves={levelDef.fiveStarMoves}
+		fiveStarTime={levelDef.fiveStarTime}
 		coins={coinsEarned}
 		accentColor={theme.accentColor}
+		rewardSummary={levelDef.levelKind === 'boss'
+			? `Boss rewards secured. ${levelDef.levelReward?.label ?? 'A relic'} is now archived if this was your first clear.`
+			: 'Stars, coins, and mastery progress have been recorded for this run.'}
+		mazeWidth={levelDef.width}
+		mazeHeight={levelDef.height}
+		algoName={levelDef.levelType}
+		algoId={levelDef.levelType}
+		algoLinkBase={base}
+		bestTime={previousBestTime}
+		bestMoves={previousBestMoves}
 		actions={[
 			{ label: 'Retry', onclick: () => { showOutro = false; startGame(); } },
 			{ label: levelDef.connectTo1 ? 'Next Level →' : 'Back to World', primary: true, onclick: goToNextLevel }

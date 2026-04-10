@@ -10,11 +10,13 @@
 		maze,
 		playerPos,
 		wallColor = '#c084fc',
+		backgroundColor = '',
 		visualTheme = 'neon' as MazeVisualTheme
 	}: {
 		maze: CircularMazeData;
 		playerPos: { ring: number; sector: number };
 		wallColor?: string;
+		backgroundColor?: string;
 		visualTheme?: MazeVisualTheme;
 	} = $props();
 
@@ -197,7 +199,7 @@
 		</defs>
 
 		<!-- Background -->
-		<rect x="0" y="0" width={size} height={size} fill={palette.bgColor} rx="8" />
+		<rect x="0" y="0" width={size} height={size} fill={backgroundColor || palette.bgColor} rx="8" />
 
 		<!-- Ring grid lines (subtle) -->
 		{#each Array(maze.numRings) as _, ring}

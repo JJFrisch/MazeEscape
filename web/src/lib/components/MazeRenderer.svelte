@@ -12,6 +12,7 @@
 		playerPos,
 			ghostPos = null,
 		wallColor = '#38bdf8',
+		backgroundColor = '',
 		visualTheme = 'neon',
 		hintPath = null,
 		skinEmoji = '🟣',
@@ -22,6 +23,7 @@
 		playerPos: Position;
 		ghostPos?: Position | null;
 		wallColor?: string;
+		backgroundColor?: string;
 		visualTheme?: MazeVisualTheme;
 		hintPath?: Position[] | null;
 		skinEmoji?: string;
@@ -66,6 +68,7 @@
 			halo: 'rgba(139,92,246,0.18)'
 		};
 	});
+	const surfaceColor = $derived(backgroundColor || themePalette.surface);
 
 	const viewBoxWidth = $derived(maze.width * CELL_SIZE + PADDING * 2);
 	const viewBoxHeight = $derived(maze.height * CELL_SIZE + PADDING * 2);
@@ -160,7 +163,7 @@
 		</defs>
 
 		<!-- Background -->
-		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill={themePalette.surface} />
+		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill={surfaceColor} />
 
 		<!-- Subtle grid lines -->
 		{#each maze.cells as row}

@@ -147,6 +147,7 @@ export interface PlayerData {
 	currentSkinId: number;
 	unlockedSkinIds: number[];
 	wallColor: string; // hex color
+	mazeBackgroundColor: string; // hex color
 	monthPrize1Achieved: boolean;
 	monthPrize2Achieved: boolean;
 	mostRecentMonth: string;

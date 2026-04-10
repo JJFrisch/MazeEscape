@@ -25,6 +25,8 @@
 		fiveStarTime = 0,
 		coins,
 		accentColor = '#38bdf8',
+		subtitle = '',
+		rewardSummary = '',
 		mazeWidth = 0,
 		mazeHeight = 0,
 		algoName = '',
@@ -47,6 +49,8 @@
 		fiveStarTime?: number;
 		coins: number;
 		accentColor?: string;
+		subtitle?: string;
+		rewardSummary?: string;
 		mazeWidth?: number;
 		mazeHeight?: number;
 		algoName?: string;
@@ -72,9 +76,14 @@
 {#if open}
 	<div class="outro-overlay" style="--accent: {accentColor}">
 		<div class="outro-inner">
+			<div class="outro-aura outro-aura-one"></div>
+			<div class="outro-aura outro-aura-two"></div>
 
 			<!-- Heading -->
 			<div class="outro-heading">
+				{#if subtitle}
+					<p class="outro-subtitle">{subtitle}</p>
+				{/if}
 				<h2 class="outro-title">{title}</h2>
 				{#if playerName}
 					<p class="outro-player">{playerName}</p>
@@ -144,6 +153,10 @@
 				</div>
 			</div>
 
+			{#if rewardSummary}
+				<div class="reward-summary">{rewardSummary}</div>
+			{/if}
+
 			<!-- Actions -->
 			<div class="outro-actions">
 				{#each actions as action}
@@ -191,6 +204,32 @@
 		background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, rgba(255,255,255,0.04)) 0%, color-mix(in srgb, var(--color-bg-card, #0b1220) 90%, transparent) 100%);
 		box-shadow: 0 24px 80px color-mix(in srgb, var(--accent) 12%, rgba(0,0,0,0.45));
 		animation: outro-rise 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+		position: relative;
+		overflow: hidden;
+	}
+
+	.outro-aura {
+		position: absolute;
+		border-radius: 999px;
+		filter: blur(60px);
+		pointer-events: none;
+		opacity: 0.35;
+	}
+
+	.outro-aura-one {
+		width: 220px;
+		height: 220px;
+		top: -80px;
+		left: -70px;
+		background: color-mix(in srgb, var(--accent) 48%, transparent);
+	}
+
+	.outro-aura-two {
+		width: 180px;
+		height: 180px;
+		right: -40px;
+		bottom: -60px;
+		background: color-mix(in srgb, var(--accent) 30%, transparent);
 	}
 
 	/* ── Heading ─────────────────────────────────── */
@@ -198,6 +237,16 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.3rem;
+		position: relative;
+		z-index: 1;
+	}
+
+	.outro-subtitle {
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: color-mix(in srgb, var(--accent) 72%, white 28%);
 	}
 
 	.outro-title {
@@ -219,6 +268,8 @@
 	.outro-stars {
 		display: flex;
 		justify-content: center;
+		position: relative;
+		z-index: 1;
 	}
 
 	/* ── Stats ───────────────────────────────────── */
@@ -228,6 +279,8 @@
 		justify-content: center;
 		flex-wrap: wrap;
 		width: 100%;
+		position: relative;
+		z-index: 1;
 	}
 
 	.stat-card {
@@ -296,6 +349,20 @@
 		border-radius: 9999px;
 		padding: 0.3rem 0.85rem;
 		color: color-mix(in srgb, var(--color-text-secondary, #cbd5e1) 82%, transparent);
+		position: relative;
+		z-index: 1;
+	}
+
+	.reward-summary {
+		position: relative;
+		z-index: 1;
+		padding: 0.8rem 1rem;
+		border-radius: 1rem;
+		background: color-mix(in srgb, var(--accent) 10%, rgba(15, 23, 42, 0.85));
+		border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+		font-size: 0.9rem;
+		line-height: 1.55;
+		color: var(--color-text-secondary, #cbd5e1);
 	}
 
 	.level-info-size {
@@ -327,6 +394,8 @@
 		gap: 0.75rem;
 		justify-content: center;
 		flex-wrap: wrap;
+		position: relative;
+		z-index: 1;
 	}
 
 	.outro-btn {

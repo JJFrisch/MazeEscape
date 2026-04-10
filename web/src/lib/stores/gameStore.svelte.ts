@@ -40,6 +40,7 @@ interface ProfileRow {
 	extra_moves_owned: number;
 	current_skin_id: number;
 	wall_color: string;
+	maze_background_color?: string;
 	month_prize1_achieved: boolean;
 	month_prize2_achieved: boolean;
 	most_recent_month: string;
@@ -120,6 +121,7 @@ function defaultPlayerData(): PlayerData {
 		currentSkinId: 0,
 		unlockedSkinIds: [0], // Default skin is always unlocked
 		wallColor: '#000000',
+		mazeBackgroundColor: '#080e1e',
 		monthPrize1Achieved: false,
 		monthPrize2Achieved: false,
 		mostRecentMonth: '',
@@ -272,6 +274,7 @@ function mapProfileRowToPlayerData(
 		currentSkinId: profile.current_skin_id,
 		unlockedSkinIds: Array.from(new Set([0, ...fallback.unlockedSkinIds, ...ownedSkins.map((row) => row.skin_id)])).sort((a, b) => a - b),
 		wallColor: profile.wall_color,
+		mazeBackgroundColor: profile.maze_background_color ?? fallback.mazeBackgroundColor,
 		monthPrize1Achieved: profile.month_prize1_achieved,
 		monthPrize2Achieved: profile.month_prize2_achieved,
 		mostRecentMonth: profile.most_recent_month,
@@ -593,6 +596,7 @@ function createGameStore() {
 				extra_moves_owned: player.extraMovesOwned,
 				current_skin_id: player.currentSkinId,
 				wall_color: player.wallColor,
+				maze_background_color: player.mazeBackgroundColor,
 				month_prize1_achieved: player.monthPrize1Achieved,
 				month_prize2_achieved: player.monthPrize2Achieved,
 				most_recent_month: player.mostRecentMonth,
@@ -718,6 +722,12 @@ function createGameStore() {
 
 	function setWallColor(color: string) {
 		player.wallColor = color;
+		touchPlayer();
+		save();
+	}
+
+	function setMazeBackgroundColor(color: string) {
+		player.mazeBackgroundColor = color;
 		touchPlayer();
 		save();
 	}
@@ -1276,6 +1286,7 @@ function createGameStore() {
 		spendCoins,
 		setPlayerName,
 		setWallColor,
+		setMazeBackgroundColor,
 		equipSkin,
 		unlockSkin,
 		buySkin,

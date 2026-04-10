@@ -18,6 +18,7 @@ create table if not exists profiles (
   extra_moves_owned integer not null default 0,
   current_skin_id integer not null default 0,
   wall_color text not null default '#000000',
+  maze_background_color text not null default '#080e1e',
   month_prize1_achieved boolean not null default false,
   month_prize2_achieved boolean not null default false,
   most_recent_month text not null default '',
@@ -28,6 +29,7 @@ create table if not exists profiles (
 );
 
 alter table profiles add column if not exists special_item_ids text[] not null default '{}';
+alter table profiles add column if not exists maze_background_color text not null default '#080e1e';
 alter table profiles add column if not exists latest_special_item_id text;
 
 -- RLS: users can only read/write their own profile

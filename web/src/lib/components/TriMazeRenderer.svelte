@@ -10,11 +10,13 @@
 		maze,
 		playerPos,
 		wallColor = '#34d399',
+		backgroundColor = '',
 		visualTheme = 'neon' as MazeVisualTheme
 	}: {
 		maze: TriMazeData;
 		playerPos: { col: number; row: number };
 		wallColor?: string;
+		backgroundColor?: string;
 		visualTheme?: MazeVisualTheme;
 	} = $props();
 
@@ -118,7 +120,7 @@
 		</defs>
 
 		<!-- Background -->
-		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill={palette.bgColor} rx="8" />
+		<rect x="0" y="0" width={viewBoxWidth} height={viewBoxHeight} fill={backgroundColor || palette.bgColor} rx="8" />
 
 		<!-- Cell backgrounds -->
 		{#each allCells as cell (`bg-${cell.col},${cell.row}`)}

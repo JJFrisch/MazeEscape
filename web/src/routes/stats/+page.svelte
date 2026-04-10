@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { DEITY_CATALOG } from '$lib/core/deities';
+	import { BOSS_RELICS } from '$lib/core/bossRelics';
 	import { SKIN_CATALOG } from '$lib/core/skins';
 	import type { MazeAlgorithm } from '$lib/core/types';
 
@@ -93,6 +94,15 @@
 		(gameStore.player.streakShieldsOwned ?? 0) +
 		(gameStore.player.doubleCoinsTokensOwned ?? 0)
 	);
+
+	const relicEntries = $derived(
+		BOSS_RELICS.map((relic) => ({
+			...relic,
+			owned: gameStore.player.specialItemIds.includes(relic.id)
+		}))
+	);
+
+	const ownedRelicCount = $derived(relicEntries.filter((relic) => relic.owned).length);
 
 	// Format seconds → m:ss
 	function fmtTime(secs: number): string {
@@ -271,6 +281,31 @@
 		</div>
 	</section>
 
+	<section class="stats-section">
+		<h2 class="section-title">
+			<span class="section-icon">🜂</span>
+			Relic Vault
+		</h2>
+		<div class="vault-summary">
+			<span>{ownedRelicCount} of {relicEntries.length} boss relics claimed</span>
+		</div>
+		<div class="relic-grid">
+			{#each relicEntries as relic}
+				<div class="relic-card" class:owned={relic.owned} style="--relic-accent:{relic.accent}">
+					<div class="relic-icon">{relic.icon}</div>
+					<div class="relic-meta">
+						<div class="relic-name">{relic.owned ? relic.name : 'Unknown Relic'}</div>
+						<div class="relic-title">{relic.owned ? relic.title : 'Unclaimed'}</div>
+					</div>
+					<p class="relic-description">
+						{relic.owned ? relic.description : 'Defeat the corresponding world boss for the first time to archive this relic.'}
+					</p>
+					<div class="relic-origin">{relic.owned ? relic.origin : 'Boss encounter not yet cleared'}</div>
+				</div>
+			{/each}
+		</div>
+	</section>
+
 	<!-- Deity Affinity -->
 	<section class="stats-section">
 		<h2 class="section-title">
@@ -442,6 +477,80 @@
 	.stat-value { font-size: 1.4rem; font-weight: 800; color: #e2e8f0; line-height: 1; }
 	.stat-value.gold { color: #f59e0b; }
 	.stat-label { font-size: 0.65rem; color: #64748b; margin-top: 0.35rem; line-height: 1.3; }
+
+	.vault-summary {
+		font-size: 0.75rem;
+		color: #94a3b8;
+	}
+
+	.relic-grid {
+		display: grid;
+		grid-template-columns: repeat(1, minmax(0, 1fr));
+		gap: 0.75rem;
+	}
+
+	@media (min-width: 640px) {
+		.relic-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	.relic-card {
+		display: grid;
+		gap: 0.7rem;
+		padding: 1rem;
+		border-radius: 14px;
+		border: 1px solid #1e293b;
+		background: #0f172a;
+		opacity: 0.72;
+	}
+
+	.relic-card.owned {
+		border-color: color-mix(in srgb, var(--relic-accent) 34%, #1e293b);
+		background: linear-gradient(135deg, color-mix(in srgb, var(--relic-accent) 10%, #0f172a), #0f172a 75%);
+		opacity: 1;
+	}
+
+	.relic-icon {
+		width: 46px;
+		height: 46px;
+		display: grid;
+		place-items: center;
+		border-radius: 12px;
+		font-size: 1.4rem;
+		background: rgba(15, 23, 42, 0.88);
+		border: 1px solid color-mix(in srgb, var(--relic-accent, #475569) 28%, #1e293b);
+	}
+
+	.relic-meta {
+		display: grid;
+		gap: 0.12rem;
+	}
+
+	.relic-name {
+		font-size: 0.95rem;
+		font-weight: 700;
+		color: #f8fafc;
+	}
+
+	.relic-title {
+		font-size: 0.72rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: color-mix(in srgb, var(--relic-accent, #94a3b8) 72%, white 28%);
+	}
+
+	.relic-description {
+		margin: 0;
+		font-size: 0.75rem;
+		line-height: 1.55;
+		color: #94a3b8;
+	}
+
+	.relic-origin {
+		font-size: 0.68rem;
+		color: #64748b;
+	}
 
 	/* ── Deity affinity ── */
 	.affinity-summary { display: flex; gap: 0.4rem; }

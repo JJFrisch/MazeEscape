@@ -26,8 +26,14 @@ create table if not exists profiles (
   updated_at timestamptz not null default now()
 );
 
+alter table profiles add column if not exists special_item_ids text[] not null default '{}';
+
 -- RLS: users can only read/write their own profile
 alter table profiles enable row level security;
+
+drop policy if exists "Users can read own profile" on profiles;
+drop policy if exists "Users can update own profile" on profiles;
+drop policy if exists "Users can insert own profile" on profiles;
 
 create policy "Users can read own profile"
   on profiles for select using (auth.uid() = id);
@@ -59,7 +65,13 @@ create table if not exists level_progress (
   unique(user_id, world_id, level_number)
 );
 
+alter table level_progress add column if not exists best_run_moves text[] null;
+
 alter table level_progress enable row level security;
+
+drop policy if exists "Users can read own progress" on level_progress;
+drop policy if exists "Users can upsert own progress" on level_progress;
+drop policy if exists "Users can update own progress" on level_progress;
 
 create policy "Users can read own progress"
   on level_progress for select using (auth.uid() = user_id);
@@ -86,6 +98,10 @@ create table if not exists event_progress (
 );
 
 alter table event_progress enable row level security;
+
+drop policy if exists "Users can read own event progress" on event_progress;
+drop policy if exists "Users can upsert own event progress" on event_progress;
+drop policy if exists "Users can update own event progress" on event_progress;
 
 create policy "Users can read own event progress"
   on event_progress for select using (auth.uid() = user_id);
@@ -115,6 +131,10 @@ create table if not exists daily_maze_results (
 
 alter table daily_maze_results enable row level security;
 
+drop policy if exists "Users can read own daily results" on daily_maze_results;
+drop policy if exists "Users can upsert own daily results" on daily_maze_results;
+drop policy if exists "Users can update own daily results" on daily_maze_results;
+
 create policy "Users can read own daily results"
   on daily_maze_results for select using (auth.uid() = user_id);
 
@@ -138,6 +158,9 @@ create table if not exists owned_skins (
 );
 
 alter table owned_skins enable row level security;
+
+drop policy if exists "Users can read own skins" on owned_skins;
+drop policy if exists "Users can insert own skins" on owned_skins;
 
 create policy "Users can read own skins"
   on owned_skins for select using (auth.uid() = user_id);
@@ -164,6 +187,10 @@ create table if not exists world_progress (
 );
 
 alter table world_progress enable row level security;
+
+drop policy if exists "Users can read own world progress" on world_progress;
+drop policy if exists "Users can upsert own world progress" on world_progress;
+drop policy if exists "Users can update own world progress" on world_progress;
 
 create policy "Users can read own world progress"
   on world_progress for select using (auth.uid() = user_id);
@@ -258,17 +285,22 @@ begin
 end;
 $$ language plpgsql;
 
+drop trigger if exists profiles_updated_at on profiles;
 create trigger profiles_updated_at before update on profiles
   for each row execute function update_updated_at_column();
 
+drop trigger if exists level_progress_updated_at on level_progress;
 create trigger level_progress_updated_at before update on level_progress
   for each row execute function update_updated_at_column();
 
+drop trigger if exists daily_maze_results_updated_at on daily_maze_results;
 create trigger daily_maze_results_updated_at before update on daily_maze_results
   for each row execute function update_updated_at_column();
 
+drop trigger if exists world_progress_updated_at on world_progress;
 create trigger world_progress_updated_at before update on world_progress
   for each row execute function update_updated_at_column();
 
+drop trigger if exists event_progress_updated_at on event_progress;
 create trigger event_progress_updated_at before update on event_progress
   for each row execute function update_updated_at_column();

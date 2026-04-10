@@ -81,8 +81,9 @@
 	<section class="policy-section">
 		<h2>8. Contact</h2>
 		<p>
-			For questions or concerns about these Terms, reach out via
-			<a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer" class="policy-link">jakefrischmann.me</a>.
+			For questions or concerns about these Terms, reach out at
+			<a href="mailto:contact@mazeescapepathbound.com" class="policy-link">contact@mazeescapepathbound.com</a>
+			or via <a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer" class="policy-link">jakefrischmann.me</a>.
 		</p>
 	</section>
 </div>

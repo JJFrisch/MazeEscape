@@ -88,8 +88,9 @@
 	<section class="policy-section">
 		<h2>7. Contact</h2>
 		<p>
-			Questions about this Privacy Policy can be directed to Jake Frischmann via
-			<a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer" class="policy-link">jakefrischmann.me</a>.
+			Questions about this Privacy Policy can be directed to
+			<a href="mailto:contact@mazeescapepathbound.com" class="policy-link">contact@mazeescapepathbound.com</a>
+			or via <a href="https://jakefrischmann.me" target="_blank" rel="noopener noreferrer" class="policy-link">jakefrischmann.me</a>.
 		</p>
 	</section>
 </div>

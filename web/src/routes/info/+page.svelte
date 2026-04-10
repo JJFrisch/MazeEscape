@@ -63,6 +63,11 @@
 		<p>Customize your character. Purchase skins from the shop or unlock special skins by opening campaign chests.</p>
 	</section>
 
+	<section class="info-section">
+		<h2>📬 Contact</h2>
+		<p>Questions, feedback, or bug reports? Reach out at <a href="mailto:contact@mazeescapepathbound.com" class="credits-link">contact@mazeescapepathbound.com</a>.</p>
+	</section>
+
 	<section class="info-section credits">
 		<h2>Credits</h2>
 		<p>Maze Escape: Pathbound – A maze puzzle game.</p>

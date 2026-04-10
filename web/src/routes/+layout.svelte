@@ -121,7 +121,7 @@
 				<div class="footer-col">
 					<span class="footer-heading">About</span>
 					<span>Version 1.0.0</span>
-					<a href="mailto:contact@mazeescapepathbound.com" class="footer-link-inline" target="_blank" rel="noopener noreferrer">contact@mazeescapepathbound.com</a>
+					<a href="mailto:contact@mazeescapepathbound.com" class="footer-link">contact@mazeescapepathbound.com</a>
 					<a href="https://jakefrischmann.me" class="footer-link" target="_blank" rel="noopener noreferrer">jakefrischman.me</a>
 					<a href="https://github.com/JJFrisch/MazeEscape" class="footer-link" target="_blank" rel="noopener noreferrer">GitHub</a>
 				</div>

@@ -14,7 +14,7 @@
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import type { WorldMapLayout, MapNode, MapCollectible } from '$lib/core/types';
 	import MapCollectiblePopup from '$lib/components/MapCollectiblePopup.svelte';
@@ -33,6 +33,7 @@
 	const MAX_SCALE = 2.0;
 
 	// Pan gesture tracking
+	let autoPanDone = false;
 	let isPanning = $state(false);
 	let panStartX = 0;
 	let panStartY = 0;
@@ -103,14 +104,19 @@
 	// ---------------------------------------------------------------------------
 
 	$effect(() => {
-		if (!containerEl || !playerMarkerNode) return;
-		const cw = containerEl.clientWidth;
-		const ch = containerEl.clientHeight;
-		const targetX = playerMarkerNode.tile.col * T + T / 2;
-		const targetY = playerMarkerNode.tile.row * T + T / 2;
-		panX = cw / 2 - targetX * scale;
-		panY = ch / 2 - targetY * scale;
-		clampPan();
+		const el = containerEl;
+		const marker = playerMarkerNode;
+		if (!el || !marker || autoPanDone) return;
+		autoPanDone = true;
+		const cw = el.clientWidth;
+		const ch = el.clientHeight;
+		const targetX = marker.tile.col * T + T / 2;
+		const targetY = marker.tile.row * T + T / 2;
+		untrack(() => {
+			panX = cw / 2 - targetX * scale;
+			panY = ch / 2 - targetY * scale;
+			clampPan();
+		});
 	});
 
 	function clampPan() {

@@ -568,6 +568,7 @@
 
 {#if showOutro && gameIsActive && levelDef}
 	<MazeOutroOverlay
+		open={true}
 		title="Level Complete!"
 		playerName={gameStore.player.playerName}
 		time={elapsed}

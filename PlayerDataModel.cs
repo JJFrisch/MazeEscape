@@ -57,6 +57,20 @@ namespace MazeEscape
 
         public Color WallColor = Colors.Black;
 
+        public int SelectedCoreId { get; set; } = 0;
+        public List<int> UnlockedCoreIds { get; set; } = new List<int> { 0 };
+
+        public Color FinishCoreColor => SelectedCoreId switch
+        {
+            1 => Colors.CornflowerBlue,
+            2 => Colors.MediumSeaGreen,
+            3 => Colors.Goldenrod,
+            4 => Colors.MediumOrchid,
+            5 => Colors.DeepSkyBlue,
+            6 => Colors.OrangeRed,
+            _ => Colors.IndianRed
+        };
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public PlayerDataModel()
@@ -676,6 +690,8 @@ namespace MazeEscape
                 MostRecentMonth = MostRecentMonth,
                 UnlockedSkins = UnlockedSkins,
                 CurrentWorldIndex = CurrentWorldIndex,
+                SelectedCoreId = SelectedCoreId,
+                UnlockedCoreIds = UnlockedCoreIds,
             };
 
             var serializedData = JsonSerializer.Serialize(data);
@@ -703,6 +719,8 @@ namespace MazeEscape
             UnlockedSkins = data.UnlockedSkins;
             CurrentWorldIndex = data.CurrentWorldIndex;
             WallColor = data.WallColor;
+            SelectedCoreId = data.SelectedCoreId;
+            UnlockedCoreIds = data.UnlockedCoreIds ?? new List<int> { 0 };
 
         }
 
@@ -776,6 +794,9 @@ namespace MazeEscape
         public List<SkinModel>? UnlockedSkins { get; set; }
 
         public Color WallColor { get; set; }
+
+        public int SelectedCoreId { get; set; } = 0;
+        public List<int>? UnlockedCoreIds { get; set; }
 
 
         }

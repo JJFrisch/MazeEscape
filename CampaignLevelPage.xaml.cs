@@ -196,7 +196,7 @@ public partial class CampaignLevelPage : ContentPage
         dict_int_to_color.Add(0, Colors.White);
         dict_int_to_color.Add(1, App.PlayerData.WallColor);
         dict_int_to_color.Add(2, Colors.GreenYellow);
-        dict_int_to_color.Add(3, Colors.IndianRed);
+        dict_int_to_color.Add(3, App.PlayerData.FinishCoreColor);
         dict_int_to_color.Add(4, Colors.LightGoldenrodYellow); // For Debugging Purposes
 
         Dictionary<string, Color> dict_str_to_color = new Dictionary<string, Color>();
@@ -301,7 +301,7 @@ public partial class CampaignLevelPage : ContentPage
 
         Maze.MazeGenerationDelegateList[Level.LevelType](Level.Width, Level.Height);
 
-        Level.TwoStarMoves = Math.Max((int)(Maze.PathLength * 1.01), Maze.PathLength + 5);
+        Level.TwoStarMoves = Maze.PathLength + 5;
         if (Level.Width * Level.Height < 100)
         {
             Level.ThreeStarTime = Maze.PathLength / 2;
@@ -579,7 +579,7 @@ public partial class CampaignLevelPage : ContentPage
                 }
                 else if (result == "Close")
                 {
-                    await Navigation.PushAsync(new CampaignPage());
+                    await Navigation.PopToRootAsync();
                 }
                 else if (result == "Shop")
                 {

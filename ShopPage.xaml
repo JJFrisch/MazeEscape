@@ -99,13 +99,36 @@
             </Grid>
             
 
+            <!-- Background panel with rounded top corners -->
             <BoxView BackgroundColor="Black"
-                     AbsoluteLayout.LayoutBounds="0.5,1,350,0.55"
+                     AbsoluteLayout.LayoutBounds="0.5,1,350,0.57"
                      AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional"
                      Opacity="0.8"
                      CornerRadius="50,50,10,10"/>
 
-            <ScrollView Orientation="Vertical" AbsoluteLayout.LayoutBounds="0.5,1,320,0.5"
+            <!-- Tab bar -->
+            <Grid AbsoluteLayout.LayoutBounds="0.5,0.435,350,44"
+                  AbsoluteLayout.LayoutFlags="PositionProportional"
+                  ColumnDefinitions="*,*,*"
+                  ColumnSpacing="1"
+                  BackgroundColor="#1A1A1A">
+                <Button x:Name="powerupsTabBtn" Grid.Column="0"
+                        Text="Powerups" TextColor="White"
+                        BackgroundColor="#3A5D8A" CornerRadius="0"
+                        FontSize="12" Clicked="PowerupsTabClicked"/>
+                <Button x:Name="skinsTabBtn" Grid.Column="1"
+                        Text="Skins" TextColor="White"
+                        BackgroundColor="#2A2A2A" CornerRadius="0"
+                        FontSize="12" Clicked="SkinsTabClicked"/>
+                <Button x:Name="coresTabBtn" Grid.Column="2"
+                        Text="Cores" TextColor="White"
+                        BackgroundColor="#2A2A2A" CornerRadius="0"
+                        FontSize="12" Clicked="CoresTabClicked"/>
+            </Grid>
+
+            <!-- Powerups tab content -->
+            <ScrollView x:Name="powerupsScrollView" Orientation="Vertical"
+                        AbsoluteLayout.LayoutBounds="0.5,1,320,0.495"
                         AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional">
 
 
@@ -313,7 +336,29 @@
                 
             </ScrollView>
 
+            <!-- Skins tab content -->
+            <ScrollView x:Name="skinsScrollView" IsVisible="False" Orientation="Vertical"
+                        AbsoluteLayout.LayoutBounds="0.5,1,320,0.495"
+                        AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional">
+                <Grid x:Name="skinsGrid"
+                      ColumnDefinitions="*,*,*"
+                      ColumnSpacing="8"
+                      RowSpacing="12"
+                      Padding="12,16"
+                      VerticalOptions="Start"/>
+            </ScrollView>
 
+            <!-- Cores tab content -->
+            <ScrollView x:Name="coresScrollView" IsVisible="False" Orientation="Vertical"
+                        AbsoluteLayout.LayoutBounds="0.5,1,320,0.495"
+                        AbsoluteLayout.LayoutFlags="PositionProportional,HeightProportional">
+                <Grid x:Name="coresGrid"
+                      ColumnDefinitions="*,*"
+                      ColumnSpacing="12"
+                      RowSpacing="12"
+                      Padding="12,16"
+                      VerticalOptions="Start"/>
+            </ScrollView>
 
 
         </AbsoluteLayout>

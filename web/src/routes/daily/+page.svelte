@@ -383,36 +383,51 @@
 		</div>
 	</div>
 {:else if !playing}
-	<div class="daily-page">
-		<!-- Page header -->
-		<div class="page-header">
-			<div class="page-header-left">
-				<h1 class="page-title">📅 Daily Maze</h1>
-				<p class="page-subtitle">A new challenge every day. The labyrinth never rests.</p>
-			</div>
+	{@const todayFloors   = calendarDays.filter(d => isToday(d.date))}
+	{@const pastFloors    = [...calendarDays].filter(d => !isToday(d.date) && !isFuture(d.date)).reverse()}
+	{@const futureFloors  = calendarDays.filter(d => isFuture(d.date))}
 
-			<!-- Streak counter -->
-			<div class="streak-panel">
-				<div class="streak-block" class:streak-active={(gameStore.player.currentStreak ?? 0) > 0}>
+	<div class="spire-page">
+
+		<!-- ── Atmospheric glow ────────────────── -->
+		<div class="spire-atmos" aria-hidden="true"></div>
+
+		<!-- ── Spire header ───────────────────── -->
+		<div class="spire-header">
+			<div class="spire-emblem" aria-hidden="true">◉</div>
+			<div class="spire-identity">
+				<div class="spire-eyebrow">DAILY ASCENT</div>
+				<h1 class="spire-name">The Spire</h1>
+			</div>
+			<div class="spire-streak-panel">
+				<div class="streak-pip" class:streak-lit={(gameStore.player.currentStreak ?? 0) > 0}>
 					<span class="streak-flame">{(gameStore.player.currentStreak ?? 0) > 0 ? '🔥' : '💤'}</span>
-					<div class="streak-info">
-						<span class="streak-number">{gameStore.player.currentStreak ?? 0}</span>
-						<span class="streak-label">day streak</span>
-					</div>
+					<span class="streak-val">{gameStore.player.currentStreak ?? 0}</span>
+					<span class="streak-lbl">streak</span>
 				</div>
 				<div class="streak-divider"></div>
-				<div class="streak-best">
-					<span class="streak-best-num">{gameStore.player.bestStreak ?? 0}</span>
-					<span class="streak-label">best</span>
+				<div class="streak-pip streak-pip-dim">
+					<span class="streak-val">{gameStore.player.bestStreak ?? 0}</span>
+					<span class="streak-lbl">best</span>
 				</div>
 				{#if (gameStore.player.streakShieldsOwned ?? 0) > 0}
-					<div class="streak-shield-badge" title="Streak shields owned">
-						🛡️ {gameStore.player.streakShieldsOwned}
-					</div>
+					<div class="shield-badge" title="Streak shields owned">🛡️ {gameStore.player.streakShieldsOwned}</div>
 				{/if}
 			</div>
 		</div>
 
+		<!-- ── Streak milestone ────────────────── -->
+		{#if (gameStore.player.currentStreak ?? 0) > 0}
+			{@const next = [3, 7, 14, 30, 60, 100].find(m => m > (gameStore.player.currentStreak ?? 0))}
+			{#if next}
+				<div class="milestone-bar">
+					<div class="milestone-fill" style="width:{Math.min(((gameStore.player.currentStreak ?? 0) / next) * 100, 100)}%;"></div>
+					<span class="milestone-label">🎯 {next - (gameStore.player.currentStreak ?? 0)} more day{next - (gameStore.player.currentStreak ?? 0) !== 1 ? 's' : ''} to {next}-day milestone</span>
+				</div>
+			{/if}
+		{/if}
+
+		<!-- ── Event panel ────────────────────── -->
 		{#if activeEvent}
 			<div class="event-panel" style="--event-accent:{activeEvent.themeAccent}">
 				<div class="event-copy">
@@ -430,59 +445,123 @@
 			</div>
 		{/if}
 
-		<!-- Streak milestone hint -->
-		{#if (gameStore.player.currentStreak ?? 0) > 0}
-			{@const next = [3, 7, 14, 30, 60, 100].find(m => m > (gameStore.player.currentStreak ?? 0))}
-			{#if next}
-				<div class="streak-milestone-bar">
-					<div class="milestone-fill" style="width:{Math.min(((gameStore.player.currentStreak ?? 0) / next) * 100, 100)}%;"></div>
-					<span class="milestone-label">🎯 {next - (gameStore.player.currentStreak ?? 0)} day{next - (gameStore.player.currentStreak ?? 0) !== 1 ? 's' : ''} to {next}-day milestone</span>
+		<!-- ── Month navigation ────────────────── -->
+		<div class="spire-month-nav">
+			<button class="month-nav-btn" onclick={prevMonth} aria-label="Previous month">
+				<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+					<path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+			</button>
+			<span class="month-name">{monthNames[viewMonth]} {viewYear}</span>
+			<button class="month-nav-btn" onclick={nextMonth} aria-label="Next month">
+				<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+					<path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+			</button>
+		</div>
+
+		<!-- ── The Spire shaft ─────────────────── -->
+		<div class="spire-shaft">
+			<!-- Decorative spine line (only over today + past section) -->
+			<div class="shaft-spine" aria-hidden="true"></div>
+
+			<!-- TODAY'S FLOOR — featured at top -->
+			{#each todayFloors as daily}
+				<div class="floor-row floor-today">
+					<div class="floor-marker" aria-hidden="true">
+						<div class="floor-dot floor-dot-today">
+							<div class="dot-inner-ring"></div>
+						</div>
+					</div>
+					<button
+						class="floor-card floor-card-today"
+						onclick={() => startDailyMaze(daily.date)}
+						aria-label="Today's floor — Ascend now"
+					>
+						<div class="floor-header-row">
+							<span class="floor-num-badge">Floor {padDay(daily.date)}</span>
+							<span class="floor-today-badge">TODAY</span>
+						</div>
+						<div class="floor-today-date">{formatDisplayDate(daily.date)}</div>
+						<div class="floor-ascend-cta">
+							<span>Ascend</span>
+							<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+								<path d="M8 12V4M4 8l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+						</div>
+					</button>
+				</div>
+			{/each}
+
+			<!-- Separator between today and history -->
+			{#if todayFloors.length > 0 && pastFloors.length > 0}
+				<div class="shaft-section-label" aria-hidden="true">
+					<span>— Floors Climbed —</span>
 				</div>
 			{/if}
-		{/if}
 
-		<div class="calendar-header">
-			<button class="cal-nav" onclick={prevMonth}>◀</button>
-			<h2 class="cal-month">{monthNames[viewMonth]} {viewYear}</h2>
-			<button class="cal-nav" onclick={nextMonth}>▶</button>
-		</div>
-
-		<div class="calendar">
-			<div class="cal-weekdays">
-				{#each ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as day}
-					<span class="cal-weekday">{day}</span>
-				{/each}
-			</div>
-
-			<div class="cal-grid">
-				{#each Array(getFirstDayOffset()) as _}
-					<div class="cal-cell empty"></div>
-				{/each}
-
-				{#each calendarDays as daily}
-					{@const result = getDayResult(daily.shortDate)}
-					{@const future = isFuture(daily.date)}
-					{@const todayClass = isToday(daily.date)}
-					{@const isCompleted = result?.status === 'completed' || result?.status === 'completed_late'}
+			<!-- PAST FLOORS (reverse chrono, newest first) -->
+			{#each pastFloors as daily}
+				{@const result = getDayResult(daily.shortDate)}
+				{@const isCompleted = result?.status === 'completed' || result?.status === 'completed_late'}
+				<div class="floor-row" class:floor-completed={isCompleted} class:floor-missed={!isCompleted}>
+					<div class="floor-marker" aria-hidden="true">
+						<div class="floor-dot" class:floor-dot-completed={isCompleted} class:floor-dot-missed={!isCompleted}>
+							{#if isCompleted}
+								<svg width="7" height="7" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+									<path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+							{/if}
+						</div>
+					</div>
 					<button
-						class="cal-cell"
-						class:future
-						class:today={todayClass}
-						class:completed={isCompleted}
-						disabled={future}
+						class="floor-card"
 						onclick={() => startDailyMaze(daily.date)}
+						aria-label="Floor {padDay(daily.date)} — {isCompleted ? 'Completed' : 'Missed — click to retry'}"
 					>
-						<span class="cal-day">{padDay(daily.date)}</span>
-						{#if isCompleted}
-							<span class="cal-stars">✓</span>
-						{:else if todayClass}
-							<span class="cal-new">NEW</span>
-						{/if}
+						<div class="floor-left">
+							<span class="floor-num">Floor {padDay(daily.date)}</span>
+							<span class="floor-date">{formatDisplayDate(daily.date)}</span>
+						</div>
+						<div class="floor-right">
+							{#if isCompleted}
+								<span class="floor-check-label">✓</span>
+								<span class="floor-stats-text">
+									{result?.completionTime?.toFixed(1)}s &middot; {result?.completionMoves} mv
+								</span>
+							{:else}
+								<span class="floor-retry-label">Retry ↑</span>
+							{/if}
+						</div>
 					</button>
+				</div>
+			{/each}
+
+			<!-- FUTURE FLOORS — upcoming, grayed out -->
+			{#if futureFloors.length > 0}
+				<div class="shaft-section-label shaft-section-future" aria-hidden="true">
+					<span>— Upcoming Floors —</span>
+				</div>
+				{#each futureFloors as daily}
+					<div class="floor-row floor-future">
+						<div class="floor-marker" aria-hidden="true">
+							<div class="floor-dot floor-dot-future"></div>
+						</div>
+						<div class="floor-card floor-card-future" aria-hidden="true">
+							<div class="floor-left">
+								<span class="floor-num">Floor {padDay(daily.date)}</span>
+								<span class="floor-date">{formatDisplayDate(daily.date)}</span>
+							</div>
+							<div class="floor-right">
+								<span class="floor-locked-label">🔒</span>
+							</div>
+						</div>
+					</div>
 				{/each}
-			</div>
-		</div>
-	</div>
+			{/if}
+
+		</div><!-- /.spire-shaft -->
+	</div><!-- /.spire-page -->
 {:else if session}
 	<div
 		class="gameplay"
@@ -618,10 +697,430 @@
 {/if}
 
 <style>
-	.daily-page {
-		max-width: 600px;
+	/* ── Spire page ─────────────────────────────── */
+	.spire-page {
+		position: relative;
+		max-width: 580px;
 		margin: 0 auto;
-		padding: var(--space-4);
+		padding: var(--space-4) var(--space-4) var(--space-16);
+	}
+
+	/* Atmospheric top glow (purple, The Spire color) */
+	.spire-atmos {
+		position: fixed;
+		top: var(--header-height);
+		left: 50%;
+		transform: translateX(-50%);
+		width: 700px;
+		height: 340px;
+		background: radial-gradient(ellipse at 50% 0%, rgba(192,132,252,0.09) 0%, transparent 65%);
+		pointer-events: none;
+		z-index: 0;
+	}
+
+	/* ── Spire header ────────────────────────────── */
+	.spire-header {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-4) 0 var(--space-5);
+		border-bottom: 1px solid rgba(192,132,252,0.15);
+		margin-bottom: var(--space-4);
+	}
+
+	.spire-emblem {
+		font-size: 1.6rem;
+		color: #c084fc;
+		line-height: 1;
+		filter: drop-shadow(0 0 10px rgba(192,132,252,0.6));
+		animation: emblem-pulse 3s ease-in-out infinite;
+	}
+	@keyframes emblem-pulse {
+		0%, 100% { filter: drop-shadow(0 0 8px rgba(192,132,252,0.5)); }
+		50%       { filter: drop-shadow(0 0 18px rgba(192,132,252,0.9)); }
+	}
+
+	.spire-identity { flex: 1; }
+	.spire-eyebrow {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: rgba(192,132,252,0.65);
+		margin-bottom: 2px;
+	}
+	.spire-name {
+		font-family: var(--font-display);
+		font-size: var(--text-xl);
+		font-weight: 700;
+		color: var(--color-text-primary);
+		letter-spacing: -0.01em;
+	}
+
+	/* Streak panel in header */
+	.spire-streak-panel {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-2) var(--space-3);
+		background: rgba(192,132,252,0.06);
+		border: 1px solid rgba(192,132,252,0.15);
+		border-radius: var(--radius-xl);
+		flex-shrink: 0;
+	}
+	.streak-pip {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+	}
+	.streak-pip-dim { opacity: 0.65; }
+	.streak-flame { font-size: 1rem; line-height: 1; }
+	.streak-val {
+		font-family: var(--font-display);
+		font-size: var(--text-lg);
+		font-weight: 700;
+		color: var(--color-text-primary);
+		line-height: 1;
+	}
+	.streak-pip.streak-lit .streak-val { color: #f97316; }
+	.streak-lbl {
+		font-size: 9px;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--color-text-muted);
+	}
+	.streak-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.08); }
+	.shield-badge {
+		font-size: var(--text-xs);
+		font-weight: 700;
+		padding: 3px 7px;
+		background: rgba(148,163,184,0.10);
+		border: 1px solid rgba(148,163,184,0.22);
+		border-radius: var(--radius-full);
+		color: #94a3b8;
+	}
+
+	/* ── Milestone bar ───────────────────────────── */
+	.milestone-bar {
+		position: relative;
+		z-index: 1;
+		height: 26px;
+		background: rgba(249,115,22,0.05);
+		border: 1px solid rgba(249,115,22,0.18);
+		border-radius: var(--radius-full);
+		margin-bottom: var(--space-4);
+		overflow: hidden;
+	}
+	.milestone-fill {
+		position: absolute;
+		top: 0; left: 0; bottom: 0;
+		background: linear-gradient(90deg, rgba(249,115,22,0.22), rgba(249,115,22,0.10));
+		border-radius: inherit;
+		transition: width 0.8s cubic-bezier(0.22,1,0.36,1);
+	}
+	.milestone-label {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		height: 100%;
+		padding: 0 var(--space-4);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		color: #f97316;
+	}
+
+	/* ── Month navigation ────────────────────────── */
+	.spire-month-nav {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: var(--space-2) 0 var(--space-4);
+	}
+	.month-nav-btn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		background: rgba(192,132,252,0.07);
+		border: 1px solid rgba(192,132,252,0.18);
+		border-radius: var(--radius-md);
+		color: #c084fc;
+		cursor: pointer;
+		transition: all 0.15s ease;
+	}
+	.month-nav-btn:hover {
+		background: rgba(192,132,252,0.14);
+		border-color: rgba(192,132,252,0.4);
+	}
+	.month-name {
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 600;
+		color: var(--color-text-primary);
+	}
+
+	/* ── Spire shaft ─────────────────────────────── */
+	.spire-shaft {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+	}
+
+	/* The continuous vertical spine */
+	.shaft-spine {
+		position: absolute;
+		left: 15px;
+		top: 0;
+		bottom: 0;
+		width: 2px;
+		background: linear-gradient(180deg,
+			rgba(192,132,252,0.7) 0%,
+			rgba(192,132,252,0.35) 60%,
+			rgba(192,132,252,0.08) 100%
+		);
+		border-radius: 1px;
+	}
+
+	/* Section divider labels */
+	.shaft-section-label {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-3) 0 var(--space-2) 44px;
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: rgba(192,132,252,0.45);
+	}
+	.shaft-section-future {
+		color: var(--color-text-muted);
+		opacity: 0.5;
+	}
+
+	/* ── Floor rows ──────────────────────────────── */
+	.floor-row {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: 3px 0;
+	}
+
+	/* Spine marker column */
+	.floor-marker {
+		position: relative;
+		z-index: 2;
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	/* Base dot */
+	.floor-dot {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(192,132,252,0.18);
+		border: 1.5px solid rgba(192,132,252,0.3);
+		color: transparent;
+		transition: all 0.2s ease;
+	}
+
+	/* Today — large pulsing dot */
+	.floor-dot-today {
+		width: 18px;
+		height: 18px;
+		background: #c084fc;
+		border-color: #c084fc;
+		box-shadow: 0 0 14px rgba(192,132,252,0.7), 0 0 28px rgba(192,132,252,0.3);
+		animation: spine-pulse 2s ease-in-out infinite;
+	}
+	@keyframes spine-pulse {
+		0%, 100% { box-shadow: 0 0 10px rgba(192,132,252,0.6), 0 0 22px rgba(192,132,252,0.25); }
+		50%       { box-shadow: 0 0 20px rgba(192,132,252,0.9), 0 0 40px rgba(192,132,252,0.45); }
+	}
+	.dot-inner-ring {
+		width: 7px; height: 7px;
+		border-radius: 50%;
+		border: 1.5px solid rgba(255,255,255,0.7);
+	}
+
+	/* Completed dot */
+	.floor-dot-completed {
+		background: rgba(52,211,153,0.22);
+		border-color: rgba(52,211,153,0.55);
+		color: #34d399;
+	}
+
+	/* Missed dot */
+	.floor-dot-missed {
+		background: rgba(244,63,94,0.1);
+		border-color: rgba(244,63,94,0.25);
+	}
+
+	/* Future dot */
+	.floor-dot-future {
+		width: 8px; height: 8px;
+		background: rgba(255,255,255,0.06);
+		border-color: rgba(255,255,255,0.1);
+	}
+
+	/* ── Floor cards ──────────────────────────────── */
+	.floor-card {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-3);
+		padding: 10px 14px;
+		background: rgba(8,12,28,0.8);
+		border: 1px solid rgba(255,255,255,0.05);
+		border-radius: var(--radius-lg);
+		cursor: pointer;
+		text-align: left;
+		color: var(--color-text-primary);
+		transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+		min-height: 48px;
+	}
+	.floor-row.floor-completed .floor-card:hover {
+		border-color: rgba(52,211,153,0.3);
+		background: rgba(52,211,153,0.04);
+	}
+	.floor-row.floor-missed .floor-card:hover {
+		border-color: rgba(192,132,252,0.25);
+		background: rgba(192,132,252,0.04);
+	}
+
+	/* TODAY featured card */
+	.floor-card-today {
+		flex-direction: column;
+		align-items: flex-start;
+		padding: 16px 18px;
+		background: rgba(192,132,252,0.07);
+		border-color: rgba(192,132,252,0.3);
+		box-shadow: 0 0 24px rgba(192,132,252,0.1), inset 0 0 32px rgba(192,132,252,0.04);
+		min-height: 0;
+		gap: 6px;
+	}
+	.floor-card-today:hover {
+		border-color: rgba(192,132,252,0.55);
+		background: rgba(192,132,252,0.11);
+		box-shadow: 0 0 36px rgba(192,132,252,0.18), inset 0 0 40px rgba(192,132,252,0.06);
+	}
+
+	/* Future card (non-interactive) */
+	.floor-card-future {
+		opacity: 0.35;
+		cursor: default;
+		pointer-events: none;
+	}
+
+	/* Today card rows */
+	.floor-header-row {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		width: 100%;
+	}
+	.floor-num-badge {
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 700;
+		color: #c084fc;
+	}
+	.floor-today-badge {
+		font-size: 9px;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+		padding: 2px 7px;
+		background: rgba(192,132,252,0.18);
+		border: 1px solid rgba(192,132,252,0.35);
+		border-radius: var(--radius-full);
+		color: #c084fc;
+	}
+	.floor-today-date {
+		font-size: var(--text-xs);
+		color: var(--color-text-secondary);
+		margin-bottom: 4px;
+	}
+	.floor-ascend-cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		padding: 6px 14px;
+		background: rgba(192,132,252,0.18);
+		border: 1px solid rgba(192,132,252,0.4);
+		border-radius: var(--radius-full);
+		font-size: var(--text-sm);
+		font-weight: 700;
+		color: #c084fc;
+		font-family: var(--font-display);
+		letter-spacing: 0.02em;
+		transition: all 0.18s ease;
+	}
+	.floor-card-today:hover .floor-ascend-cta {
+		background: rgba(192,132,252,0.28);
+		border-color: rgba(192,132,252,0.65);
+		box-shadow: 0 0 16px rgba(192,132,252,0.3);
+	}
+
+	/* Past floor card internals */
+	.floor-left {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+	.floor-num {
+		font-family: var(--font-display);
+		font-size: var(--text-sm);
+		font-weight: 600;
+		color: var(--color-text-primary);
+	}
+	.floor-date {
+		font-size: var(--text-xs);
+		color: var(--color-text-muted);
+	}
+	.floor-right {
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		flex-shrink: 0;
+	}
+	.floor-check-label {
+		font-size: var(--text-sm);
+		color: #34d399;
+		font-weight: 700;
+	}
+	.floor-stats-text {
+		font-size: var(--text-xs);
+		color: var(--color-text-secondary);
+		font-family: var(--font-mono);
+	}
+	.floor-retry-label {
+		font-size: var(--text-xs);
+		font-weight: 600;
+		color: rgba(192,132,252,0.55);
+		letter-spacing: 0.04em;
+	}
+	.floor-locked-label {
+		font-size: var(--text-sm);
+		opacity: 0.5;
 	}
 
 	/* ── Locked state ───────────────────────────── */
@@ -780,219 +1279,7 @@
 		color: #fff;
 	}
 
-	/* ── Page header ────────────────────────────── */
-	.page-header {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: var(--space-4);
-		margin-bottom: var(--space-5);
-		flex-wrap: wrap;
-	}
-	.page-header-left { flex: 1; min-width: 0; }
-
-	.page-title {
-		font-family: var(--font-display);
-		font-size: var(--text-2xl);
-		margin-bottom: var(--space-1);
-	}
-	.page-subtitle {
-		color: var(--color-text-muted);
-		font-size: var(--text-sm);
-	}
-
-	/* ── Streak panel ────────────────────────────── */
-	.streak-panel {
-		display: flex;
-		align-items: center;
-		gap: var(--space-3);
-		padding: var(--space-3) var(--space-4);
-		background: rgba(255,255,255,0.03);
-		border: 1px solid rgba(255,255,255,0.08);
-		border-radius: var(--radius-xl);
-		backdrop-filter: blur(8px);
-		flex-shrink: 0;
-	}
-	.streak-block {
-		display: flex;
-		align-items: center;
-		gap: var(--space-2);
-	}
-	.streak-flame { font-size: 1.4rem; line-height: 1; }
-	.streak-info { display: flex; flex-direction: column; align-items: flex-start; }
-	.streak-number {
-		font-family: var(--font-display);
-		font-size: var(--text-2xl);
-		font-weight: 700;
-		color: var(--color-text-primary);
-		line-height: 1;
-	}
-	.streak-block.streak-active .streak-number { color: #f97316; }
-	.streak-label {
-		font-size: 9px;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--color-text-muted);
-	}
-	.streak-divider {
-		width: 1px;
-		height: 32px;
-		background: rgba(255,255,255,0.08);
-	}
-	.streak-best {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 2px;
-	}
-	.streak-best-num {
-		font-family: var(--font-display);
-		font-size: var(--text-lg);
-		font-weight: 700;
-		color: var(--color-accent-gold);
-		line-height: 1;
-	}
-	.streak-shield-badge {
-		font-size: var(--text-sm);
-		font-weight: 700;
-		padding: 4px 8px;
-		background: rgba(148,163,184,0.10);
-		border: 1px solid rgba(148,163,184,0.25);
-		border-radius: var(--radius-full);
-		color: #94a3b8;
-		cursor: default;
-	}
-
-	/* ── Streak milestone bar ────────────────────── */
-	.streak-milestone-bar {
-		position: relative;
-		height: 28px;
-		background: rgba(249,115,22,0.06);
-		border: 1px solid rgba(249,115,22,0.18);
-		border-radius: var(--radius-full);
-		margin-bottom: var(--space-5);
-		overflow: hidden;
-	}
-	.milestone-fill {
-		position: absolute;
-		top: 0; left: 0; bottom: 0;
-		background: linear-gradient(90deg, rgba(249,115,22,0.25), rgba(249,115,22,0.12));
-		border-radius: var(--radius-full);
-		transition: width 0.8s cubic-bezier(0.22,1,0.36,1);
-	}
-	.milestone-label {
-		position: relative;
-		z-index: 1;
-		display: flex;
-		align-items: center;
-		height: 100%;
-		padding: 0 var(--space-4);
-		font-size: var(--text-xs);
-		font-weight: 600;
-		color: #f97316;
-	}
-
-	.calendar-header {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-bottom: var(--space-4);
-	}
-
-	.cal-month {
-		font-family: var(--font-display);
-		font-size: var(--text-xl);
-	}
-
-	.cal-nav {
-		background: var(--color-bg-card);
-		border: 1px solid var(--color-border);
-		color: var(--color-text-primary);
-		border-radius: var(--radius-md);
-		padding: var(--space-2) var(--space-3);
-		cursor: pointer;
-	}
-
-	.cal-weekdays {
-		display: grid;
-		grid-template-columns: repeat(7, 1fr);
-		gap: 2px;
-		margin-bottom: var(--space-2);
-	}
-
-	.cal-weekday {
-		text-align: center;
-		font-size: var(--text-xs);
-		color: var(--color-text-muted);
-		font-weight: 600;
-		text-transform: uppercase;
-	}
-
-	.cal-grid {
-		display: grid;
-		grid-template-columns: repeat(7, 1fr);
-		gap: 4px;
-	}
-
-	.cal-cell {
-		aspect-ratio: 1;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		background: var(--color-bg-card);
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-md);
-		cursor: pointer;
-		transition: all var(--transition-fast);
-		gap: 2px;
-	}
-
-	.cal-cell.empty {
-		background: transparent;
-		border-color: transparent;
-		cursor: default;
-	}
-
-	.cal-cell:not(.empty):not(.future):hover {
-		border-color: var(--color-accent-primary);
-		background: var(--color-bg-card-hover);
-	}
-
-	.cal-cell.today {
-		border-color: var(--color-accent-primary);
-		box-shadow: 0 0 12px rgba(99, 102, 241, 0.3);
-	}
-
-	.cal-cell.completed {
-		background: rgba(52, 211, 153, 0.1);
-		border-color: var(--color-accent-green);
-	}
-
-	.cal-cell.future {
-		opacity: 0.3;
-		cursor: default;
-	}
-
-	.cal-day {
-		font-weight: 600;
-		font-size: var(--text-sm);
-	}
-
-	.cal-stars {
-		font-size: 9px;
-		color: var(--color-accent-gold);
-	}
-
-	.cal-new {
-		font-size: 8px;
-		font-weight: 700;
-		color: var(--color-accent-primary);
-		letter-spacing: 0.5px;
-	}
-
-	/* Gameplay styles (reused pattern) */
+	/* Gameplay styles */
 	.gameplay {
 		display: flex;
 		flex-direction: column;

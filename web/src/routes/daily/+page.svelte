@@ -41,6 +41,7 @@
 	let newlyUnlocked = $state<string[]>([]);
 	let shownMasteryUnlock = $derived(masteryUnlocks[0] ?? null);
 	let shownAchievementId = $derived(newlyUnlocked[0] ?? null);
+	let selectedFloorInfo = $state<DailyMazeLevel | null>(null);
 
 	const DAILY_PHRASES = [
 		"Shuffling today's challenge…",
@@ -342,6 +343,25 @@
 		return new Date(viewYear, viewMonth, 1).getDay();
 	}
 
+	function difficultyLabel(daily: DailyMazeLevel): string {
+		const area = daily.width * daily.height;
+		if (area <= 625) return 'Easy';
+		if (area <= 1600) return 'Medium';
+		if (area <= 3600) return 'Hard';
+		return 'Legendary';
+	}
+
+	function zigzagSide(dayNum: number): 'left' | 'center' | 'right' {
+		const m = dayNum % 3;
+		if (m === 1) return 'left';
+		if (m === 2) return 'center';
+		return 'right';
+	}
+
+	function openFloorInfo(daily: DailyMazeLevel) {
+		selectedFloorInfo = daily;
+	}
+
 	onDestroy(() => {
 		clearInterval(timerInterval);
 		clearTimeout(hourglassTimer);
@@ -349,6 +369,9 @@
 	});
 	onMount(() => {
 		updateViewport();
+		setTimeout(() => {
+			document.querySelector('.floor-today')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		}, 120);
 	});
 </script>
 
@@ -383,14 +406,12 @@
 		</div>
 	</div>
 {:else if !playing}
-	{@const todayFloors   = calendarDays.filter(d => isToday(d.date))}
-	{@const pastFloors    = [...calendarDays].filter(d => !isToday(d.date) && !isFuture(d.date)).reverse()}
-	{@const futureFloors  = calendarDays.filter(d => isFuture(d.date))}
+	{@const futureFs  = calendarDays.filter(d => isFuture(d.date)).reverse()}
+	{@const todayFs   = calendarDays.filter(d => isToday(d.date))}
+	{@const pastFs    = [...calendarDays].filter(d => !isToday(d.date) && !isFuture(d.date)).reverse()}
+	{@const allFloors = [...futureFs, ...todayFs, ...pastFs]}
 
 	<div class="spire-page">
-
-		<!-- ── Atmospheric glow ────────────────── -->
-		<div class="spire-atmos" aria-hidden="true"></div>
 
 		<!-- ── Spire header ───────────────────── -->
 		<div class="spire-header">
@@ -460,108 +481,143 @@
 			</button>
 		</div>
 
-		<!-- ── The Spire shaft ─────────────────── -->
+		<!-- ── Tower shaft ─────────────────────── -->
 		<div class="spire-shaft">
-			<!-- Decorative spine line (only over today + past section) -->
-			<div class="shaft-spine" aria-hidden="true"></div>
 
-			<!-- TODAY'S FLOOR — featured at top -->
-			{#each todayFloors as daily}
-				<div class="floor-row floor-today">
-					<div class="floor-marker" aria-hidden="true">
-						<div class="floor-dot floor-dot-today">
-							<div class="dot-inner-ring"></div>
-						</div>
-					</div>
-					<button
-						class="floor-card floor-card-today"
-						onclick={() => startDailyMaze(daily.date)}
-						aria-label="Today's floor — Ascend now"
-					>
-						<div class="floor-header-row">
-							<span class="floor-num-badge">Floor {padDay(daily.date)}</span>
-							<span class="floor-today-badge">TODAY</span>
-						</div>
-						<div class="floor-today-date">{formatDisplayDate(daily.date)}</div>
-						<div class="floor-ascend-cta">
-							<span>Ascend</span>
-							<svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-								<path d="M8 12V4M4 8l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-							</svg>
-						</div>
-					</button>
-				</div>
-			{/each}
-
-			<!-- Separator between today and history -->
-			{#if todayFloors.length > 0 && pastFloors.length > 0}
-				<div class="shaft-section-label" aria-hidden="true">
-					<span>— Floors Climbed —</span>
-				</div>
-			{/if}
-
-			<!-- PAST FLOORS (reverse chrono, newest first) -->
-			{#each pastFloors as daily}
-				{@const result = getDayResult(daily.shortDate)}
-				{@const isCompleted = result?.status === 'completed' || result?.status === 'completed_late'}
-				<div class="floor-row" class:floor-completed={isCompleted} class:floor-missed={!isCompleted}>
-					<div class="floor-marker" aria-hidden="true">
-						<div class="floor-dot" class:floor-dot-completed={isCompleted} class:floor-dot-missed={!isCompleted}>
-							{#if isCompleted}
-								<svg width="7" height="7" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-									<path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-								</svg>
-							{/if}
-						</div>
-					</div>
-					<button
-						class="floor-card"
-						onclick={() => startDailyMaze(daily.date)}
-						aria-label="Floor {padDay(daily.date)} — {isCompleted ? 'Completed' : 'Missed — click to retry'}"
-					>
-						<div class="floor-left">
-							<span class="floor-num">Floor {padDay(daily.date)}</span>
-							<span class="floor-date">{formatDisplayDate(daily.date)}</span>
-						</div>
-						<div class="floor-right">
-							{#if isCompleted}
-								<span class="floor-check-label">✓</span>
-								<span class="floor-stats-text">
-									{result?.completionTime?.toFixed(1)}s &middot; {result?.completionMoves} mv
-								</span>
-							{:else}
-								<span class="floor-retry-label">Retry ↑</span>
-							{/if}
-						</div>
-					</button>
-				</div>
-			{/each}
-
-			<!-- FUTURE FLOORS — upcoming, grayed out -->
-			{#if futureFloors.length > 0}
-				<div class="shaft-section-label shaft-section-future" aria-hidden="true">
-					<span>— Upcoming Floors —</span>
-				</div>
-				{#each futureFloors as daily}
-					<div class="floor-row floor-future">
-						<div class="floor-marker" aria-hidden="true">
-							<div class="floor-dot floor-dot-future"></div>
-						</div>
-						<div class="floor-card floor-card-future" aria-hidden="true">
-							<div class="floor-left">
-								<span class="floor-num">Floor {padDay(daily.date)}</span>
-								<span class="floor-date">{formatDisplayDate(daily.date)}</span>
-							</div>
-							<div class="floor-right">
-								<span class="floor-locked-label">🔒</span>
-							</div>
-						</div>
-					</div>
+			<!-- Winding SVG path connecting floor badges -->
+			<svg
+				class="shaft-path-svg"
+				viewBox="0 0 100 {allFloors.length}"
+				preserveAspectRatio="none"
+				aria-hidden="true"
+				style="height:{allFloors.length * 88}px"
+			>
+				{#each allFloors as daily, i}
+					{#if i < allFloors.length - 1}
+						{@const dayNum  = new Date(daily.date).getDate()}
+						{@const side    = zigzagSide(dayNum)}
+						{@const x1      = side === 'left' ? 13 : side === 'center' ? 50 : 87}
+						{@const dayNum2 = new Date(allFloors[i + 1].date).getDate()}
+						{@const side2   = zigzagSide(dayNum2)}
+						{@const x2      = side2 === 'left' ? 13 : side2 === 'center' ? 50 : 87}
+						{@const isLive  = !isFuture(daily.date) && !isFuture(allFloors[i + 1].date)}
+						<line
+							x1={x1} y1={i + 0.5}
+							x2={x2} y2={i + 1.5}
+							stroke={isLive ? 'rgba(52,211,153,0.45)' : 'rgba(192,132,252,0.22)'}
+							stroke-width="0.5"
+							stroke-linecap="round"
+						/>
+					{/if}
 				{/each}
-			{/if}
+			</svg>
+
+			{#each allFloors as daily, i}
+				{@const dayNum      = new Date(daily.date).getDate()}
+				{@const side        = zigzagSide(dayNum)}
+				{@const todayFloor  = isToday(daily.date)}
+				{@const futureFloor = isFuture(daily.date)}
+				{@const result      = getDayResult(daily.shortDate)}
+				{@const completed   = result?.status === 'completed' || result?.status === 'completed_late'}
+				<div
+					class="floor-row"
+					class:floor-today={todayFloor}
+					class:floor-future={futureFloor}
+					class:floor-left={side === 'left'}
+					class:floor-center={side === 'center'}
+					class:floor-right={side === 'right'}
+				>
+					{#if todayFloor}
+						<div class="today-crown">TODAY</div>
+					{/if}
+					<button
+						class="floor-badge"
+						class:badge-today={todayFloor}
+						class:badge-completed={!todayFloor && completed}
+						class:badge-missed={!todayFloor && !completed && !futureFloor}
+						class:badge-future={futureFloor}
+						onclick={() => openFloorInfo(daily)}
+						aria-label="Floor {dayNum}{todayFloor ? ' — Today' : futureFloor ? ' — Locked' : completed ? ' — Completed' : ' — Missed'}"
+					>
+						<span class="badge-num">{dayNum}</span>
+						<span class="badge-icon">
+							{#if todayFloor}⚔️{:else if completed}✓{:else if futureFloor}🔒{:else}✗{/if}
+						</span>
+					</button>
+				</div>
+			{/each}
 
 		</div><!-- /.spire-shaft -->
 	</div><!-- /.spire-page -->
+
+	<!-- ── Floor info popup ───────────────────────── -->
+	{#if selectedFloorInfo}
+		{@const fi          = selectedFloorInfo}
+		{@const fiResult    = getDayResult(fi.shortDate)}
+		{@const fiCompleted = fiResult?.status === 'completed' || fiResult?.status === 'completed_late'}
+		{@const fiToday     = isToday(fi.date)}
+		{@const fiFuture    = isFuture(fi.date)}
+		{@const fiDay       = new Date(fi.date).getDate()}
+		<div
+			class="floor-popup-backdrop"
+			role="presentation"
+			onclick={() => { selectedFloorInfo = null; }}
+		>
+			<div
+				class="floor-popup"
+				role="dialog"
+				aria-modal="true"
+				aria-label="Floor {fiDay} details"
+				tabindex="-1"
+				onclick={(e) => e.stopPropagation()}
+				onkeydown={(e) => e.stopPropagation()}
+			>
+				<button class="popup-close" onclick={() => { selectedFloorInfo = null; }} aria-label="Close">✕</button>
+
+				<div class="popup-floor-label">
+					{#if fiToday}<span class="popup-today-pip">TODAY</span>{/if}
+					Floor {fiDay}
+				</div>
+				<div class="popup-date">{formatDisplayDate(fi.date)}</div>
+
+				<div class="popup-meta">
+					<div class="popup-meta-item">
+						<span class="popup-meta-key">Size</span>
+						<span class="popup-meta-val">{fi.width} × {fi.height}</span>
+					</div>
+					<div class="popup-meta-item">
+						<span class="popup-meta-key">Difficulty</span>
+						<span class="popup-meta-val">{difficultyLabel(fi)}</span>
+					</div>
+					<div class="popup-meta-item">
+						<span class="popup-meta-key">Algorithm</span>
+						<span class="popup-meta-val">{fi.levelType}</span>
+					</div>
+				</div>
+
+				{#if fiFuture}
+					<div class="popup-locked-msg">🔒 This floor opens on {formatDisplayDate(fi.date)}.</div>
+				{:else if fiCompleted}
+					<div class="popup-completed-row">
+						<span class="popup-completed-check">✓</span>
+						<span class="popup-completed-stats">{fiResult?.completionTime?.toFixed(1)}s &middot; {fiResult?.completionMoves} moves</span>
+					</div>
+					<button class="popup-start-btn popup-retry-btn" onclick={() => { startDailyMaze(fi.date); selectedFloorInfo = null; }}>
+						↑ Retry Floor {fiDay}
+					</button>
+				{:else if fiToday}
+					<button class="popup-start-btn popup-ascend-btn" onclick={() => { startDailyMaze(fi.date); selectedFloorInfo = null; }}>
+						Ascend ⚔️
+					</button>
+				{:else}
+					<div class="popup-missed-msg">You missed this floor. Retry it now to earn partial credit.</div>
+					<button class="popup-start-btn popup-retry-btn" onclick={() => { startDailyMaze(fi.date); selectedFloorInfo = null; }}>
+						↑ Retry Floor {fiDay}
+					</button>
+				{/if}
+			</div>
+		</div>
+	{/if}
 {:else if session}
 	<div
 		class="gameplay"
@@ -704,18 +760,21 @@
 		margin: 0 auto;
 		padding: var(--space-4) var(--space-4) var(--space-16);
 	}
-
-	/* Atmospheric top glow (purple, The Spire color) */
-	.spire-atmos {
+	.spire-page::before {
+		content: '';
 		position: fixed;
-		top: var(--header-height);
-		left: 50%;
-		transform: translateX(-50%);
-		width: 700px;
-		height: 340px;
-		background: radial-gradient(ellipse at 50% 0%, rgba(192,132,252,0.09) 0%, transparent 65%);
+		inset: 0;
+		background: url('/images/spire_background.jpg') center / cover no-repeat;
+		z-index: -2;
 		pointer-events: none;
-		z-index: 0;
+	}
+	.spire-page::after {
+		content: '';
+		position: fixed;
+		inset: 0;
+		background: rgba(4, 0, 16, 0.74);
+		z-index: -1;
+		pointer-events: none;
 	}
 
 	/* ── Spire header ────────────────────────────── */
@@ -873,254 +932,257 @@
 		z-index: 1;
 		display: flex;
 		flex-direction: column;
+		align-items: stretch;
 	}
 
-	/* The continuous vertical spine */
-	.shaft-spine {
+	/* SVG winding path */
+	.shaft-path-svg {
 		position: absolute;
-		left: 15px;
-		top: 0;
-		bottom: 0;
-		width: 2px;
-		background: linear-gradient(180deg,
-			rgba(192,132,252,0.7) 0%,
-			rgba(192,132,252,0.35) 60%,
-			rgba(192,132,252,0.08) 100%
-		);
-		border-radius: 1px;
-	}
-
-	/* Section divider labels */
-	.shaft-section-label {
-		display: flex;
-		align-items: center;
-		gap: var(--space-3);
-		padding: var(--space-3) 0 var(--space-2) 44px;
-		font-size: 10px;
-		font-weight: 700;
-		letter-spacing: 0.12em;
-		text-transform: uppercase;
-		color: rgba(192,132,252,0.45);
-	}
-	.shaft-section-future {
-		color: var(--color-text-muted);
-		opacity: 0.5;
-	}
-
-	/* ── Floor rows ──────────────────────────────── */
-	.floor-row {
-		display: flex;
-		align-items: center;
-		gap: var(--space-3);
-		padding: 3px 0;
-	}
-
-	/* Spine marker column */
-	.floor-marker {
-		position: relative;
-		z-index: 2;
-		width: 32px;
-		height: 32px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	/* Base dot */
-	.floor-dot {
-		width: 12px;
-		height: 12px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: rgba(192,132,252,0.18);
-		border: 1.5px solid rgba(192,132,252,0.3);
-		color: transparent;
-		transition: all 0.2s ease;
-	}
-
-	/* Today — large pulsing dot */
-	.floor-dot-today {
-		width: 18px;
-		height: 18px;
-		background: #c084fc;
-		border-color: #c084fc;
-		box-shadow: 0 0 14px rgba(192,132,252,0.7), 0 0 28px rgba(192,132,252,0.3);
-		animation: spine-pulse 2s ease-in-out infinite;
-	}
-	@keyframes spine-pulse {
-		0%, 100% { box-shadow: 0 0 10px rgba(192,132,252,0.6), 0 0 22px rgba(192,132,252,0.25); }
-		50%       { box-shadow: 0 0 20px rgba(192,132,252,0.9), 0 0 40px rgba(192,132,252,0.45); }
-	}
-	.dot-inner-ring {
-		width: 7px; height: 7px;
-		border-radius: 50%;
-		border: 1.5px solid rgba(255,255,255,0.7);
-	}
-
-	/* Completed dot */
-	.floor-dot-completed {
-		background: rgba(52,211,153,0.22);
-		border-color: rgba(52,211,153,0.55);
-		color: #34d399;
-	}
-
-	/* Missed dot */
-	.floor-dot-missed {
-		background: rgba(244,63,94,0.1);
-		border-color: rgba(244,63,94,0.25);
-	}
-
-	/* Future dot */
-	.floor-dot-future {
-		width: 8px; height: 8px;
-		background: rgba(255,255,255,0.06);
-		border-color: rgba(255,255,255,0.1);
-	}
-
-	/* ── Floor cards ──────────────────────────────── */
-	.floor-card {
-		flex: 1;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: var(--space-3);
-		padding: 10px 14px;
-		background: rgba(8,12,28,0.8);
-		border: 1px solid rgba(255,255,255,0.05);
-		border-radius: var(--radius-lg);
-		cursor: pointer;
-		text-align: left;
-		color: var(--color-text-primary);
-		transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
-		min-height: 48px;
-	}
-	.floor-row.floor-completed .floor-card:hover {
-		border-color: rgba(52,211,153,0.3);
-		background: rgba(52,211,153,0.04);
-	}
-	.floor-row.floor-missed .floor-card:hover {
-		border-color: rgba(192,132,252,0.25);
-		background: rgba(192,132,252,0.04);
-	}
-
-	/* TODAY featured card */
-	.floor-card-today {
-		flex-direction: column;
-		align-items: flex-start;
-		padding: 16px 18px;
-		background: rgba(192,132,252,0.07);
-		border-color: rgba(192,132,252,0.3);
-		box-shadow: 0 0 24px rgba(192,132,252,0.1), inset 0 0 32px rgba(192,132,252,0.04);
-		min-height: 0;
-		gap: 6px;
-	}
-	.floor-card-today:hover {
-		border-color: rgba(192,132,252,0.55);
-		background: rgba(192,132,252,0.11);
-		box-shadow: 0 0 36px rgba(192,132,252,0.18), inset 0 0 40px rgba(192,132,252,0.06);
-	}
-
-	/* Future card (non-interactive) */
-	.floor-card-future {
-		opacity: 0.35;
-		cursor: default;
-		pointer-events: none;
-	}
-
-	/* Today card rows */
-	.floor-header-row {
-		display: flex;
-		align-items: center;
-		gap: var(--space-2);
+		inset: 0;
 		width: 100%;
-	}
-	.floor-num-badge {
-		font-family: var(--font-display);
-		font-size: var(--text-sm);
-		font-weight: 700;
-		color: #c084fc;
-	}
-	.floor-today-badge {
-		font-size: 9px;
-		font-weight: 700;
-		letter-spacing: 0.12em;
-		padding: 2px 7px;
-		background: rgba(192,132,252,0.18);
-		border: 1px solid rgba(192,132,252,0.35);
-		border-radius: var(--radius-full);
-		color: #c084fc;
-	}
-	.floor-today-date {
-		font-size: var(--text-xs);
-		color: var(--color-text-secondary);
-		margin-bottom: 4px;
-	}
-	.floor-ascend-cta {
-		display: inline-flex;
-		align-items: center;
-		gap: 5px;
-		padding: 6px 14px;
-		background: rgba(192,132,252,0.18);
-		border: 1px solid rgba(192,132,252,0.4);
-		border-radius: var(--radius-full);
-		font-size: var(--text-sm);
-		font-weight: 700;
-		color: #c084fc;
-		font-family: var(--font-display);
-		letter-spacing: 0.02em;
-		transition: all 0.18s ease;
-	}
-	.floor-card-today:hover .floor-ascend-cta {
-		background: rgba(192,132,252,0.28);
-		border-color: rgba(192,132,252,0.65);
-		box-shadow: 0 0 16px rgba(192,132,252,0.3);
+		pointer-events: none;
+		z-index: 0;
 	}
 
-	/* Past floor card internals */
-	.floor-left {
+	/* ── Floor rows (zigzag positioning) ────────── */
+	.floor-row {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		height: 88px;
+		flex-shrink: 0;
+	}
+	.floor-row.floor-left  { justify-content: flex-start; padding-left: 4px; }
+	.floor-row.floor-center { justify-content: center; }
+	.floor-row.floor-right { justify-content: flex-end; padding-right: 4px; }
+
+	/* TODAY label above badge */
+	.today-crown {
+		position: absolute;
+		top: 4px;
+		left: 50%;
+		transform: translateX(-50%);
+		font-size: 9px;
+		font-weight: 800;
+		letter-spacing: 0.14em;
+		color: #f472b6;
+		text-shadow: 0 0 10px rgba(244,114,182,0.8);
+	}
+	.floor-row.floor-left  .today-crown { left: 36px; transform: none; }
+	.floor-row.floor-right .today-crown { left: auto; right: 36px; transform: none; }
+
+	/* ── Shield badge ────────────────────────────── */
+	.floor-badge {
 		display: flex;
 		flex-direction: column;
+		align-items: center;
+		justify-content: center;
 		gap: 2px;
-		min-width: 0;
-	}
-	.floor-num {
-		font-family: var(--font-display);
-		font-size: var(--text-sm);
-		font-weight: 600;
+		width: 72px;
+		height: 78px;
+		clip-path: polygon(50% 0%, 100% 20%, 100% 75%, 50% 100%, 0% 75%, 0% 20%);
+		background: rgba(20, 10, 40, 0.85);
+		border: none;
+		cursor: pointer;
 		color: var(--color-text-primary);
+		transition: transform 0.15s ease, filter 0.15s ease;
+		position: relative;
 	}
-	.floor-date {
-		font-size: var(--text-xs);
+	.floor-badge:hover {
+		transform: scale(1.08);
+		filter: brightness(1.15);
+	}
+	.floor-badge:active { transform: scale(0.97); }
+
+	.badge-num {
+		font-family: var(--font-display);
+		font-size: 1.05rem;
+		font-weight: 800;
+		line-height: 1;
+		color: #e2e8f0;
+	}
+	.badge-icon {
+		font-size: 0.75rem;
+		line-height: 1;
+	}
+
+	/* Status variants */
+	.badge-today {
+		background: linear-gradient(160deg, rgba(244,114,182,0.35), rgba(168,85,247,0.35));
+		box-shadow: 0 0 24px rgba(244,114,182,0.55), 0 0 48px rgba(244,114,182,0.2);
+		animation: badge-pulse 2s ease-in-out infinite;
+		filter: drop-shadow(0 0 10px rgba(244,114,182,0.6));
+	}
+	.badge-today .badge-num { color: #f9a8d4; }
+
+	@keyframes badge-pulse {
+		0%, 100% { filter: drop-shadow(0 0 8px rgba(244,114,182,0.55)); }
+		50%       { filter: drop-shadow(0 0 20px rgba(244,114,182,0.9)); }
+	}
+
+	.badge-completed {
+		background: linear-gradient(160deg, rgba(16,60,40,0.9), rgba(6,40,25,0.9));
+	}
+	.badge-completed .badge-num { color: #34d399; }
+	.badge-completed .badge-icon { color: #34d399; }
+
+	.badge-missed {
+		background: linear-gradient(160deg, rgba(60,10,20,0.85), rgba(40,5,10,0.85));
+	}
+	.badge-missed .badge-num { color: rgba(248,113,113,0.7); }
+	.badge-missed .badge-icon { color: rgba(248,113,113,0.5); }
+
+	.badge-future {
+		background: rgba(12, 8, 28, 0.5);
+		opacity: 0.45;
+		cursor: default;
+	}
+	.badge-future:hover { transform: none; filter: none; }
+
+	/* ── Floor info popup ─────────────────────────── */
+	.floor-popup-backdrop {
+		position: fixed;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.65);
+		backdrop-filter: blur(4px);
+		z-index: 200;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: var(--space-4);
+	}
+	.floor-popup {
+		position: relative;
+		width: 100%;
+		max-width: 360px;
+		background: rgba(8, 4, 24, 0.96);
+		border: 1px solid rgba(192,132,252,0.25);
+		border-radius: var(--radius-2xl);
+		padding: var(--space-6) var(--space-6) var(--space-7);
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-3);
+		box-shadow: 0 0 60px rgba(192,132,252,0.15), 0 24px 64px rgba(0,0,0,0.7);
+		animation: fade-up 0.18s ease both;
+	}
+	.popup-close {
+		position: absolute;
+		top: 12px;
+		right: 14px;
+		background: none;
+		border: none;
 		color: var(--color-text-muted);
+		font-size: var(--text-base);
+		cursor: pointer;
+		line-height: 1;
+		padding: 4px 6px;
+		border-radius: var(--radius-md);
+		transition: color 0.15s;
 	}
-	.floor-right {
+	.popup-close:hover { color: var(--color-text-primary); }
+
+	.popup-floor-label {
+		font-family: var(--font-display);
+		font-size: var(--text-2xl);
+		font-weight: 800;
+		color: var(--color-text-primary);
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		flex-shrink: 0;
+		letter-spacing: -0.02em;
 	}
-	.floor-check-label {
+	.popup-today-pip {
+		font-size: 9px;
+		font-weight: 800;
+		letter-spacing: 0.14em;
+		padding: 2px 8px;
+		background: rgba(244,114,182,0.18);
+		border: 1px solid rgba(244,114,182,0.4);
+		border-radius: var(--radius-full);
+		color: #f472b6;
+	}
+	.popup-date {
 		font-size: var(--text-sm);
-		color: #34d399;
-		font-weight: 700;
+		color: var(--color-text-muted);
+		margin-top: -6px;
 	}
-	.floor-stats-text {
-		font-size: var(--text-xs);
-		color: var(--color-text-secondary);
+
+	.popup-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		padding: var(--space-3) var(--space-4);
+		background: rgba(255,255,255,0.03);
+		border: 1px solid rgba(255,255,255,0.06);
+		border-radius: var(--radius-lg);
+	}
+	.popup-meta-item {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		font-size: var(--text-sm);
+	}
+	.popup-meta-key { color: var(--color-text-muted); }
+	.popup-meta-val {
 		font-family: var(--font-mono);
-	}
-	.floor-retry-label {
 		font-size: var(--text-xs);
-		font-weight: 600;
-		color: rgba(192,132,252,0.55);
-		letter-spacing: 0.04em;
+		color: var(--color-text-primary);
 	}
-	.floor-locked-label {
+
+	.popup-locked-msg {
 		font-size: var(--text-sm);
-		opacity: 0.5;
+		color: var(--color-text-muted);
+		text-align: center;
+		padding: var(--space-3) 0;
+	}
+	.popup-missed-msg {
+		font-size: var(--text-sm);
+		color: rgba(248,113,113,0.75);
+		text-align: center;
+	}
+	.popup-completed-row {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+		padding: var(--space-2) var(--space-3);
+		background: rgba(52,211,153,0.07);
+		border: 1px solid rgba(52,211,153,0.2);
+		border-radius: var(--radius-lg);
+	}
+	.popup-completed-check { font-size: var(--text-lg); color: #34d399; font-weight: 700; }
+	.popup-completed-stats { font-family: var(--font-mono); font-size: var(--text-sm); color: #34d399; }
+
+	.popup-start-btn {
+		width: 100%;
+		padding: 13px;
+		border: none;
+		border-radius: var(--radius-lg);
+		font-family: var(--font-display);
+		font-size: var(--text-base);
+		font-weight: 700;
+		cursor: pointer;
+		transition: all 0.15s ease;
+		margin-top: var(--space-1);
+	}
+	.popup-ascend-btn {
+		background: linear-gradient(135deg, #be185d, #7c3aed);
+		color: #fff;
+		box-shadow: 0 0 24px rgba(190,24,93,0.4);
+	}
+	.popup-ascend-btn:hover {
+		box-shadow: 0 0 40px rgba(190,24,93,0.6);
+		transform: translateY(-1px);
+	}
+	.popup-retry-btn {
+		background: rgba(192,132,252,0.12);
+		border: 1px solid rgba(192,132,252,0.3);
+		color: #c084fc;
+	}
+	.popup-retry-btn:hover {
+		background: rgba(192,132,252,0.2);
+		border-color: rgba(192,132,252,0.55);
 	}
 
 	/* ── Locked state ───────────────────────────── */

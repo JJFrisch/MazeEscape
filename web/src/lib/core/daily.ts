@@ -3,7 +3,7 @@
  * Generates a unique maze for each calendar day based on a deterministic seed.
  */
 
-import type { DailyMazeLevel, MazeAlgorithm } from './types';
+import type { DailyMazeLevel, MazeAlgorithm, MazeShape } from './types';
 import { dateSeed, SeededRandom } from './random';
 import { getActiveEvent } from './events';
 
@@ -75,18 +75,45 @@ export function getDailyMazeForDate(date: Date, viewport?: DailyMazeViewport): D
 	const difficulty = Math.min(dayOfMonth / 31, 1); // 0.0 – 1.0
 	const smoothDifficulty = difficulty * difficulty * (3 - 2 * difficulty);
 
-	const minSize = 20 + Math.floor(smoothDifficulty * 44); // 20–64
-	const variance = 10 - Math.floor(smoothDifficulty * 4); // 10–6
-	const maxSize = Math.min(70, minSize + variance); // 30–70 cap with gentler late-month growth
-	const { width, height } = getDailyMazeDimensions(rng, smoothDifficulty, minSize, maxSize, viewport);
+	// Days 5/10/15/20/25 use non-rectangular shapes in rotation
+	const NON_RECT: Record<number, MazeShape> = {
+		5: 'hexagonal',
+		10: 'circular',
+		15: 'triangular',
+		20: 'hexagonal',
+		25: 'circular'
+	};
+	const mazeShape: MazeShape = NON_RECT[dayOfMonth] ?? 'rectangular';
+
+	let width: number;
+	let height: number;
+
+	if (mazeShape === 'hexagonal') {
+		width  = 5 + Math.floor(smoothDifficulty * 13) + rng.nextInt(0, 3);
+		height = 4 + Math.floor(smoothDifficulty * 11) + rng.nextInt(0, 3);
+	} else if (mazeShape === 'circular') {
+		const rings = 4 + Math.floor(smoothDifficulty * 8) + rng.nextInt(0, 3);
+		width  = rings;
+		height = rings;
+	} else if (mazeShape === 'triangular') {
+		width  = 8  + Math.floor(smoothDifficulty * 16) + rng.nextInt(0, 4);
+		height = 7  + Math.floor(smoothDifficulty * 13) + rng.nextInt(0, 4);
+	} else {
+		const minSize = 20 + Math.floor(smoothDifficulty * 44); // 20–64
+		const variance = 10 - Math.floor(smoothDifficulty * 4); // 10–6
+		const maxSize = Math.min(70, minSize + variance);
+		const dims = getDailyMazeDimensions(rng, smoothDifficulty, minSize, maxSize, viewport);
+		width  = dims.width;
+		height = dims.height;
+	}
 
 	const algorithmPool = activeEvent?.dailyAlgorithmPool?.length ? activeEvent.dailyAlgorithmPool : ALGORITHMS;
 	const algorithm = algorithmPool[rng.nextInt(0, algorithmPool.length)];
 
-	// Thresholds scale with maze size
+	// Thresholds scale with maze size (rectangular only; non-rect recalculates after generation)
 	const area = width * height;
-	const movesNeeded = Math.floor(area * 1.8);
-	const timeNeeded = Math.floor(area * 0.6) + 10;
+	const movesNeeded = Math.floor(area * (mazeShape === 'rectangular' ? 1.8 : 1.2));
+	const timeNeeded  = Math.floor(area * (mazeShape === 'rectangular' ? 0.6 : 0.5)) + 10;
 
 	return {
 		levelId: 0,
@@ -96,6 +123,7 @@ export function getDailyMazeForDate(date: Date, viewport?: DailyMazeViewport): D
 		width,
 		height,
 		levelType: algorithm,
+		mazeShape,
 		status: 'not_started',
 		timeNeeded,
 		movesNeeded,

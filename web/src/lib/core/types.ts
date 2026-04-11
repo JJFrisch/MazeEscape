@@ -119,6 +119,7 @@ export interface DailyMazeLevel {
 	width: number;
 	height: number;
 	levelType: MazeAlgorithm;
+	mazeShape?: MazeShape;
 	status: DailyMazeStatus;
 	timeNeeded: number;
 	movesNeeded: number;

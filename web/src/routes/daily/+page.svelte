@@ -7,8 +7,35 @@
 	import type { GameSessionState } from '$lib/core/session';
 	import type { MasteryRewardUnlock } from '$lib/core/deities';
 	import { canMove, applyMove } from '$lib/core/maze';
-	import type { Direction, DailyMazeLevel } from '$lib/core/types';
+	import type { Direction, DailyMazeLevel, HexMazeData, CircularMazeData, TriMazeData } from '$lib/core/types';
 	import MazeRenderer from '$lib/components/MazeRenderer.svelte';
+	import HexMazeRenderer from '$lib/components/HexMazeRenderer.svelte';
+	import CircularMazeRenderer from '$lib/components/CircularMazeRenderer.svelte';
+	import TriMazeRenderer from '$lib/components/TriMazeRenderer.svelte';
+	import { generateHexMaze, canMoveHex, applyMoveHex, keyToHexDir, getHexOptimalPathLength } from '$lib/core/hexMaze';
+	import { generateCircularMaze, canMoveCircular, keyToCircularDir, getCircularOptimalPathLength } from '$lib/core/circularMaze';
+	import { generateTriMaze, canMoveTri, applyMoveTri, keyToTriDir, getTriOptimalPathLength } from '$lib/core/triMaze';
+
+	type RectDailySession = GameSessionState & { shape: 'rectangular' };
+	type HexDailySession = {
+		shape: 'hexagonal';
+		maze: HexMazeData;
+		playerPos: { col: number; row: number };
+		moves: number; elapsed: number; hintsUsed: number; isComplete: boolean; hintPath: null;
+	};
+	type CircDailySession = {
+		shape: 'circular';
+		maze: CircularMazeData;
+		playerPos: { ring: number; sector: number };
+		moves: number; elapsed: number; hintsUsed: number; isComplete: boolean; hintPath: null;
+	};
+	type TriDailySession = {
+		shape: 'triangular';
+		maze: TriMazeData;
+		playerPos: { col: number; row: number };
+		moves: number; elapsed: number; hintsUsed: number; isComplete: boolean; hintPath: null;
+	};
+	type DailySession = RectDailySession | HexDailySession | CircDailySession | TriDailySession;
 	import MazeIntroOverlay from '$lib/components/MazeIntroOverlay.svelte';
 	import MazeOutroOverlay from '$lib/components/MazeOutroOverlay.svelte';
 	import AchievementUnlockPopup from '$lib/components/AchievementUnlockPopup.svelte';
@@ -22,7 +49,7 @@
 
 	let selectedDate = $state<string | null>(null);
 	let selectedDaily = $state<DailyMazeLevel | null>(null);
-	let session = $state<GameSessionState | null>(null);
+	let session = $state<DailySession | null>(null);
 	let elapsed = $state(0);
 	let timerInterval: ReturnType<typeof setInterval>;
 	let showIntro = $state(false);
@@ -136,20 +163,40 @@
 		const d = new Date(dateStr);
 		const dailyLevel = getDailyMazeForDate(d, viewport);
 		const seed = getDailyMazeSeed(d);
+		const shape = dailyLevel.mazeShape ?? 'rectangular';
 
-		session = createGameSession({
-			width: dailyLevel.width,
-			height: dailyLevel.height,
-			algorithm: dailyLevel.levelType,
-			seed,
-			twoStarMoves: dailyLevel.movesNeeded,
-			threeStarTime: dailyLevel.timeNeeded
-		});
-		moveTargets = getMoveThresholdsForOptimalPath(session.maze.pathLength);
+		if (shape === 'hexagonal') {
+			const maze = generateHexMaze(dailyLevel.width, dailyLevel.height, seed);
+			moveTargets = getMoveThresholdsForOptimalPath(getHexOptimalPathLength(maze));
+			session = { shape: 'hexagonal', maze, playerPos: { ...maze.start }, moves: 0, elapsed: 0, hintsUsed: 0, isComplete: false, hintPath: null };
+			visitedCells = new Set();
+		} else if (shape === 'circular') {
+			const maze = generateCircularMaze(dailyLevel.width, seed);
+			moveTargets = getMoveThresholdsForOptimalPath(getCircularOptimalPathLength(maze));
+			session = { shape: 'circular', maze, playerPos: { ...maze.start }, moves: 0, elapsed: 0, hintsUsed: 0, isComplete: false, hintPath: null };
+			visitedCells = new Set();
+		} else if (shape === 'triangular') {
+			const maze = generateTriMaze(dailyLevel.width, dailyLevel.height, seed);
+			moveTargets = getMoveThresholdsForOptimalPath(getTriOptimalPathLength(maze));
+			session = { shape: 'triangular', maze, playerPos: { ...maze.start }, moves: 0, elapsed: 0, hintsUsed: 0, isComplete: false, hintPath: null };
+			visitedCells = new Set();
+		} else {
+			const rectSession = createGameSession({
+				width: dailyLevel.width,
+				height: dailyLevel.height,
+				algorithm: dailyLevel.levelType,
+				seed,
+				twoStarMoves: dailyLevel.movesNeeded,
+				threeStarTime: dailyLevel.timeNeeded
+			});
+			session = { ...rectSession, shape: 'rectangular' as const };
+			moveTargets = getMoveThresholdsForOptimalPath(session.maze.pathLength);
+			visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
+		}
+
 		selectedDate = dateStr;
 		selectedDaily = dailyLevel;
 		playing = true;
-		visitedCells = new Set([`${session.maze.start.x},${session.maze.start.y}`]);
 		await tick();
 		showIntro = ENABLE_DAILY_INTRO;
 		if (!ENABLE_DAILY_INTRO) {

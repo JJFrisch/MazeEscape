@@ -215,24 +215,42 @@
 	function handleMove(direction: Direction) {
 		if (!canAcceptInput || !session) return;
 
-		const { maze, playerPos, moves } = session;
-		if (!canMove(maze.cells, playerPos, direction, maze.width, maze.height)) return;
+		if (session.shape === 'rectangular') {
+			const { maze, playerPos, moves } = session;
+			if (!canMove(maze.cells, playerPos, direction, maze.width, maze.height)) return;
+			const newPos = applyMove(playerPos, direction);
+			const isComplete = newPos.x === maze.end.x && newPos.y === maze.end.y;
+			session = { ...session, playerPos: newPos, moves: moves + 1, isComplete, hintPath: null };
+			visitedCells = new Set([...visitedCells, `${newPos.x},${newPos.y}`]);
+			if (isComplete) onComplete();
 
-		const newPos = applyMove(playerPos, direction);
-		const isComplete = newPos.x === maze.end.x && newPos.y === maze.end.y;
+		} else if (session.shape === 'hexagonal') {
+			const { maze, playerPos, moves } = session;
+			const dirs = keyToHexDir(direction);
+			for (const dir of dirs) {
+				if (canMoveHex(maze.cells, playerPos.col, playerPos.row, dir)) {
+					const newPos = applyMoveHex(playerPos.col, playerPos.row, dir);
+					const isComplete = newPos.col === maze.end.col && newPos.row === maze.end.row;
+					session = { ...session, playerPos: newPos, moves: moves + 1, isComplete, hintPath: null };
+					if (isComplete) onComplete();
+					break;
+				}
+			}
 
-		session = {
-			maze,
-			playerPos: newPos,
-			moves: moves + 1,
-			elapsed: session.elapsed,
-			isComplete,
-			hintsUsed: session.hintsUsed,
-			hintPath: null
-		};
-
-		visitedCells = new Set([...visitedCells, `${newPos.x},${newPos.y}`]);
-		if (isComplete) onComplete();
+		} else if (session.shape === 'triangular') {
+			const { maze, playerPos, moves } = session;
+			const pointsUp = (playerPos.col + playerPos.row) % 2 === 0;
+			const dirs = keyToTriDir(pointsUp, direction);
+			for (const dir of dirs) {
+				if (canMoveTri(maze.cells, playerPos.col, playerPos.row, dir, maze.cols, maze.rows)) {
+					const newPos = applyMoveTri(playerPos.col, playerPos.row, pointsUp, dir);
+					const isComplete = newPos.col === maze.end.col && newPos.row === maze.end.row;
+					session = { ...session, playerPos: newPos, moves: moves + 1, isComplete, hintPath: null };
+					if (isComplete) onComplete();
+					break;
+				}
+			}
+		}
 	}
 
 	function onComplete() {
@@ -293,7 +311,7 @@
 	}
 
 	function useHint() {
-		if (!session || !canAcceptInput) return;
+		if (!session || !canAcceptInput || session.shape !== 'rectangular') return;
 		if (gameStore.usePowerup('hint')) {
 			const nextSession = { ...session };
 			const hintPath = getHint(nextSession);
@@ -302,7 +320,7 @@
 	}
 
 	function useCompass() {
-		if (!session || !canAcceptInput) return;
+		if (!session || !canAcceptInput || session.shape !== 'rectangular') return;
 		if (gameStore.usePowerup('compass')) {
 			const nextSession = { ...session };
 			const hintPath = getCompassPath(nextSession);
@@ -327,7 +345,7 @@
 	}
 
 	function useBlinkScroll() {
-		if (!session || !canAcceptInput) return;
+		if (!session || !canAcceptInput || session.shape !== 'rectangular') return;
 		if (gameStore.usePowerup('blinkScroll')) {
 			const candidates: Array<{ x: number; y: number }> = [];
 			for (let y = 0; y < session.maze.height; y++) {
@@ -693,24 +711,40 @@
 		</div>
 
 		<div class="maze-area">
-			<MazeRenderer
-				maze={session.maze}
-				playerPos={session.playerPos}
-				wallColor={gameStore.player.wallColor}
-				backgroundColor={gameStore.player.mazeBackgroundColor}
-				hintPath={session.hintPath}
-				showVisited={true}
-				{visitedCells}
-			/>
+			{#if session.shape === 'rectangular'}
+				<MazeRenderer
+					maze={session.maze}
+					playerPos={session.playerPos}
+					wallColor={gameStore.player.wallColor}
+					backgroundColor={gameStore.player.mazeBackgroundColor}
+					hintPath={session.hintPath}
+					showVisited={true}
+					{visitedCells}
+				/>
+			{:else if session.shape === 'hexagonal'}
+				<HexMazeRenderer
+					maze={session.maze}
+					playerPos={session.playerPos}
+					wallColor={gameStore.player.wallColor}
+					backgroundColor={gameStore.player.mazeBackgroundColor}
+				/>
+			{:else if session.shape === 'triangular'}
+				<TriMazeRenderer
+					maze={session.maze}
+					playerPos={session.playerPos}
+					wallColor={gameStore.player.wallColor}
+					backgroundColor={gameStore.player.mazeBackgroundColor}
+				/>
+			{/if}
 		</div>
 
 		<div class="controls-bar">
 			<div class="powerups">
-				<button class="powerup-btn" onclick={useHint} disabled={gameStore.player.hintsOwned <= 0}>
+				<button class="powerup-btn" onclick={useHint} disabled={gameStore.player.hintsOwned <= 0 || session.shape !== 'rectangular'}>
 					💡 Hint
 					<span class="powerup-count">({gameStore.player.hintsOwned})</span>
 				</button>
-				<button class="powerup-btn" onclick={useCompass} disabled={(gameStore.player.compassOwned ?? 0) <= 0}>
+				<button class="powerup-btn" onclick={useCompass} disabled={(gameStore.player.compassOwned ?? 0) <= 0 || session.shape !== 'rectangular'}>
 					🧭 Compass
 					<span class="powerup-count">({gameStore.player.compassOwned ?? 0})</span>
 				</button>
@@ -718,7 +752,7 @@
 					⏳ Hourglass
 					<span class="powerup-count">({gameStore.player.hourglassOwned ?? 0})</span>
 				</button>
-				<button class="powerup-btn" onclick={useBlinkScroll} disabled={(gameStore.player.blinkScrollsOwned ?? 0) <= 0}>
+				<button class="powerup-btn" onclick={useBlinkScroll} disabled={(gameStore.player.blinkScrollsOwned ?? 0) <= 0 || session.shape !== 'rectangular'}>
 					✨ Blink
 					<span class="powerup-count">({gameStore.player.blinkScrollsOwned ?? 0})</span>
 				</button>

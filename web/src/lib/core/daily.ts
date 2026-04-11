@@ -78,10 +78,10 @@ export function getDailyMazeForDate(date: Date, viewport?: DailyMazeViewport): D
 	// Days 5/10/15/20/25 use non-rectangular shapes in rotation
 	const NON_RECT: Record<number, MazeShape> = {
 		5: 'hexagonal',
-		10: 'circular',
+		10: 'triangular',
 		15: 'triangular',
 		20: 'hexagonal',
-		25: 'circular'
+		25: 'hexagonal'
 	};
 	const mazeShape: MazeShape = NON_RECT[dayOfMonth] ?? 'rectangular';
 

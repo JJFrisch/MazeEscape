@@ -772,7 +772,7 @@
 		content: '';
 		position: fixed;
 		inset: 0;
-		background: rgba(4, 0, 16, 0.74);
+		background: rgba(4, 0, 16, 0.24);
 		z-index: -1;
 		pointer-events: none;
 	}

@@ -262,11 +262,11 @@
 		z-index: 1;
 		width: min(100%, 26rem);
 		padding: var(--space-8);
-		background: rgba(8, 16, 32, 0.9);
-		border: 1px solid rgba(56,189,248,0.15);
+		background: var(--color-bg-card);
+		border: 1px solid var(--color-border);
 		border-radius: var(--radius-2xl);
 		backdrop-filter: blur(24px);
-		box-shadow: 0 8px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+		box-shadow: var(--shadow-card);
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-5);
@@ -279,7 +279,7 @@
 		align-items: flex-start;
 		gap: var(--space-3);
 		padding-bottom: var(--space-4);
-		border-bottom: 1px solid rgba(255,255,255,0.06);
+		border-bottom: 1px solid var(--color-border-subtle);
 	}
 	.card-logo {
 		width: 44px; height: 44px;
@@ -318,18 +318,18 @@
 	.notice-banner {
 		background: rgba(16,185,129,0.1);
 		border: 1px solid rgba(16,185,129,0.3);
-		color: #6ee7b7;
+		color: var(--color-accent-green);
 	}
 	.error-banner {
 		background: rgba(244,63,94,0.1);
 		border: 1px solid rgba(244,63,94,0.3);
-		color: #fca5a5;
+		color: var(--color-accent-red);
 	}
 
 	/* ── Account info ───────────────────────────── */
 	.account-info {
-		background: rgba(255,255,255,0.03);
-		border: 1px solid rgba(255,255,255,0.07);
+		background: var(--color-bg-glass);
+		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 	}
@@ -339,7 +339,7 @@
 		align-items: center;
 		padding: 11px var(--space-4);
 		font-size: var(--text-sm);
-		border-bottom: 1px solid rgba(255,255,255,0.05);
+		border-bottom: 1px solid var(--color-border-subtle);
 	}
 	.account-row:last-child { border-bottom: none; }
 	.info-label { color: var(--color-text-secondary); font-weight: 500; }
@@ -356,8 +356,8 @@
 	.mode-tabs {
 		display: flex;
 		gap: 4px;
-		background: rgba(255,255,255,0.04);
-		border: 1px solid rgba(255,255,255,0.08);
+		background: var(--color-bg-glass);
+		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
 		padding: 4px;
 	}
@@ -369,11 +369,11 @@
 		font-size: var(--text-sm);
 		font-weight: 600;
 		cursor: pointer;
-		color: rgba(255,255,255,0.45);
+		color: var(--color-text-secondary);
 		background: transparent;
 		transition: all var(--transition-fast);
 	}
-	.mode-tab:hover:not(.active) { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); }
+	.mode-tab:hover:not(.active) { color: var(--color-text-primary); background: var(--color-bg-glass-hover); }
 	.mode-tab.active {
 		background: var(--color-accent-primary);
 		color: #fff;
@@ -401,8 +401,8 @@
 		width: 100%;
 		padding: 11px var(--space-4);
 		border-radius: var(--radius-lg);
-		border: 1px solid rgba(255,255,255,0.1);
-		background: rgba(255,255,255,0.04);
+		border: 1px solid var(--color-border);
+		background: var(--color-bg-glass);
 		color: var(--color-text-primary);
 		font-size: var(--text-base);
 		font-family: var(--font-body);
@@ -411,9 +411,9 @@
 	.field-input:focus {
 		outline: none;
 		border-color: var(--color-accent-primary);
-		box-shadow: 0 0 0 3px rgba(56,189,248,0.12);
+		box-shadow: 0 0 0 3px var(--color-accent-glow);
 	}
-	.field-input::placeholder { color: rgba(255,255,255,0.2); }
+	.field-input::placeholder { color: var(--color-text-muted); }
 
 	/* Buttons */
 	.submit-btn {
@@ -437,7 +437,7 @@
 	.text-btn {
 		background: none;
 		border: none;
-		color: rgba(255,255,255,0.4);
+		color: var(--color-text-secondary);
 		font-size: var(--text-sm);
 		cursor: pointer;
 		padding: var(--space-1);
@@ -463,8 +463,8 @@
 
 	.ghost-btn {
 		padding: 11px 20px;
-		background: rgba(255,255,255,0.05);
-		border: 1px solid rgba(255,255,255,0.12);
+		background: var(--color-bg-glass);
+		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
 		font-family: var(--font-display);
 		font-weight: 600;
@@ -476,7 +476,7 @@
 		align-items: center;
 		transition: all var(--transition-fast);
 	}
-	.ghost-btn:hover { background: rgba(255,255,255,0.1); color: var(--color-text-primary); }
+	.ghost-btn:hover { background: var(--color-bg-glass-hover); color: var(--color-text-primary); }
 
 	.loading-dots { animation: loading 1.2s ease-in-out infinite; }
 </style>

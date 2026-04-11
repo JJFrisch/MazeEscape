@@ -465,9 +465,9 @@
 		transform: translateY(-1px);
 	}
 	.buy-btn.cant-afford {
-		background: rgba(255,255,255,0.06);
-		border: 1px solid rgba(255,255,255,0.1);
-		color: rgba(255,255,255,0.3);
+		background: var(--color-bg-glass);
+		border: 1px solid var(--color-border);
+		color: var(--color-text-muted);
 		box-shadow: none;
 		cursor: not-allowed;
 	}

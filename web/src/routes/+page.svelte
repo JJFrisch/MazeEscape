@@ -365,7 +365,7 @@
 		align-items: flex-start;
 		justify-content: flex-end;
 		padding: 18px 20px 16px;
-		background: rgba(5, 10, 28, 0.93);
+		background: var(--color-bg-card);
 		border: 1px solid color-mix(in srgb, var(--zone-color) 20%, transparent);
 		border-radius: var(--radius-lg);
 		color: var(--color-text-primary);
@@ -427,7 +427,7 @@
 		align-items: center;
 		justify-content: center;
 		gap: 6px;
-		background: rgba(3, 6, 18, 0.65);
+		background: var(--color-bg-overlay);
 		border-radius: inherit;
 		backdrop-filter: blur(2px);
 	}
@@ -564,7 +564,7 @@
 		width: 4px;
 		height: 4px;
 		border-radius: 50%;
-		background: white;
+		background: var(--color-text-primary);
 		opacity: 0;
 	}
 	.corridor-h .corr-dot {

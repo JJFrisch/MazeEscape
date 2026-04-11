@@ -164,8 +164,8 @@
 		justify-content: center;
 		text-align: center;
 		padding: 72px var(--space-8) 64px;
-		background: linear-gradient(160deg, rgba(6,13,26,1) 0%, rgba(8,18,40,1) 100%);
-		border: 1px solid rgba(56,189,248,0.15);
+		background: var(--color-bg-card);
+		border: 1px solid var(--color-border);
 		border-radius: var(--radius-2xl);
 		overflow: hidden;
 		animation: fade-up 0.5s ease both;
@@ -217,7 +217,7 @@
 		border-radius: var(--radius-full);
 		font-size: var(--text-xs);
 		font-weight: 700;
-		color: #93c5fd;
+		color: var(--color-text-accent);
 		letter-spacing: 0.10em;
 		text-transform: uppercase;
 		margin-bottom: var(--space-2);
@@ -234,7 +234,7 @@
 		font-family: var(--font-display);
 		font-size: clamp(2.2rem, 6vw, 3.8rem);
 		font-weight: 700;
-		color: #f0f6ff;
+		color: var(--color-text-primary);
 		letter-spacing: -0.03em;
 		line-height: 1.1;
 		margin-bottom: var(--space-2);
@@ -246,14 +246,14 @@
 
 	.dl-subtitle {
 		font-size: var(--text-base);
-		color: #94a3b8;
+		color: var(--color-text-secondary);
 		max-width: 480px;
 		line-height: 1.7;
 	}
 
 	.dl-byline {
 		font-size: var(--text-sm);
-		color: rgba(148,163,184,0.55);
+		color: var(--color-text-muted);
 		margin-bottom: var(--space-2);
 	}
 	.author-link {
@@ -301,11 +301,11 @@
 
 	.dl-note {
 		font-size: var(--text-xs);
-		color: rgba(148,163,184,0.45);
+		color: var(--color-text-muted);
 	}
 	code {
-		background: rgba(255,255,255,0.08);
-		border: 1px solid rgba(255,255,255,0.12);
+		background: var(--color-bg-glass);
+		border: 1px solid var(--color-border);
 		border-radius: var(--radius-sm);
 		padding: 1px 6px;
 		font-size: 0.9em;
@@ -417,7 +417,7 @@
 
 	/* Requirements table */
 	.req-table {
-		border: 1px solid rgba(255,255,255,0.06);
+		border: 1px solid var(--color-border-subtle);
 		border-radius: var(--radius-lg);
 		overflow: hidden;
 	}
@@ -426,10 +426,10 @@
 		gap: var(--space-4);
 		padding: 11px var(--space-4);
 		font-size: var(--text-sm);
-		border-bottom: 1px solid rgba(255,255,255,0.05);
+		border-bottom: 1px solid var(--color-border-subtle);
 	}
 	.req-row:last-child { border-bottom: none; }
-	.req-row:nth-child(odd) { background: rgba(255,255,255,0.02); }
+	.req-row:nth-child(odd) { background: var(--color-bg-glass); }
 	.req-label {
 		width: 120px;
 		font-weight: 600;
@@ -459,8 +459,8 @@
 		align-items: center;
 		gap: var(--space-2);
 		padding: 10px 18px;
-		background: rgba(255,255,255,0.05);
-		border: 1px solid rgba(255,255,255,0.12);
+		background: var(--color-bg-glass);
+		border: 1px solid var(--color-border);
 		border-radius: var(--radius-lg);
 		font-family: var(--font-mono);
 		font-size: var(--text-sm);
@@ -470,8 +470,8 @@
 		transition: all var(--transition-fast);
 	}
 	.source-btn:hover {
-		background: rgba(255,255,255,0.09);
-		border-color: rgba(255,255,255,0.2);
+		background: var(--color-bg-glass-hover);
+		border-color: var(--color-border-bright);
 		color: var(--color-text-primary);
 	}
 

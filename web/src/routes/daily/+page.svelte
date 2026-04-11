@@ -983,7 +983,7 @@
 		width: 72px;
 		height: 78px;
 		clip-path: polygon(50% 0%, 100% 20%, 100% 75%, 50% 100%, 0% 75%, 0% 20%);
-		background: rgba(20, 10, 40, 0.85);
+		background: var(--color-bg-card);
 		border: none;
 		cursor: pointer;
 		color: var(--color-text-primary);
@@ -1023,19 +1023,19 @@
 	}
 
 	.badge-completed {
-		background: linear-gradient(160deg, rgba(16,60,40,0.9), rgba(6,40,25,0.9));
+		background: color-mix(in srgb, var(--color-accent-green) 12%, var(--color-bg-card));
 	}
 	.badge-completed .badge-num { color: #34d399; }
 	.badge-completed .badge-icon { color: #34d399; }
 
 	.badge-missed {
-		background: linear-gradient(160deg, rgba(60,10,20,0.85), rgba(40,5,10,0.85));
+		background: color-mix(in srgb, var(--color-accent-red) 10%, var(--color-bg-card));
 	}
 	.badge-missed .badge-num { color: rgba(248,113,113,0.7); }
 	.badge-missed .badge-icon { color: rgba(248,113,113,0.5); }
 
 	.badge-future {
-		background: rgba(12, 8, 28, 0.5);
+		background: var(--color-bg-glass);
 		opacity: 0.45;
 		cursor: default;
 	}
@@ -1057,14 +1057,14 @@
 		position: relative;
 		width: 100%;
 		max-width: 360px;
-		background: rgba(8, 4, 24, 0.96);
-		border: 1px solid rgba(192,132,252,0.25);
+		background: var(--color-bg-card);
+		border: 1px solid var(--color-border);
 		border-radius: var(--radius-2xl);
 		padding: var(--space-6) var(--space-6) var(--space-7);
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-3);
-		box-shadow: 0 0 60px rgba(192,132,252,0.15), 0 24px 64px rgba(0,0,0,0.7);
+		box-shadow: var(--shadow-card);
 		animation: fade-up 0.18s ease both;
 	}
 	.popup-close {
@@ -1114,8 +1114,8 @@
 		flex-direction: column;
 		gap: 6px;
 		padding: var(--space-3) var(--space-4);
-		background: rgba(255,255,255,0.03);
-		border: 1px solid rgba(255,255,255,0.06);
+		background: var(--color-bg-glass);
+		border: 1px solid var(--color-border-subtle);
 		border-radius: var(--radius-lg);
 	}
 	.popup-meta-item {
@@ -1139,7 +1139,7 @@
 	}
 	.popup-missed-msg {
 		font-size: var(--text-sm);
-		color: rgba(248,113,113,0.75);
+		color: var(--color-accent-red);
 		text-align: center;
 	}
 	.popup-completed-row {
@@ -1151,8 +1151,8 @@
 		border: 1px solid rgba(52,211,153,0.2);
 		border-radius: var(--radius-lg);
 	}
-	.popup-completed-check { font-size: var(--text-lg); color: #34d399; font-weight: 700; }
-	.popup-completed-stats { font-family: var(--font-mono); font-size: var(--text-sm); color: #34d399; }
+	.popup-completed-check { font-size: var(--text-lg); color: var(--color-accent-green); font-weight: 700; }
+	.popup-completed-stats { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-accent-green); }
 
 	.popup-start-btn {
 		width: 100%;
@@ -1178,7 +1178,7 @@
 	.popup-retry-btn {
 		background: rgba(192,132,252,0.12);
 		border: 1px solid rgba(192,132,252,0.3);
-		color: #c084fc;
+		color: var(--color-accent-purple);
 	}
 	.popup-retry-btn:hover {
 		background: rgba(192,132,252,0.2);
@@ -1222,11 +1222,11 @@
 		align-items: center;
 		gap: var(--space-5);
 		padding: var(--space-10) var(--space-8);
-		background: rgba(8,16,32,0.85);
-		border: 1px solid rgba(56,189,248,0.15);
+		background: var(--color-bg-card);
+		border: 1px solid var(--color-border);
 		border-radius: var(--radius-2xl);
 		backdrop-filter: blur(20px);
-		box-shadow: 0 8px 48px rgba(0,0,0,0.5);
+		box-shadow: var(--shadow-card);
 		animation: fade-up 0.5s ease both;
 	}
 
@@ -1237,7 +1237,7 @@
 		padding: var(--space-5);
 		margin-bottom: var(--space-6);
 		border-radius: var(--radius-xl);
-		background: linear-gradient(135deg, color-mix(in srgb, var(--event-accent) 15%, transparent), rgba(15, 23, 42, 0.84));
+		background: linear-gradient(135deg, color-mix(in srgb, var(--event-accent) 15%, transparent), var(--color-bg-secondary));
 		border: 1px solid color-mix(in srgb, var(--event-accent) 32%, transparent);
 	}
 
@@ -1275,9 +1275,9 @@
 	.event-progress-track {
 		height: 10px;
 		border-radius: 999px;
-		background: rgba(15, 23, 42, 0.7);
+		background: var(--color-bg-glass);
 		overflow: hidden;
-		border: 1px solid rgba(148, 163, 184, 0.16);
+		border: 1px solid var(--color-border-subtle);
 	}
 
 	.event-progress-fill {
@@ -1461,5 +1461,10 @@
 		cursor: pointer; user-select: none;
 	}
 	.dpad-btn:active { background: var(--color-accent-primary); color: white; }
+
+	/* Light mode: lighter overlay so the Spire background image works in light theme */
+	:global(html[data-theme="light"]) .spire-page::after {
+		background: rgba(230, 240, 255, 0.70);
+	}
 
 </style>

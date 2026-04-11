@@ -657,24 +657,24 @@
 		margin: 0;
 		font-size: 0.74rem;
 		line-height: 1.6;
-		color: #cbd5e1;
+		color: var(--color-text-secondary);
 	}
 
 	.relic-inscription {
 		margin: 0;
 		padding: 0.65rem 0.75rem;
 		border-left: 2px solid color-mix(in srgb, var(--relic-accent) 42%, transparent);
-		background: rgba(15, 23, 42, 0.46);
+		background: var(--color-bg-glass);
 		border-radius: 0 10px 10px 0;
 		font-size: 0.72rem;
 		font-style: italic;
 		line-height: 1.55;
-		color: #e2e8f0;
+		color: var(--color-text-primary);
 	}
 
 	.relic-origin {
 		font-size: 0.68rem;
-		color: #64748b;
+		color: var(--color-text-muted);
 	}
 
 	/* ── Deity affinity ── */

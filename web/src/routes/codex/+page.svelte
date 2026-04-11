@@ -905,7 +905,7 @@
 		min-width: 36px;
 		text-align: right;
 	}
-	.satchel-qty.qty-zero { color: rgba(255,255,255,0.2); }
+	.satchel-qty.qty-zero { color: var(--color-text-muted); }
 
 	/* ── Forge ───────────────────────────────────── */
 	.forge-layout {

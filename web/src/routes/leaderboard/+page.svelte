@@ -449,7 +449,7 @@
 	.podium-card {
 		border-radius: var(--radius-xl);
 		border: 1px solid var(--color-border);
-		background: rgba(7, 14, 28, 0.72);
+		background: var(--color-bg-card);
 		box-shadow: var(--shadow-card);
 	}
 
@@ -462,8 +462,8 @@
 	}
 
 	.hero-stat-card.gold {
-		border-color: rgba(245, 158, 11, 0.25);
-		background: linear-gradient(180deg, rgba(34, 18, 4, 0.75), rgba(12, 15, 27, 0.84));
+		border-color: var(--color-border-gold);
+		background: var(--color-bg-card);
 	}
 
 	.hero-stat-value {
@@ -493,7 +493,7 @@
 		padding: 0.85rem 1.15rem;
 		border-radius: var(--radius-full);
 		border: 1px solid var(--color-border);
-		background: rgba(255, 255, 255, 0.03);
+		background: var(--color-bg-glass);
 		color: var(--color-text-secondary);
 		font: inherit;
 		font-weight: 600;
@@ -537,7 +537,7 @@
 		padding: 0.9rem 1rem;
 		border-radius: var(--radius-lg);
 		border: 1px solid var(--color-border);
-		background: rgba(7, 14, 28, 0.92);
+		background: var(--color-bg-card);
 		color: var(--color-text-primary);
 		font: inherit;
 	}
@@ -556,8 +556,8 @@
 	}
 
 	.summary-chip.gold {
-		border-color: rgba(245, 158, 11, 0.25);
-		background: linear-gradient(180deg, rgba(34, 18, 4, 0.78), rgba(12, 15, 27, 0.88));
+		border-color: var(--color-border-gold);
+		background: var(--color-bg-card);
 	}
 
 	.summary-value,
@@ -584,16 +584,12 @@
 		flex-direction: column;
 		gap: 0.5rem;
 		padding: var(--space-5);
-		background:
-			linear-gradient(180deg, rgba(13, 22, 39, 0.96), rgba(9, 15, 29, 0.88)),
-			radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), transparent 45%);
+		background: var(--color-bg-card);
 	}
 
 	.podium-card.gold {
-		border-color: rgba(245, 158, 11, 0.3);
-		background:
-			linear-gradient(180deg, rgba(38, 24, 7, 0.94), rgba(16, 14, 24, 0.9)),
-			radial-gradient(circle at top right, rgba(245, 158, 11, 0.18), transparent 42%);
+		border-color: var(--color-border-gold);
+		background: var(--color-bg-card);
 	}
 
 	.podium-player {
@@ -621,7 +617,7 @@
 		display: flex;
 		flex-direction: column;
 		margin-top: var(--space-4);
-		border-top: 1px solid rgba(255, 255, 255, 0.06);
+		border-top: 1px solid var(--color-border-subtle);
 	}
 
 	.standing-row {
@@ -630,7 +626,7 @@
 		align-items: center;
 		gap: var(--space-4);
 		padding: 1rem 0.25rem;
-		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+		border-bottom: 1px solid var(--color-border-subtle);
 	}
 
 	.standing-row.campaign {
@@ -669,7 +665,7 @@
 		margin-bottom: var(--space-3);
 		padding: 0.35rem 0.7rem;
 		border-radius: var(--radius-full);
-		border: 1px solid rgba(255, 255, 255, 0.14);
+		border: 1px solid var(--color-border-subtle);
 		font-size: 0.72rem;
 		font-weight: 700;
 		letter-spacing: 0.08em;
@@ -685,12 +681,12 @@
 	.state-diagnostic-query {
 		background: rgba(56, 189, 248, 0.12);
 		border-color: rgba(56, 189, 248, 0.28);
-		color: rgba(125, 211, 252, 0.98);
+		color: var(--color-accent-cyan);
 	}
 
 	.state-card.error {
 		border-color: rgba(244, 63, 94, 0.28);
-		background: linear-gradient(180deg, rgba(40, 10, 20, 0.82), rgba(14, 10, 20, 0.92));
+		background: var(--color-bg-card);
 	}
 
 	@media (max-width: 960px) {

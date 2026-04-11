@@ -39,6 +39,11 @@ public partial class CampaignLevelPage : ContentPage
 
     Image PlayerImage = new Image();
 
+    private bool _mouseFollowMode = false;
+    private (int X, int Y) _mouseTargetCell;
+    private DateTime _mouseFollowLastStep = DateTime.MinValue;
+    private const int MouseFollowIntervalMs = 150;
+
     private const int MoveQueueLengthMax = 2;
     public delegate Task MoveDelegate();
     Queue<MoveDelegate> MoveQueue = new Queue<MoveDelegate>();
@@ -85,6 +90,18 @@ public partial class CampaignLevelPage : ContentPage
                 await FinishAnimation();
                 CompletedMaze();
             }
+            if (_mouseFollowMode &&
+                (DateTime.Now - _mouseFollowLastStep).TotalMilliseconds >= MouseFollowIntervalMs &&
+                (_mouseTargetCell.X != Maze.Player.X || _mouseTargetCell.Y != Maze.Player.Y))
+            {
+                var followPath = _gameSession?.FindPath(Maze.Player.X, Maze.Player.Y, _mouseTargetCell.X, _mouseTargetCell.Y);
+                if (followPath != null && followPath.Count > 0)
+                {
+                    _mouseFollowLastStep = DateTime.Now;
+                    await TryMove(followPath[0]);
+                    return;
+                }
+            }
             if (MoveQueue.Count > 0)
             {
                 MoveDelegate move = MoveQueue.Dequeue();
@@ -124,6 +141,7 @@ public partial class CampaignLevelPage : ContentPage
         //UpdatePlayerDrawerPosition();
 
         AddSwipeGestures();
+        AddMouseFollowGestures();
 
         Task.Delay(1000).ContinueWith(t => StartPlay());
         World = world;
@@ -188,6 +206,58 @@ public partial class CampaignLevelPage : ContentPage
 
         PlayerImage.TranslateTo(x_pos + xPadding, y_pos + yPadding, 10);
 
+    }
+
+    public void AddMouseFollowGestures()
+    {
+        var tap = new TapGestureRecognizer();
+        tap.Tapped += OnPlayerTapped;
+        PlayerImage.GestureRecognizers.Add(tap);
+
+        var ptr = new PointerGestureRecognizer();
+        ptr.PointerMoved += OnPointerMoved;
+        main_absolute_layout.GestureRecognizers.Add(ptr);
+    }
+
+    private void OnPlayerTapped(object? sender, TappedEventArgs e)
+    {
+        ToggleMouseFollowMode();
+    }
+
+    private void OnPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (!_mouseFollowMode) return;
+        var pos = e.GetPosition(main_absolute_layout);
+        if (pos == null) return;
+        int cellX = Math.Clamp((int)(pos.Value.X / cell_width), 0, Maze.Width - 1);
+        int cellY = Math.Clamp((int)(pos.Value.Y / cell_height), 0, Maze.Height - 1);
+        _mouseTargetCell = (cellX, cellY);
+    }
+
+    private void ToggleMouseFollowMode()
+    {
+        if (_mouseFollowMode)
+        {
+            _mouseFollowMode = false;
+            StopPulseAnimation();
+        }
+        else
+        {
+            _mouseFollowMode = true;
+            StartPulseAnimation();
+        }
+    }
+
+    private void StartPulseAnimation()
+    {
+        new Animation(v => PlayerImage.Scale = v, 1.0, 1.15)
+            .Commit(PlayerImage, "LockedOnPulse", length: 500, easing: Easing.SinInOut, repeat: () => _mouseFollowMode);
+    }
+
+    private void StopPulseAnimation()
+    {
+        PlayerImage.AbortAnimation("LockedOnPulse");
+        PlayerImage.Scale = 1.0;
     }
 
     public void DrawMaze(string wall_type = "line")
@@ -481,6 +551,8 @@ public partial class CampaignLevelPage : ContentPage
         // Award 0-3 stars
         // Button to retry Maze or exit back to previous screen
         running = false;
+        _mouseFollowMode = false;
+        StopPulseAnimation();
         hook?.Dispose();
 
         double time = TotalTime.TotalSeconds;
@@ -718,6 +790,8 @@ public partial class CampaignLevelPage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+        _mouseFollowMode = false;
+        StopPulseAnimation();
         hook?.Dispose();
     }
 

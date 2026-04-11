@@ -33,6 +33,9 @@ namespace MazeEscape.Drawables
         public int MazeWidth;
         public int MazeHeight;
 
+        public bool IsLockedOn { get; set; } = false;
+        public float PulseScale { get; set; } = 1f;
+
         //PlatformImage image;
         public void Initialize()
         {
@@ -66,6 +69,16 @@ namespace MazeEscape.Drawables
             if (image != null)
             {
                 canvas.DrawImage(image, x_pos + xPadding, y_pos + yPadding, (image.Width * scale), (image.Height * scale));
+            }
+
+            if (IsLockedOn)
+            {
+                float cx = x_pos + cell_width / 2f;
+                float cy = y_pos + cell_height / 2f;
+                float radius = Math.Min(cell_width, cell_height) * 0.52f * PulseScale;
+                canvas.StrokeColor = Colors.Gold;
+                canvas.StrokeSize = 3f;
+                canvas.DrawCircle(cx, cy, radius);
             }
 
         }

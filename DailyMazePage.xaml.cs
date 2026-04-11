@@ -48,6 +48,8 @@ public partial class DailyMazePage : ContentPage
     MazeModel Maze = new MazeModel();
     private IGameSession? _gameSession;
     MazeGraphicsView mazeGraphicsView;
+    double cell_width;
+    double cell_height;
 
     PlayerDrawable drawer;
     SimpleReactiveGlobalHook? hook;
@@ -61,6 +63,11 @@ public partial class DailyMazePage : ContentPage
     private DateTime timeStarted;
 
     private bool RestartMonth = false;
+
+    private bool _mouseFollowMode = false;
+    private (int X, int Y) _mouseTargetCell;
+    private DateTime _mouseFollowLastStep = DateTime.MinValue;
+    private const int MouseFollowIntervalMs = 150;
 
     public DailyMazePage()
 	{
@@ -528,6 +535,17 @@ public partial class DailyMazePage : ContentPage
             {
                 mazeGraphicsView.IsGameOver = true;
             }
+            if (_mouseFollowMode &&
+                (DateTime.Now - _mouseFollowLastStep).TotalMilliseconds >= MouseFollowIntervalMs &&
+                (_mouseTargetCell.X != Maze.Player.X || _mouseTargetCell.Y != Maze.Player.Y))
+            {
+                var followPath = _gameSession?.FindPath(Maze.Player.X, Maze.Player.Y, _mouseTargetCell.X, _mouseTargetCell.Y);
+                if (followPath != null && followPath.Count > 0)
+                {
+                    _mouseFollowLastStep = DateTime.Now;
+                    TryMove(followPath[0]);
+                }
+            }
         }));
     }
 
@@ -592,6 +610,14 @@ public partial class DailyMazePage : ContentPage
         main_absolute_layout.Add(mazeBackground);
         main_absolute_layout.Add(mazeGraphicsView);
 
+        var tap = new TapGestureRecognizer();
+        tap.Tapped += OnMazeViewTapped;
+        mazeGraphicsView.GestureRecognizers.Add(tap);
+
+        var ptr = new PointerGestureRecognizer();
+        ptr.PointerMoved += OnPointerMoved;
+        mazeGraphicsView.GestureRecognizers.Add(ptr);
+
         playAbsoluteLayout.Add(main_absolute_layout);
     }
 
@@ -629,6 +655,9 @@ public partial class DailyMazePage : ContentPage
 
         drawer.MazeHeight = Maze.Height;
         drawer.MazeWidth = Maze.Width;
+
+        cell_width = MazeWindowWidth / Maze.Width;
+        cell_height = MazeWindowHeight / Maze.Height;
     }
 
 
@@ -798,6 +827,71 @@ public partial class DailyMazePage : ContentPage
         await hook.RunAsync();
     }
 
+    public void AddMouseFollowGestures()
+    {
+        var tap = new TapGestureRecognizer();
+        tap.Tapped += OnMazeViewTapped;
+        mazeGraphicsView.GestureRecognizers.Add(tap);
+
+        var ptr = new PointerGestureRecognizer();
+        ptr.PointerMoved += OnPointerMoved;
+        mazeGraphicsView.GestureRecognizers.Add(ptr);
+    }
+
+    private void OnMazeViewTapped(object? sender, TappedEventArgs e)
+    {
+        var pos = e.GetPosition(mazeGraphicsView);
+        if (pos == null) return;
+        int cellX = Math.Clamp((int)(pos.Value.X / cell_width), 0, Maze.Width - 1);
+        int cellY = Math.Clamp((int)(pos.Value.Y / cell_height), 0, Maze.Height - 1);
+        if (cellX == Maze.Player.X && cellY == Maze.Player.Y)
+            ToggleMouseFollowMode();
+    }
+
+    private void OnPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (!_mouseFollowMode) return;
+        var pos = e.GetPosition(mazeGraphicsView);
+        if (pos == null) return;
+        int cellX = Math.Clamp((int)(pos.Value.X / cell_width), 0, Maze.Width - 1);
+        int cellY = Math.Clamp((int)(pos.Value.Y / cell_height), 0, Maze.Height - 1);
+        _mouseTargetCell = (cellX, cellY);
+    }
+
+    private void ToggleMouseFollowMode()
+    {
+        if (_mouseFollowMode)
+        {
+            _mouseFollowMode = false;
+            StopPulseAnimation();
+            drawer.IsLockedOn = false;
+            drawer.PulseScale = 1f;
+            RedrawPlayer();
+        }
+        else
+        {
+            _mouseFollowMode = true;
+            drawer.IsLockedOn = true;
+            StartPulseAnimation();
+        }
+    }
+
+    private void StartPulseAnimation()
+    {
+        new Animation(v =>
+        {
+            drawer.PulseScale = (float)v;
+            mazeGraphicsView.Invalidate();
+        }, 1.0, 1.15)
+        .Commit(this, "LockedOnPulse", length: 500, easing: Easing.SinInOut, repeat: () => _mouseFollowMode);
+    }
+
+    private void StopPulseAnimation()
+    {
+        this.AbortAnimation("LockedOnPulse");
+        drawer.PulseScale = 1f;
+    }
+
     public void RedrawPlayer()
     {
         mazeGraphicsView.Invalidate();
@@ -882,6 +976,9 @@ public partial class DailyMazePage : ContentPage
         // Award 0-3 stars
         // Button to retry Maze or exit back to previous screen
         running = false;
+        _mouseFollowMode = false;
+        StopPulseAnimation();
+        drawer.IsLockedOn = false;
         mazeGraphicsView.IsGameOver = true;
         hook?.Dispose();
 
@@ -980,6 +1077,9 @@ public partial class DailyMazePage : ContentPage
     {
         // Button to retry Maze or exit back to previous screen
         running = false;
+        _mouseFollowMode = false;
+        StopPulseAnimation();
+        drawer.IsLockedOn = false;
         mazeGraphicsView.IsGameOver = true;
         hook?.Dispose();
 
@@ -1020,6 +1120,12 @@ public partial class DailyMazePage : ContentPage
     protected override void OnDisappearing()
     {
         base.OnDisappearing();
+        _mouseFollowMode = false;
+        if (drawer != null)
+        {
+            StopPulseAnimation();
+            drawer.IsLockedOn = false;
+        }
         hook?.Dispose();
     }
 

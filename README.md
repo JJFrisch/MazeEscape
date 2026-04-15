@@ -13,9 +13,9 @@ Players can also play MazeEscape directly in the browser through the SvelteKit w
 
 - Cross-platform support via .NET MAUI (Windows, macOS, iOS, Android, Mac Catalyst).
 
-**Screenshots**
+<!-- **Screenshots**
 
-![Sample Maze Screen](Images/screenshot1.svg)
+![Sample Maze Screen](Images/screenshot1.svg) -->
 
 ## Play In Browser
 

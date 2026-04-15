@@ -131,7 +131,36 @@
 	};
 
 	const introPhrases = $derived(INTRO_PHRASES[theme.motif]);
-	const ENABLE_LEVEL_INTRO = false; // temporary fallback while debugging intro/browser behavior
+	const introTitle = $derived(levelDef?.encounterTitle ?? `Level ${levelNumber}`);
+	const introSubtitle = $derived.by(() => {
+		if (!levelDef) return worldDef?.worldName ?? '';
+		if (levelDef.archetype) {
+			return `World ${worldId}, Level ${levelNumber}, ${levelDef.archetype}`;
+		}
+		return `World ${worldId}, Level ${levelNumber}, ${worldDef?.worldName ?? ''}`;
+	});
+	const levelIntroPhrases = $derived.by(() => {
+		if (!levelDef) return introPhrases;
+
+		const phrases = [] as string[];
+
+		if (levelDef.flavorText) {
+			phrases.push(levelDef.flavorText);
+		}
+
+		phrases.push(`Routing ${levelDef.mazeShape} lanes...`);
+
+		if (levelDef.archetype) {
+			phrases.push(`Locking ${levelDef.archetype.toLowerCase()} structure...`);
+		}
+
+		if (levelDef.targetClearTimeSec) {
+			phrases.push(`Target clear ${Math.round(levelDef.targetClearTimeSec)}s...`);
+		}
+
+		return phrases.slice(0, 3);
+	});
+	const ENABLE_LEVEL_INTRO = true;
 
 	let session = $state<CampaignSessionState | null>(null);
 	let elapsed = $state(0);
@@ -856,9 +885,9 @@
      controlled by showIntro/showOutro, not by session reassignments -->
 {#if showIntro}
 	<MazeIntroOverlay
-		title="Level {levelNumber}"
-		subtitle={worldDef?.worldName ?? ''}
-		phrases={introPhrases}
+		title={introTitle}
+		subtitle={introSubtitle}
+		phrases={levelIntroPhrases}
 		accentColor={theme.accentColor}
 		ondismiss={startGameplay}
 	/>

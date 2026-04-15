@@ -39,10 +39,15 @@ export interface CampaignLevel {
 	levelId: number;
 	levelNumber: string;
 	levelKind?: 'standard' | 'boss';
+	encounterTitle?: string;
+	flavorText?: string;
 	width: number;
 	height: number;
 	levelType: MazeAlgorithm;
 	mazeShape: MazeShape;
+	archetype?: string;
+	feel?: string;
+	targetClearTimeSec?: number;
 	twoStarMoves: number;
 	threeStarTime: number;
 	fiveStarMoves: number;

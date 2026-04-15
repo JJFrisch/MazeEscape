@@ -20,9 +20,9 @@
 		ondismiss: () => void;
 	} = $props();
 
-	const PHRASE_INTERVAL_MS = 620;
-	const EXIT_ANIMATION_MS = 380;
-	const AUTO_DISMISS_DELAY_MS = 900;
+	const PHRASE_INTERVAL_MS = 420;
+	const EXIT_ANIMATION_MS = 260;
+	const AUTO_DISMISS_DELAY_MS = 260;
 
 	let phraseIndex = $state(0);
 	let isDone = $state(false);

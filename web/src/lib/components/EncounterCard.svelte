@@ -25,7 +25,7 @@
 	const isBoss = $derived(node.type === 'boss' || levelDef?.levelKind === 'boss');
 
 	const deity = $derived(levelDef ? getDeityByAlgorithm(levelDef.levelType) : undefined);
-	const levelName = $derived(levelDef ? (node.encounterTitle ?? generateLevelName(levelDef.levelType, node.levelNumber ?? '')) : '???');
+	const levelName = $derived(levelDef ? (levelDef.encounterTitle ?? node.encounterTitle ?? generateLevelName(levelDef.levelType, node.levelNumber ?? '')) : '???');
 	const progress = $derived(gameStore.getLevelProgress(worldId, node.levelNumber ?? ''));
 
 	const shapeLabel: Record<string, string> = {
@@ -36,7 +36,7 @@
 	};
 
 	function formatTime(s: number): string {
-		if (!s) return '—';
+		if (!s) return 'N/A';
 		if (s < 60) return `${s.toFixed(1)}s`;
 		return `${Math.floor(s / 60)}m ${(s % 60).toFixed(0)}s`;
 	}
@@ -116,6 +116,20 @@
 			{/if}
 		</div>
 
+		{#if levelDef?.archetype || levelDef?.feel}
+			<div class="pathbound-panel">
+				{#if levelDef?.archetype}
+					<div class="pathbound-kicker">{levelDef.archetype}</div>
+				{/if}
+				{#if levelDef?.flavorText}
+					<p class="pathbound-flavor">{levelDef.flavorText}</p>
+				{/if}
+				{#if levelDef?.feel}
+					<p class="pathbound-feel">{levelDef.feel}</p>
+				{/if}
+			</div>
+		{/if}
+
 		<!-- Stats row -->
 		{#if levelDef}
 			<div class="stats-row">
@@ -134,6 +148,10 @@
 				<div class="stat">
 					<span class="stat-label">Par Moves</span>
 					<span class="stat-value">{levelDef.twoStarMoves}</span>
+				</div>
+				<div class="stat">
+					<span class="stat-label">Target Time</span>
+					<span class="stat-value">{formatTime(levelDef.targetClearTimeSec ?? levelDef.threeStarTime)}</span>
 				</div>
 			</div>
 		{/if}
@@ -258,6 +276,36 @@
 		overflow-y: auto;
 	}
 
+	.pathbound-panel {
+		padding: 0.85rem 1rem;
+		border-radius: 1rem;
+		border: 1px solid color-mix(in srgb, var(--deity-color, #38bdf8) 22%, rgba(255,255,255,0.08));
+		background: linear-gradient(180deg, color-mix(in srgb, var(--deity-dim, rgba(56,189,248,0.15)) 75%, rgba(255,255,255,0.02)) 0%, rgba(255,255,255,0.02) 100%);
+	}
+
+	.pathbound-kicker {
+		font-size: 0.75rem;
+		font-weight: 800;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--deity-color, #7dd3fc);
+		margin-bottom: 0.35rem;
+	}
+
+	.pathbound-feel {
+		margin: 0;
+		font-size: 0.95rem;
+		line-height: 1.45;
+		color: rgba(226, 232, 240, 0.92);
+	}
+
+	.pathbound-flavor {
+		margin: 0 0 0.5rem;
+		font-size: 0.9rem;
+		line-height: 1.5;
+		color: rgba(241, 245, 249, 0.9);
+	}
+
 	.deity-stripe {
 		position: absolute;
 		top: 0; left: 0; right: 0;
@@ -331,12 +379,17 @@
 	/* Stats row */
 	.stats-row {
 		display: grid;
-		grid-template-columns: repeat(4, 1fr);
+		grid-template-columns: repeat(5, 1fr);
 		gap: var(--space-2);
 		padding: var(--space-3);
 		background: rgba(255,255,255,0.03);
 		border: 1px solid rgba(255,255,255,0.06);
 		border-radius: var(--radius-lg);
+	}
+	@media (max-width: 640px) {
+		.stats-row {
+			grid-template-columns: repeat(3, 1fr);
+		}
 	}
 	.stat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 	.stat-label {

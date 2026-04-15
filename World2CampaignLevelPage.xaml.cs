@@ -584,7 +584,7 @@ public partial class World2CampaignLevelPage : ContentPage
                     };
                     await Navigation.PushAsync(page);
                 }
-                else if (result == "Close")
+                else if (result == "Home" || result == "Close")
                 {
                     await Navigation.PopToRootAsync();
                 }

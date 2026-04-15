@@ -78,12 +78,12 @@ public partial class CampaignMazeFinishedPopupPage : Popup
         }
     }
 
-    async void OnCloseButtonClicked(object sender, EventArgs e)
+    async void OnHomeButtonClicked(object sender, EventArgs e)
     {
         if (optionChoosen) {  return; }
         optionChoosen = true;
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        await CloseAsync("Close", cts.Token);
+        await CloseAsync("Home", cts.Token);
     }
 
     async void OnRetryButtonClicked(object? sender, EventArgs e)

@@ -288,7 +288,7 @@
                     </ImageButton>
 
                     <Label Text="Play 28" Grid.Column="1" HorizontalTextAlignment="Center" VerticalOptions="Center"
-                           TextColor="Black" x:Name="playLabelCalendar" >
+                              TextColor="{StaticResource OverlayTextColor}" x:Name="playLabelCalendar" >
 
                         <Label.GestureRecognizers>
                             <TapGestureRecognizer
@@ -545,7 +545,7 @@ Value="1" />
                     </ImageButton>
 
                     <Label Text="Play 28" Grid.Column="1" HorizontalTextAlignment="Center" VerticalOptions="Center"
-               TextColor="Black" x:Name="playLabelInfo">
+                TextColor="{StaticResource OverlayTextColor}" x:Name="playLabelInfo">
 
                         <Label.GestureRecognizers>
                             <TapGestureRecognizer

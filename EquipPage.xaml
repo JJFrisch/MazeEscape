@@ -70,7 +70,8 @@
             <Label Text="💎" FontSize="18"
                    AbsoluteLayout.LayoutBounds="1,88,195,25"
                    AbsoluteLayout.LayoutFlags="XProportional"
-                   HorizontalTextAlignment="Start" VerticalTextAlignment="Center"/>
+                     HorizontalTextAlignment="Start" VerticalTextAlignment="Center"
+                     TextColor="{StaticResource OverlayTextColor}"/>
 
             <Label x:Name="GemCountLabel" HorizontalOptions="Center" VerticalOptions="Start" FontSize="18"
                    AbsoluteLayout.LayoutBounds="1,87,80,80"
@@ -87,7 +88,7 @@
 
         <Label x:Name="characterTitle" AbsoluteLayout.LayoutBounds="0.5,0.15,200,50" FontAutoScalingEnabled="True"
                    AbsoluteLayout.LayoutFlags="PositionProportional" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"
-               TextColor="Black" FontAttributes="Bold" FontSize="25"  Text="{Binding PlayerCurrentSkin.Name, Source={Static local:App.PlayerData}}"
+               TextColor="{StaticResource OverlayTextColor}" FontAttributes="Bold" FontSize="25"  Text="{Binding PlayerCurrentSkin.Name, Source={Static local:App.PlayerData}}"
                />
 
         <BoxView BackgroundColor="white"

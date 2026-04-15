@@ -28,6 +28,12 @@
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
 
+    <Color x:Key="OverlayTextColor">#FFFFFF</Color>
+    <Color x:Key="OverlayMutedTextColor">#D9D9D9</Color>
+    <Color x:Key="OverlayGoldTextColor">#FFD700</Color>
+    <Color x:Key="OverlayGemTextColor">#D8B4FE</Color>
+    <Color x:Key="OverlaySuccessTextColor">#90EE90</Color>
+
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
     <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
@@ -42,4 +48,6 @@
     <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
     <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
     <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+    <SolidColorBrush x:Key="OverlayTextBrush" Color="{StaticResource OverlayTextColor}"/>
+    <SolidColorBrush x:Key="OverlayMutedTextBrush" Color="{StaticResource OverlayMutedTextColor}"/>
 </ResourceDictionary>

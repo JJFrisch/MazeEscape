@@ -60,7 +60,7 @@
 
 
                         <Label Grid.Row="2" Grid.Column="1"
-           FontAttributes="Bold" FontSize="12" TextColor="Black"
+           FontAttributes="Bold" FontSize="12" TextColor="{StaticResource OverlayTextColor}"
            VerticalTextAlignment="Start" Padding="0,8,0,0"
            HorizontalTextAlignment="Center">
 
@@ -80,7 +80,7 @@
 
 
                         <Label Grid.Row="2" Grid.Column="3"
-           FontAttributes="Bold" FontSize="12" TextColor="Black"
+           FontAttributes="Bold" FontSize="12" TextColor="{StaticResource OverlayTextColor}"
            VerticalTextAlignment="Start" Padding="20,8,0,0"
            HorizontalTextAlignment="Center">
 

@@ -102,7 +102,7 @@ public partial class EquipPage : ContentPage
 
                     if (skin.GemPrice == 0 && skin.CoinPrice > App.PlayerData.CoinCount)
                     {
-                        priceLabel.TextColor = Colors.Black;
+                        priceLabel.TextColor = ThemeColors.OverlayMutedText;
                     }
 
                     Grid.SetColumn(priceLabel, col);

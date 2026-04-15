@@ -78,7 +78,7 @@ public partial class ShopPage : ContentPage
                 VerticalOptions = LayoutOptions.Center,
                 Text = name + ": ",
                 FontSize = 26,
-                TextColor = Colors.Black,
+                TextColor = ThemeColors.OverlayText,
             };
             nameLabel.GestureRecognizers.Add(tapGestureRecognizer);
             Grid.SetColumn(nameLabel, 1);
@@ -113,7 +113,7 @@ public partial class ShopPage : ContentPage
                 VerticalOptions = LayoutOptions.Center,
                 Text = App.PlayerData.GetPowerupCountFromName(name).ToString(),
                 FontSize = 18,
-                TextColor = Colors.Black,
+                TextColor = ThemeColors.OverlayText,
             };
             NumberOwnedLabels.Add(name, numberOwnedLabel);
             numberOwnedLabel.GestureRecognizers.Add(tapGestureRecognizer);
@@ -270,8 +270,8 @@ public partial class ShopPage : ContentPage
             if (!skin.IsUnlocked && !skin.IsSpecialSkin)
             {
                 string priceText = skin.GemPrice > 0 ? $"💎 {skin.GemPrice}" : $"{skin.CoinPrice}";
-                Color priceColor = skin.GemPrice > 0 ? Colors.MediumPurple :
-                    (skin.CoinPrice > App.PlayerData.CoinCount ? Colors.Gray : Colors.Gold);
+                Color priceColor = skin.GemPrice > 0 ? ThemeColors.OverlayGemText :
+                    (skin.CoinPrice > App.PlayerData.CoinCount ? ThemeColors.OverlayMutedText : ThemeColors.OverlayGoldText);
 
                 stack.Add(new Label
                 {
@@ -287,7 +287,7 @@ public partial class ShopPage : ContentPage
                 stack.Add(new Label
                 {
                     Text = skin.Name,
-                    TextColor = Colors.White,
+                    TextColor = ThemeColors.OverlayText,
                     FontSize = 10,
                     HorizontalTextAlignment = TextAlignment.Center,
                 });
@@ -344,7 +344,7 @@ public partial class ShopPage : ContentPage
         stack.Add(new Label
         {
             Text = skin.Name,
-            TextColor = Colors.White,
+            TextColor = ThemeColors.OverlayText,
             FontSize = 10,
             HorizontalTextAlignment = TextAlignment.Center,
         });
@@ -409,7 +409,7 @@ public partial class ShopPage : ContentPage
             stack.Add(new Label
             {
                 Text = name,
-                TextColor = Colors.White,
+                    TextColor = ThemeColors.OverlayText,
                 FontSize = 11,
                 HorizontalTextAlignment = TextAlignment.Center,
             });
@@ -419,7 +419,7 @@ public partial class ShopPage : ContentPage
                 stack.Add(new Label
                 {
                     Text = $"{price} coins",
-                    TextColor = price > App.PlayerData.CoinCount ? Colors.Gray : Colors.Gold,
+                    TextColor = price > App.PlayerData.CoinCount ? ThemeColors.OverlayMutedText : ThemeColors.OverlayGoldText,
                     FontSize = 10,
                     FontAttributes = FontAttributes.Bold,
                     HorizontalTextAlignment = TextAlignment.Center,
@@ -430,7 +430,7 @@ public partial class ShopPage : ContentPage
                 stack.Add(new Label
                 {
                     Text = "Equipped",
-                    TextColor = Colors.LightGreen,
+                    TextColor = ThemeColors.OverlaySuccessText,
                     FontSize = 10,
                     HorizontalTextAlignment = TextAlignment.Center,
                 });

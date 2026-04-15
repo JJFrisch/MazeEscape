@@ -35,7 +35,7 @@ public partial class ComfrimPurchasePage : Popup
         price = skin.CoinPrice;
         itemPriceLabel.Text = price.ToString();
         if (skin.IsSpecialSkin) { itemPriceLabel.Text = "Special Unlock"; itemPriceLabel.FontSize = 12; }
-        if (skin.GemPrice > 0) { itemPriceLabel.Text = $"💎 {skin.GemPrice}"; itemPriceLabel.TextColor = Colors.MediumPurple; }
+        if (skin.GemPrice > 0) { itemPriceLabel.Text = $"💎 {skin.GemPrice}"; itemPriceLabel.TextColor = ThemeColors.OverlayGemText; }
 
         Skin = skin;
 
@@ -46,7 +46,7 @@ public partial class ComfrimPurchasePage : Popup
         if ((skin.GemPrice > 0 && App.PlayerData.GemCount >= skin.GemPrice) ||
             (App.PlayerData.CoinCount >= price && !skin.IsSpecialSkin && skin.GemPrice == 0))
         {
-            itemPriceLabel.TextColor = Colors.Gold;
+            itemPriceLabel.TextColor = ThemeColors.OverlayGoldText;
             itemPriceLabel.Opacity = 1;
             purchaseButton.Opacity = 0;
 
@@ -61,7 +61,7 @@ public partial class ComfrimPurchasePage : Popup
         }
         else
         {
-            itemPriceLabel.TextColor = Colors.Black;
+            itemPriceLabel.TextColor = ThemeColors.OverlayMutedText;
             itemPriceLabel.Opacity = 0.8;
             purchaseButton.Opacity = 0.5;
 
@@ -92,7 +92,7 @@ public partial class ComfrimPurchasePage : Popup
         App.PlayerData.Save();
 
         _ = itemPriceLabel.ScaleTo(1.1, 500);
-        await itemPriceLabel.TextColorTo(Colors.Green, 200, 500);
+        await itemPriceLabel.TextColorTo(ThemeColors.OverlaySuccessText, 200, 500);
 
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         await CloseAsync("Purchased", cts.Token);
@@ -100,12 +100,12 @@ public partial class ComfrimPurchasePage : Popup
 
     async Task NotEnoughCoinsPurchaseButton_Clicked(object sender, EventArgs e)
     {
-        itemPriceLabel.TextColor = Colors.Black;
+        itemPriceLabel.TextColor = ThemeColors.OverlayMutedText;
         itemPriceLabel.FontSize = 12;
         itemPriceLabel.Text = Skin.GemPrice > 0 ? "Not Enough Gems" : "Not Enough Coins";
 
         _ = itemPriceLabel.ScaleTo(1.1, 200);
-        await itemPriceLabel.TextColorTo(Colors.Black, 500, 500);
+        await itemPriceLabel.TextColorTo(ThemeColors.OverlayMutedText, 500, 500);
 
         await itemPriceLabel.ScaleTo(1, 500);
         itemPriceLabel.FontSize = 18;

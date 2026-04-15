@@ -302,8 +302,8 @@ public partial class DailyMazePage : ContentPage
         // Update claimed-badge visibility
         prize1ClaimedLabel.IsVisible = App.PlayerData.MonthPrize1_achieved;
         prize2ClaimedLabel.IsVisible = App.PlayerData.MonthPrize2_achieved;
-        prizeLabel1.TextColor = App.PlayerData.MonthPrize1_achieved ? Colors.Gray : Colors.White;
-        prizeLabel2.TextColor = App.PlayerData.MonthPrize2_achieved ? Colors.Gray : Colors.White;
+        prizeLabel1.TextColor = App.PlayerData.MonthPrize1_achieved ? ThemeColors.OverlayMutedText : ThemeColors.OverlayText;
+        prizeLabel2.TextColor = App.PlayerData.MonthPrize2_achieved ? ThemeColors.OverlayMutedText : ThemeColors.OverlayText;
 
     }
 

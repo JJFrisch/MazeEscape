@@ -64,96 +64,37 @@ function buildLevel(def: LevelDef, id: number): CampaignLevel {
 }
 
 // ---------------------------------------------------------------------------
-// World 1: Cybernetic Labyrinths (67 levels)
+// World 1: Cybernetic Labyrinths, Pathbound structure (20 normal, 4 bonus)
 // ---------------------------------------------------------------------------
 const world1Defs: LevelDef[] = [
-	// Area 1 (Levels 1–14 + Bonus 1b–4b)
-	{ num: '1', w: 3, h: 3, type: 'backtracking', twoStar: 11, threeStar: 12 },
-	{ num: '2', w: 3, h: 3, type: 'huntAndKill', twoStar: 11, threeStar: 12, connects: ['3', '1b'] },
-	{ num: '1b', w: 3, h: 4, type: 'backtracking', twoStar: 14, threeStar: 16, shape: 'hexagonal' },
-	{ num: '3', w: 4, h: 3, type: 'backtracking', twoStar: 12, threeStar: 12 },
-	{ num: '4', w: 4, h: 4, type: 'huntAndKill', twoStar: 17, threeStar: 15, connects: ['5', '2b'] },
-	{ num: '2b', w: 4, h: 4, type: 'huntAndKill', twoStar: 18, threeStar: 16, shape: 'triangular' },
-	{ num: '5', w: 4, h: 4, type: 'growingTree_50_50', twoStar: 18, threeStar: 15 },
-	{ num: '6', w: 5, h: 4, type: 'sidewinder', twoStar: 21, threeStar: 16 },
-	{ num: '7', w: 5, h: 5, type: 'huntAndKill', twoStar: 26, threeStar: 18, connects: ['8', '3b'] },
-	{ num: '3b', w: 5, h: 5, type: 'backtracking', twoStar: 29, threeStar: 20, connects: ['8'], shape: 'circular' },
-	{ num: '8', w: 5, h: 5, type: 'prims', twoStar: 27, threeStar: 18, connects: ['9'] },
-	{ num: '9', w: 6, h: 5, type: 'backtracking', twoStar: 30, threeStar: 20 },
-	{ num: '10', w: 6, h: 6, type: 'kruskals', twoStar: 36, threeStar: 23, connects: ['11', '4b'] },
-	{ num: '4b', w: 6, h: 5, type: 'kruskals', twoStar: 32, threeStar: 20, shape: 'hexagonal' },
-	{ num: '11', w: 6, h: 6, type: 'huntAndKill', twoStar: 38, threeStar: 23 },
-	{ num: '12', w: 7, h: 6, type: 'binaryTree', twoStar: 41, threeStar: 24 },
-	{ num: '13', w: 7, h: 7, type: 'growingTree_50_50', twoStar: 45, threeStar: 26 },
-{ num: '14', w: 7, h: 7, type: 'prims', twoStar: 47, threeStar: 26, reward: { type: 'key', label: 'Rusted Gate Key', reward: { keyItemId: 'key_area2' } } },
-	{ num: '14-boss', w: 20, h: 20, type: 'recursiveDivision', kind: 'boss', twoStar: 150, threeStar: 70, connects: ['15'], reward: { type: 'boss_relic', label: 'Labyrinth Core', reward: { specialItemId: 'labyrinth_core' } }, bossFlavor: 'A sentinel intellect folds the corridors into a single war chamber.' },
+	{ num: '1', w: 20, h: 20, type: 'huntAndKill', twoStar: 110, threeStar: 55 },
+	{ num: '2', w: 22, h: 20, type: 'kruskals', twoStar: 120, threeStar: 60 },
+	{ num: '3', w: 22, h: 22, type: 'growingTree_50_50', twoStar: 130, threeStar: 65 },
+	{ num: '4', w: 24, h: 22, type: 'growingTree_50_0', twoStar: 140, threeStar: 75, connects: ['4b'] },
+	{ num: '4b', w: 21, h: 21, type: 'kruskals', twoStar: 120, threeStar: 65, shape: 'circular', connects: ['5'] },
 
-	// Area 2 (Levels 15–28 + Bonus 5b–7b)
-	{ num: '15', w: 8, h: 7, type: 'wilsons', twoStar: 49, threeStar: 28, minStars: 20 },
-	{ num: '16', w: 8, h: 8, type: 'huntAndKill', twoStar: 54, threeStar: 31, connects: ['17', '5b'] },
-	{ num: '5b', w: 8, h: 7, type: 'kruskals', twoStar: 51, threeStar: 29, shape: 'triangular' },
-	{ num: '17', w: 8, h: 8, type: 'growingTree_75_25', twoStar: 57, threeStar: 31 },
-	{ num: '18', w: 9, h: 8, type: 'backtracking', twoStar: 60, threeStar: 32 },
-	{ num: '19', w: 9, h: 9, type: 'prims', twoStar: 66, threeStar: 34, connects: ['20', '6b'] },
-	{ num: '6b', w: 9, h: 8, type: 'prims', twoStar: 62, threeStar: 32, shape: 'circular' },
-	{ num: '20', w: 9, h: 9, type: 'huntAndKill', twoStar: 68, threeStar: 34 },
-	{ num: '21', w: 10, h: 9, type: 'ellers', twoStar: 72, threeStar: 36 },
-	{ num: '22', w: 10, h: 10, type: 'growingTree_25_75', twoStar: 79, threeStar: 39, connects: ['23', '7b'] },
-	{ num: '7b', w: 10, h: 9, type: 'prims', twoStar: 74, threeStar: 36, shape: 'hexagonal' },
-	{ num: '23', w: 10, h: 10, type: 'prims', twoStar: 81, threeStar: 39 },
-	{ num: '24', w: 11, h: 10, type: 'recursiveDivision', twoStar: 87, threeStar: 40 },
-	{ num: '25', w: 11, h: 11, type: 'huntAndKill', twoStar: 94, threeStar: 42 },
-	{ num: '26', w: 11, h: 11, type: 'growingTree_50_50', twoStar: 96, threeStar: 42 },
-	{ num: '27', w: 12, h: 11, type: 'backtracking', twoStar: 102, threeStar: 44 },
-{ num: '28', w: 12, h: 12, type: 'prims', twoStar: 109, threeStar: 47, reward: { type: 'gem', label: 'Crystal Gem', reward: { coins: 350 } } },
+	{ num: '5', w: 24, h: 24, type: 'kruskals', twoStar: 155, threeStar: 85, minStars: 6 },
+	{ num: '6', w: 26, h: 24, type: 'growingTree_25_75', twoStar: 170, threeStar: 95 },
+	{ num: '7', w: 26, h: 26, type: 'prims', twoStar: 185, threeStar: 105 },
+	{ num: '8', w: 28, h: 24, type: 'prims', twoStar: 195, threeStar: 115, connects: ['8b'] },
+	{ num: '8b', w: 24, h: 22, type: 'growingTree_75_25', twoStar: 155, threeStar: 85, shape: 'triangular', connects: ['9'] },
 
-	// Area 3 (Levels 29–43 + Bonus 8b–9b)
-	{ num: '29', w: 12, h: 12, type: 'huntAndKill', twoStar: 111, threeStar: 47, minStars: 45 },
-	{ num: '30', w: 13, h: 12, type: 'aldousBroder', twoStar: 117, threeStar: 48 },
-	{ num: '31', w: 13, h: 13, type: 'growingTree_75_25', twoStar: 126, threeStar: 50, connects: ['32', '8b'] },
-	{ num: '8b', w: 13, h: 12, type: 'huntAndKill', twoStar: 119, threeStar: 48, shape: 'triangular' },
-	{ num: '32', w: 13, h: 13, type: 'prims', twoStar: 128, threeStar: 50 },
-	{ num: '33', w: 14, h: 13, type: 'backtracking', twoStar: 134, threeStar: 52 },
-	{ num: '34', w: 14, h: 14, type: 'huntAndKill', twoStar: 143, threeStar: 55 },
-	{ num: '35', w: 14, h: 14, type: 'growingTree_50_0', twoStar: 144, threeStar: 55 },
-	{ num: '36', w: 15, h: 14, type: 'sidewinder', twoStar: 150, threeStar: 56 },
-	{ num: '37', w: 15, h: 15, type: 'prims', twoStar: 162, threeStar: 58, connects: ['38', '9b'] },
-	{ num: '9b', w: 15, h: 14, type: 'backtracking', twoStar: 154, threeStar: 56, shape: 'circular' },
-	{ num: '38', w: 15, h: 15, type: 'huntAndKill', twoStar: 164, threeStar: 58 },
-	{ num: '39', w: 16, h: 15, type: 'wilsons', twoStar: 171, threeStar: 60 },
-	{ num: '40', w: 16, h: 16, type: 'growingTree_50_50', twoStar: 184, threeStar: 63 },
-	{ num: '41', w: 16, h: 16, type: 'kruskals', twoStar: 186, threeStar: 63 },
-	{ num: '42', w: 17, h: 16, type: 'ellers', twoStar: 194, threeStar: 64 },
-{ num: '43', w: 17, h: 17, type: 'prims', twoStar: 207, threeStar: 66, reward: { type: 'key', label: 'Forest Gate Key', reward: { keyItemId: 'key_forest' } } },
+	{ num: '9', w: 28, h: 26, type: 'huntAndKill', twoStar: 215, threeStar: 130, minStars: 15 },
+	{ num: '10', w: 30, h: 26, type: 'growingTree_50_0', twoStar: 230, threeStar: 145 },
+	{ num: '11', w: 30, h: 28, type: 'backtracking', twoStar: 245, threeStar: 160 },
+	{ num: '12', w: 32, h: 28, type: 'kruskals', twoStar: 260, threeStar: 175, connects: ['12b'] },
+	{ num: '12b', w: 27, h: 27, type: 'prims', twoStar: 200, threeStar: 105, shape: 'hexagonal', connects: ['13'] },
 
-	// Area 4 (Levels 44–55 + Bonus 10b–20b)
-	{ num: '44', w: 17, h: 17, type: 'huntAndKill', twoStar: 209, threeStar: 66, minStars: 80 },
-	{ num: '45', w: 18, h: 17, type: 'backtracking', twoStar: 216, threeStar: 68, connects: ['46', '10b'] },
-	{ num: '10b', w: 17, h: 17, type: 'kruskals', twoStar: 210, threeStar: 66, shape: 'hexagonal' },
-	{ num: '46', w: 18, h: 18, type: 'prims', twoStar: 229, threeStar: 71 },
-	{ num: '47', w: 18, h: 18, type: 'growingTree_50_0', twoStar: 231, threeStar: 71 },
-	{ num: '48', w: 19, h: 18, type: 'recursiveDivision', twoStar: 239, threeStar: 72 },
-	{ num: '49', w: 19, h: 19, type: 'huntAndKill', twoStar: 252, threeStar: 74 },
-	{ num: '50', w: 19, h: 19, type: 'kruskals', twoStar: 254, threeStar: 74 },
-	{ num: '51', w: 20, h: 19, type: 'aldousBroder', twoStar: 261, threeStar: 76 },
-	{ num: '52', w: 20, h: 20, type: 'prims', twoStar: 276, threeStar: 79 },
-	{ num: '53', w: 20, h: 20, type: 'growingTree_50_50', twoStar: 279, threeStar: 79 },
-	{ num: '54', w: 21, h: 20, type: 'backtracking', twoStar: 287, threeStar: 80, reward: { type: 'powerup_hint', label: "Navigator's Compass", reward: { powerup: 'hint', powerupCount: 3 } } },
-	{ num: '55', w: 21, h: 21, type: 'huntAndKill', twoStar: 302, threeStar: 82, reward: { type: 'cloak', label: 'Shadow Cloak', reward: { skinId: 7 } } },
+	{ num: '13', w: 32, h: 30, type: 'growingTree_50_50', twoStar: 280, threeStar: 190, minStars: 27 },
+	{ num: '14', w: 34, h: 30, type: 'kruskals', twoStar: 300, threeStar: 205 },
+	{ num: '15', w: 34, h: 32, type: 'growingTree_25_75', twoStar: 320, threeStar: 220 },
+	{ num: '16', w: 36, h: 32, type: 'growingTree_75_25', twoStar: 340, threeStar: 235, connects: ['16b'] },
+	{ num: '16b', w: 30, h: 28, type: 'backtracking', twoStar: 250, threeStar: 120, shape: 'circular', connects: ['17'] },
 
-	// Area 5 (Levels 56–67)
-	{ num: '56', w: 21, h: 21, type: 'growingTree_75_25', twoStar: 304, threeStar: 82, minStars: 120 },
-	{ num: '57', w: 22, h: 21, type: 'binaryTree', twoStar: 312, threeStar: 84 },
-	{ num: '58', w: 22, h: 22, type: 'prims', twoStar: 329, threeStar: 87 },
-	{ num: '59', w: 22, h: 22, type: 'kruskals', twoStar: 332, threeStar: 87 },
-	{ num: '60', w: 23, h: 22, type: 'backtracking', twoStar: 339, threeStar: 88 },
-	{ num: '61', w: 23, h: 23, type: 'huntAndKill', twoStar: 354, threeStar: 90 },
-	{ num: '62', w: 23, h: 23, type: 'growingTree_25_75', twoStar: 357, threeStar: 90 },
-	{ num: '63', w: 24, h: 23, type: 'backtracking', twoStar: 366, threeStar: 92 },
-	{ num: '64', w: 24, h: 24, type: 'prims', twoStar: 383, threeStar: 95 },
-	{ num: '65', w: 24, h: 24, type: 'growingTree_50_0', twoStar: 386, threeStar: 95 },
-	{ num: '66', w: 25, h: 24, type: 'backtracking', twoStar: 394, threeStar: 96 },
-	{ num: '67', w: 25, h: 25, type: 'huntAndKill', twoStar: 411, threeStar: 98, connects: [], reward: { type: 'gem', label: 'Cyber Core Gem', reward: { coins: 1000 } } }
+	{ num: '17', w: 36, h: 34, type: 'backtracking', twoStar: 360, threeStar: 250, minStars: 42 },
+	{ num: '18', w: 38, h: 34, type: 'growingTree_50_50', twoStar: 385, threeStar: 265 },
+	{ num: '19', w: 40, h: 34, type: 'kruskals', twoStar: 410, threeStar: 280 },
+	{ num: '20', w: 42, h: 36, type: 'backtracking', twoStar: 435, threeStar: 300, connects: [] }
 ];
 
 // ---------------------------------------------------------------------------
@@ -302,9 +243,9 @@ export function getWorld1(): WorldDefinition {
 		worldId: 1,
 		worldName: 'Cybernetic Labyrinths',
 		imageUrl: 'background_maze_3',
-		numberOfLevels: 67,
+		numberOfLevels: world1Defs.length,
 		locked: false,
-		gateStarRequired: [50, 80, 65, 120, 160, 195, 225, 265, 305, 335, 355, 370],
+		gateStarRequired: [6, 15, 27, 42],
 		levels: world1Defs.map((d, i) => buildLevel(d, i + 1))
 	};
 }

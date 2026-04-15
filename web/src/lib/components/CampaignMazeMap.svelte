@@ -298,14 +298,18 @@
 			showTooltip(e, hasIt ? 'Gate Open!' : `Requires the ${node.keyItemId?.replace(/_/g, ' ') ?? 'key'}`);
 		} else if (node.type === 'portal') {
 			const stars = gameStore.getWorldStarCount(worldId);
-			if (stars >= 300) {
+			const needed = node.starsRequired ?? 300;
+			const levelComplete = node.levelNumber ? !!gameStore.getLevelProgress(worldId, node.levelNumber)?.completed : true;
+			if (stars >= needed && levelComplete) {
 				portalTargetWorldId = worldId + 1;
 				portalTransitioning = true;
 				setTimeout(() => {
 					void goto(`${base}/campaign/worlds/${worldId + 1}`);
 				}, 900);
 			}
-			else showTooltip(e, `Portal locked — need 300 ★ (you have ${stars})`);
+			else showTooltip(e, levelComplete
+				? `Portal locked — need ${needed} ★ (you have ${stars})`
+				: 'Portal locked — finish the final level first');
 		}
 	}
 
@@ -1021,7 +1025,9 @@
 					{@const px = cx(node.tile.col)}
 					{@const py = cy(node.tile.row)}
 					{@const stars = gameStore.getWorldStarCount(worldId)}
-					{@const unlocked = stars >= 300}
+					{@const needed = node.starsRequired ?? 300}
+					{@const levelComplete = node.levelNumber ? !!gameStore.getLevelProgress(worldId, node.levelNumber)?.completed : true}
+					{@const unlocked = stars >= needed && levelComplete}
 					{@const visible = isAreaVisible(node.area)}
 					{#if visible}
 						<!-- svelte-ignore a11y_click_events_have_key_events -->

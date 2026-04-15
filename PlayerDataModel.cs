@@ -138,7 +138,7 @@ namespace MazeEscape
                 WorldID = 1,
                 WorldName = "Cybernetic Labyrinths",  // Quantum Quests, Gridscape, Labyrinthia Prime, Circuitoria, hyperplex, Mazeverse, Cyber Labyrinths
                 ImageUrl = "background_maze_3.png",
-                NumberOfLevels = 67,
+                NumberOfLevels = 24,
                 HighestBeatenLevel = 0,
                 Completed = false,
                 Locked = false,
@@ -147,9 +147,9 @@ namespace MazeEscape
                 UnlockedGatesNumbers = [],
                 ChestModels = [],
                 LevelConnectsToDictionary = [],
-                HighestAreaUnlocked = 4,
+                HighestAreaUnlocked = 1,
                 distanceScrolled = 0,
-                gateStarRequired = [20, 45, 30, 60, 80, 100, 120, 150, 200, 230, 240, 250]
+                gateStarRequired = [6, 15, 27, 42, 55]
             });
 
             await InitializeWorld1Levels();
@@ -162,7 +162,7 @@ namespace MazeEscape
                 NumberOfLevels = 110,
                 HighestBeatenLevel = 0,
                 Completed = false,
-                Locked = false,
+                Locked = true,
                 StarCount = 0,
                 UnlockedMazesNumbers = ["1"],
                 UnlockedGatesNumbers = [],
@@ -494,148 +494,65 @@ namespace MazeEscape
 
         public async Task InitializeWorld1Levels()
         {
-
             await World1_LevelDatabase.DeleteAllLevelsAsync();
+            Worlds[0].ChestModels.Clear();
 
-            // LevelNumber, TwoStarMoves, ThreeStarTime, LevelType
+            async Task AddLevelAsync(
+                string levelNumber,
+                int width,
+                int height,
+                string type,
+                int twoStarMoves,
+                int threeStarTime,
+                List<string>? connectsTo = null,
+                int minimumStarsToUnlock = 0,
+                bool unlockPortal = false)
+            {
+                var level = new CampaignLevel(levelNumber, width, height, type, connectsTo, minimumStarsToUnlock)
+                {
+                    TwoStarMoves = twoStarMoves,
+                    ThreeStarTime = threeStarTime
+                };
 
-            // area 1 Level Buttons
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("1", 5, 5, "GenerateHuntAndKill", new List<string>{ "2" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("2", 6, 6, "GenerateKruskals", new List<string> { "3" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("3", 6, 6, "GeneratePrims", new List<string> { "4" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("4", 8, 8, "GenerateGrowingTree_50_0", new List<string> { "5" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("5", 8, 8, "GenerateGrowingTree_50_50", new List<string> { "6" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("6", 8, 8, "GenerateGrowingTree_75_25", new List<string> { "7" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("7", 8, 8, "GenerateGrowingTree_25_75", new List<string> { "8", "1b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("8", 10, 12, "GeneratePrims", new List<string> { "9" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("9", 12, 10, "GenerateGrowingTree_25_75", new List<string> { "10" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("10", 11, 11, "GenerateBacktracking", new List<string> { "11" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("11", 12, 10, "GenerateGrowingTree_50_0", new List<string> { "12" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("12", 10, 12, "GenerateGrowingTree_75_25", new List<string> { "13" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("13", 11, 11, "GenerateKruskals", new List<string> { "14", "4b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("14", 14, 9, "GenerateGrowingTree_50_50", new List<string> { "15" }));
+                if (unlockPortal)
+                {
+                    level.ConnectTo1 = "p1";
+                    level.ConnectTo2 = string.Empty;
+                }
 
-            // area 1 Bonus Level Buttons
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("1b", 15, 12, "GenerateGrowingTree_50_0", new List<string> { "2b" }, Worlds[0].gateStarRequired[0]));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("2b", 15, 15, "GenerateBacktracking", new List<string> { "3b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("3b", 14, 15, "GenerateGrowingTree_75_25", new List<string> { "c1" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("4b", 18, 12, "GenerateKruskals", new List<string> { "c2" }, Worlds[0].gateStarRequired[1]));
+                await World1_LevelDatabase.AddNewLevelAsync(level);
+            }
 
-            // area 1 Chests
-            Worlds[0].ChestModels.Add(new ChestModel(1, 1,3,"c1"));
-            Worlds[0].ChestModels.Add(new ChestModel(1, 1,1,"c2"));
+            await AddLevelAsync("1", 20, 20, "GenerateHuntAndKill", 110, 55);
+            await AddLevelAsync("2", 22, 20, "GenerateKruskals", 120, 60);
+            await AddLevelAsync("3", 22, 22, "GenerateGrowingTree_50_50", 130, 65);
+            await AddLevelAsync("4", 24, 22, "GenerateGrowingTree_50_0", 140, 75, new List<string> { "4b" });
+            await AddLevelAsync("4b", 21, 21, "GenerateKruskals", 120, 65, new List<string> { "5" });
 
-            // area 2 Level Buttons
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("15", 15, 15, "GenerateKruskals", new List<string> { "16" }, Worlds[0].gateStarRequired[2]));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("16", 14, 16, "GenerateGrowingTree_50_0", new List<string> { "17" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("17", 16, 14, "GenerateHuntAndKill", new List<string> { "18" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("18", 13, 16, "GeneratePrims", new List<string> { "19", "c3" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("19", 16, 13, "GenerateGrowingTree_50_50", new List<string> { "20" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("20", 15, 15, "GenerateBacktracking", new List<string> { "21", "5b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("21", 15, 15, "GenerateKruskals", new List<string> { "22" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("22", 17, 13, "GenerateGrowingTree_75_25", new List<string> { "23" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("23", 17, 17, "GenerateGrowingTree_50_0", new List<string> { "24" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("24", 16, 18, "GeneratePrims", new List<string> { "25" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("25", 17, 16, "GenerateGrowingTree_50_50", new List<string> { "26" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("26", 16, 18, "GenerateHuntAndKill", new List<string> { "27" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("27", 15, 19, "GenerateBacktracking", new List<string> { "28" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("28", 23, 15, "GenerateHuntAndKill", new List<string> { "29" }));
+            await AddLevelAsync("5", 24, 24, "GenerateKruskals", 155, 85, minimumStarsToUnlock: Worlds[0].gateStarRequired[0]);
+            await AddLevelAsync("6", 26, 24, "GenerateGrowingTree_25_75", 170, 95);
+            await AddLevelAsync("7", 26, 26, "GeneratePrims", 185, 105);
+            await AddLevelAsync("8", 28, 24, "GeneratePrims", 195, 115, new List<string> { "8b" });
+            await AddLevelAsync("8b", 24, 22, "GenerateGrowingTree_75_25", 155, 85, new List<string> { "9" });
 
-            // area 2 Bonus Level Buttons
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("5b", 20, 12, "GenerateHuntAndKill", new List<string> { "6b" }, Worlds[0].gateStarRequired[3]));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("6b", 12, 20, "GeneratePrims", new List<string> { "7b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("7b", 20, 16, "GenerateKruskals", new List<string> { "c4" }));
+            await AddLevelAsync("9", 28, 26, "GenerateHuntAndKill", 215, 130, minimumStarsToUnlock: Worlds[0].gateStarRequired[1]);
+            await AddLevelAsync("10", 30, 26, "GenerateGrowingTree_50_0", 230, 145);
+            await AddLevelAsync("11", 30, 28, "GenerateBacktracking", 245, 160);
+            await AddLevelAsync("12", 32, 28, "GenerateKruskals", 260, 175, new List<string> { "12b" });
+            await AddLevelAsync("12b", 27, 27, "GeneratePrims", 200, 105, new List<string> { "13" });
 
-            // area 2 Chests
-            Worlds[0].ChestModels.Add(new ChestModel(1, 4, 0, "c3"));
-            Worlds[0].ChestModels.Add(new ChestModel(1, 6, 3, "c4"));
+            await AddLevelAsync("13", 32, 30, "GenerateGrowingTree_50_50", 280, 190, minimumStarsToUnlock: Worlds[0].gateStarRequired[2]);
+            await AddLevelAsync("14", 34, 30, "GenerateKruskals", 300, 205);
+            await AddLevelAsync("15", 34, 32, "GenerateGrowingTree_25_75", 320, 220);
+            await AddLevelAsync("16", 36, 32, "GenerateGrowingTree_75_25", 340, 235, new List<string> { "16b" });
+            await AddLevelAsync("16b", 30, 28, "GenerateBacktracking", 250, 120, new List<string> { "17" });
 
-            // area 3 Level Buttons
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("29", 19, 19, "GenerateGrowingTree_75_25", new List<string> { "30" }, Worlds[0].gateStarRequired[4]));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("30", 17, 20, "GenerateKruskals", new List<string> { "31" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("31", 21, 20, "GeneratePrims", new List<string> { "32" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("32", 22, 20, "GenerateGrowingTree_50_0", new List<string> { "33" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("33", 22, 20, "GenerateBacktracking", new List<string> { "34", "c5" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("34", 23, 22, "GenerateGrowingTree_75_25", new List<string> { "35" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("35", 24, 23, "GenerateGrowingTree_50_50", new List<string> { "36" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("36", 25, 22, "GenerateGrowingTree_25_75", new List<string> { "37" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("37", 21, 25, "GenerateKruskals", new List<string> { "38", "8b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("38", 22, 26, "GeneratePrims", new List<string> { "39" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("39", 23, 24, "GenerateHuntAndKill", new List<string> { "40" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("40", 22, 18, "GenerateGrowingTree_75_25", new List<string> { "41" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("41", 21, 25, "GenerateGrowingTree_50_50", new List<string> { "42" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("42", 24, 23, "GenerateHuntAndKill", new List<string> { "43" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("43", 25, 25, "GeneratePrims", new List<string> { "44" }));
+            await AddLevelAsync("17", 36, 34, "GenerateBacktracking", 360, 250, minimumStarsToUnlock: Worlds[0].gateStarRequired[3]);
+            await AddLevelAsync("18", 38, 34, "GenerateGrowingTree_50_50", 385, 265);
+            await AddLevelAsync("19", 40, 34, "GenerateKruskals", 410, 280);
+            await AddLevelAsync("20", 42, 36, "GenerateBacktracking", 435, 300, unlockPortal: true);
 
-            // area 3 Bonus Level Buttons
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("8b", 20, 12, "GenerateKruskals", new List<string> { "9b" }, Worlds[0].gateStarRequired[5]));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("9b", 20, 12, "GenerateHuntAndKill", new List<string> { "c6" }));
-
-            // area 3 Chests
-            Worlds[0].ChestModels.Add(new ChestModel(1, 8, 3, "c5"));
-            Worlds[0].ChestModels.Add(new ChestModel(1, 7, 0, "c6"));
-
-
-            // area 4 Level Buttons
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("44", 26, 21, "GenerateGrowingTree_25_75", new List<string> { "45" }, Worlds[0].gateStarRequired[6]));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("45", 26, 26, "GenerateHuntAndKill", new List<string> { "46" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("46", 27, 26, "GeneratePrims", new List<string> { "47" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("47", 26, 27, "GenerateGrowingTree_75_25", new List<string> { "48" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("48", 22, 20, "GenerateKruskals", new List<string> { "49" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("49", 25, 27, "GenerateGrowingTree_50_50", new List<string> { "50" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("50", 25, 27, "GeneratePrims", new List<string> { "51" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("51", 26, 24, "GenerateGrowingTree_75_25", new List<string> { "52" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("52", 27, 25, "GenerateKruskals", new List<string> { "53" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("53", 28, 26, "GenerateHuntAndKill", new List<string> { "54" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("54", 27, 25, "GenerateGrowingTree_50_50", new List<string> { "55" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("55", 28, 28, "GenerateKruskals", new List<string> { "56", "10b" }));
-
-
-            // area 4 Bonus Level Buttons
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("10b", 22, 26, "GenerateKruskals", new List<string> { "11b" }, Worlds[0].gateStarRequired[7]));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("11b", 23, 23, "GenerateGrowingTree_75_25", new List<string> { "12b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("12b", 24, 24, "GenerateGrowingTree_50_50", new List<string> { "13b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("13b", 25, 25, "GeneratePrims", new List<string> { "14b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("14b", 20, 25, "GenerateGrowingTree_25_75", new List<string> { "15b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("15b", 26, 26, "GenerateKruskals", new List<string> { "16b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("16b", 27, 24, "GenerateBacktracking", new List<string> { "17b", "c7" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("17b", 22, 27, "GenerateHuntAndKill", new List<string> { "18b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("18b", 23, 25, "GenerateGrowingTree_50_50", new List<string> { "19b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("19b", 25, 27, "GeneratePrims", new List<string> { "20b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("20b", 4, 4, "GenerateHuntAndKill", new List<string> { "c8" }));
-
-
-            // area 4 Chests
-            Worlds[0].ChestModels.Add(new ChestModel(1, 10, 2, "c7"));
-            Worlds[0].ChestModels.Add(new KeyModel(1, 15, 3, "c8", "k1", "key6"));
-
-
-            // area 5 Level Buttons
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("56", 29, 29, "GenerateGrowingTree_75_25", new List<string> { "57" }, Worlds[0].gateStarRequired[8]));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("57", 29, 31, "GeneratePrims", new List<string> { "58" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("58", 30, 30, "GenerateGrowingTree_50_50", new List<string> { "59" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("59", 30, 30, "GeneratePrims", new List<string> { "60" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("60", 30, 30, "GenerateBacktracking", new List<string> { "61" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("61", 30, 30, "GenerateKruskals", new List<string> { "62" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("62", 31, 31, "GenerateGrowingTree_50_50", new List<string> { "63" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("63", 32, 32, "GenerateKruskals", new List<string> { "64" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("64", 33, 31, "GenerateGrowingTree_50_50", new List<string> { "65" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("65", 32, 33, "GeneratePrims", new List<string> { "66", "21b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("66", 33, 33, "GenerateKruskals", new List<string> { "67", "22b" }));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("67", 4, 4, "GenerateHuntAndKill", new List<string> { "p1_1" }));
-            //await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("68", 35, 35, "GenerateGrowingTree_50_50", new List<string> {  }, Worlds[0].gateStarRequired[11]));
-
-
-
-            // area 5 Bonus Level Buttons
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("21b", 33, 33, "GenerateGrowingTree_50_50", new List<string> { "c9" }, Worlds[0].gateStarRequired[9]));
-            await World1_LevelDatabase.AddNewLevelAsync(new CampaignLevel("22b", 34, 34, "GeneratePrims", new List<string> { "c10" }, Worlds[0].gateStarRequired[10]));
-
-            // area 5 Chests
-            Worlds[0].ChestModels.Add(new ChestModel(1, 18, 2, "c9"));
-            Worlds[0].ChestModels.Add(new ChestModel(1, 16, 1, "c10"));
-
-            Worlds[0].ChestModels.Add(new PortalModel(1, 19, 0, "p1", 250));
+            Worlds[0].ChestModels.Add(new PortalModel(1, 9, 0, "p1", Worlds[0].gateStarRequired[4]));
 
         }
 

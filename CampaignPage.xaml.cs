@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using CommunityToolkit.Maui.Views;
 using MazeEscape.Models;
 using System.Collections.ObjectModel;
@@ -41,11 +43,6 @@ public partial class CampaignPage : ContentPage
         InitializeLevelButtons();
 
         InitializeGates();
-
-        if(World.UnlockedMazesNumbers.Contains("p1_1") && World.UnlockedMazesNumbers.Contains("k1") && !World.UnlockedMazesNumbers.Contains("p1"))
-        {
-            World.UnlockedMazesNumbers.Add("p1");
-        }
 
         InitializeChests();
 
@@ -118,16 +115,16 @@ public partial class CampaignPage : ContentPage
 
     }
 
-    List<(int, int)> area_1_LevelButtonPositions = new List<(int, int)> { (3, 3), (3, 4), (2, 4), (2,3), (2,2), (1,2), (0,2), (0,1), (0,0), (1, 0), (2, 0), (3, 0), (3, 1), (3, 2)};
-    List<(int, int)> area_1_BonusLevelButtonPositions = new List<(int, int)> { (0, 3), (0, 4), (1, 4), (2, 1) };
-    List<(int, int)> area_2_LevelButtonPositions = new List<(int, int)> { (4, 2), (4, 1), (5, 1), (5, 0), (6, 0), (6, 1), (6, 2), (5, 2), (5, 3), (4, 3), (4, 4), (5, 4), (6, 4), (7, 4) };
-    List<(int, int)> area_2_BonusLevelButtonPositions = new List<(int, int)> { (7, 1), (7, 2), (7, 3) };
-    List<(int, int)> area_3_LevelButtonPositions = new List<(int, int)> { (8, 4), (9, 4), (9, 3), (9, 2), (8, 2), (8, 1), (9, 1), (10, 1), (10, 0), (11, 0), (12, 0), (12, 1), (11, 1), (11, 2), (12, 2) };
-    List<(int, int)> area_3_BonusLevelButtonPositions = new List<(int, int)> { (9, 0), (8, 0) };
-    List<(int, int)> area_4_LevelButtonPositions = new List<(int, int)> { (13, 2), (14, 2), (14, 1), (13, 1), (13, 0), (14, 0), (15, 0), (15, 1), (15, 2), (16, 2), (16, 3), (16, 4) };
-    List<(int, int)> area_4_BonusLevelButtonPositions = new List<(int, int)> { (15, 4), (14, 4), (13, 4), (12, 4), (11, 4), (10, 4), (10, 3), (11, 3), (12, 3), (13, 3), (14, 3)};
-    List<(int, int)> area_5_LevelButtonPositions = new List<(int, int)> { (17, 4), (17, 3), (18, 3), (18, 4), (19, 4), (19, 3), (19, 2), (19, 1), (18, 1), (17, 1), (17, 0), (18, 0) };
-    List<(int, int)> area_5_BonusLevelButtonPositions = new List<(int, int)> { (17, 2), (16, 0) };
+    List<(int, int)> area_1_LevelButtonPositions = new List<(int, int)> { (3, 3), (3, 2), (2, 2), (2, 1) };
+    List<(int, int)> area_1_BonusLevelButtonPositions = new List<(int, int)> { (1, 1) };
+    List<(int, int)> area_2_LevelButtonPositions = new List<(int, int)> { (1, 2), (1, 3), (2, 3), (2, 4) };
+    List<(int, int)> area_2_BonusLevelButtonPositions = new List<(int, int)> { (3, 4) };
+    List<(int, int)> area_3_LevelButtonPositions = new List<(int, int)> { (4, 4), (5, 4), (5, 3), (4, 3) };
+    List<(int, int)> area_3_BonusLevelButtonPositions = new List<(int, int)> { (4, 2) };
+    List<(int, int)> area_4_LevelButtonPositions = new List<(int, int)> { (5, 2), (6, 2), (6, 1), (5, 1) };
+    List<(int, int)> area_4_BonusLevelButtonPositions = new List<(int, int)> { (4, 1) };
+    List<(int, int)> area_5_LevelButtonPositions = new List<(int, int)> { (7, 1), (8, 1), (8, 0), (7, 0) };
+    List<(int, int)> area_5_BonusLevelButtonPositions = new List<(int, int)>();
 
 
     List<(int, int)> all_button_positions = new List<(int, int)>();
@@ -302,20 +299,23 @@ public partial class CampaignPage : ContentPage
     {
         List<(ImageButton, View, List<string>)> Gates = new List<(ImageButton, View, List<string>)>() //gate image, number of stars required label, number of level to unlock
         {
-            (gateImage1, gateLabel1, ["1b"]),
-            (gateImage2, gateLabel2, ["4b"]),
-            (gateImage3, gateLabel3, ["15"]),
-            (gateImage4, gateLabel4, ["5b"]),
-            (gateImage5, gateLabel5, ["29"]),
-            (gateImage6, gateLabel6, ["8b"]),
-            (gateImage7, gateLabel7, ["44"]),
-            (gateImage8, gateLabel8, ["10b"]),
-            (gateImage9, gateLabel9, ["56"]),
-            (gateImage10, gateLabel10, ["21b"]),
-            (gateImage11, gateLabel11, ["22b"]),
-            (gateImage12, gateLabel12, ["p1_1", "k1"]),
+            (gateImage1, gateLabel1, ["5"]),
+            (gateImage2, gateLabel2, ["9"]),
+            (gateImage3, gateLabel3, ["13"]),
+            (gateImage4, gateLabel4, ["17"]),
+            (gateImage5, gateLabel5, ["p1"]),
 
         };
+
+        foreach (var hiddenGate in new[] { gateImage6, gateImage7, gateImage8, gateImage9, gateImage10, gateImage11, gateImage12 })
+        {
+            hiddenGate.IsVisible = false;
+        }
+
+        foreach (var hiddenLabel in new View[] { gateLabel6, gateLabel7, gateLabel8, gateLabel9, gateLabel10, gateLabel11, gateLabel12 })
+        {
+            hiddenLabel.IsVisible = false;
+        }
 
         for (int i = 0; i < Gates.Count; i++)
         {
@@ -396,11 +396,11 @@ public partial class CampaignPage : ContentPage
 
     Dictionary<int, string> AreaToNextAreaLevelNumber = new Dictionary<int, string>() 
     {
-        { 1, "15" },
-        { 2, "29" },
-        { 3, "44" },
-        { 4, "56" },
-        { 5, "68" },
+        { 1, "5" },
+        { 2, "9" },
+        { 3, "13" },
+        { 4, "17" },
+        { 5, "21" },
     };
 
     public async Task checkAreasUnlocked()
@@ -421,22 +421,22 @@ public partial class CampaignPage : ContentPage
         //    }
         //}
 
-        if (World.HighestAreaUnlocked == 1 && World.UnlockedMazesNumbers.Contains("15") && World.StarCount >= World.gateStarRequired[2])
+        if (World.HighestAreaUnlocked == 1 && World.UnlockedMazesNumbers.Contains("5") && World.StarCount >= World.gateStarRequired[0])
         {
             AnimationQueue.Enqueue(("fog", fog_area_1_image, fog_area_2_image));
             World.HighestAreaUnlocked++;
         }
-        if (World.HighestAreaUnlocked == 2 && World.UnlockedMazesNumbers.Contains("29") && World.StarCount >= World.gateStarRequired[4])
+        if (World.HighestAreaUnlocked == 2 && World.UnlockedMazesNumbers.Contains("9") && World.StarCount >= World.gateStarRequired[1])
         {
             AnimationQueue.Enqueue(("fog", fog_area_2_image, fog_area_3_image));
             World.HighestAreaUnlocked++;
         }
-        if (World.HighestAreaUnlocked == 3 && World.UnlockedMazesNumbers.Contains("44") && World.StarCount >= World.gateStarRequired[6])
+        if (World.HighestAreaUnlocked == 3 && World.UnlockedMazesNumbers.Contains("13") && World.StarCount >= World.gateStarRequired[2])
         {
             AnimationQueue.Enqueue(("fog", fog_area_3_image, fog_area_4_image));
             World.HighestAreaUnlocked++;
         }
-        if (World.HighestAreaUnlocked == 4 && World.UnlockedMazesNumbers.Contains("56") && World.StarCount >= World.gateStarRequired[8])
+        if (World.HighestAreaUnlocked == 4 && World.UnlockedMazesNumbers.Contains("17") && World.StarCount >= World.gateStarRequired[3])
         {
             AnimationQueue.Enqueue(("fog", fog_area_4_image, null));
             World.HighestAreaUnlocked++;

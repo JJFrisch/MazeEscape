@@ -1061,7 +1061,8 @@
 			{#if playerMarkerNode}
 				{@const px = cx(playerMarkerNode.tile.col)}
 				{@const py = cy(playerMarkerNode.tile.row)}
-				<g class="player-marker">
+				<!-- Decorative: taps must reach the level node underneath. -->
+				<g class="player-marker" pointer-events="none">
 					<!-- Outer pulse -->
 					<circle cx={px} cy={py} r={T * 0.55} fill={worldTheme.accentColor} opacity="0.12">
 						<animate attributeName="r" values="{T*0.55};{T*0.75};{T*0.55}" dur="1.8s" repeatCount="indefinite"/>

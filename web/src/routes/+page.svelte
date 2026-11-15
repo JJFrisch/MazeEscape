@@ -673,8 +673,10 @@
 			gap: 8px;
 			max-height: none;
 		}
-		.zone-room { grid-column: 1 !important; }
-		.corridor  { display: none !important; }
+		/* :nth-child(n) matches the specificity of the two-column rules above,
+		   which otherwise keep winning and squeeze half the rooms off-grid. */
+		.zone-room:nth-child(n) { grid-column: 1 !important; grid-row: auto !important; }
+		.corridor:nth-child(n)  { display: none !important; }
 		.room-glyph { font-size: 1.25rem; margin-bottom: 6px; }
 		.map-footer-row { flex-wrap: wrap; gap: 8px; }
 		.map-footer-credit { margin-left: 0; }

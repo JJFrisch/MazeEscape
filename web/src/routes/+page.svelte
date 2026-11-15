@@ -11,7 +11,7 @@
 	const totalStars = $derived(
 		worlds.reduce((s, w) => s + gameStore.getWorldStarCount(w.worldId), 0)
 	);
-	const maxStars = $derived(worlds.reduce((s, w) => s + w.levels.length * 3, 0));
+	const maxStars = $derived(worlds.reduce((s, w) => s + w.levels.length * 5, 0));
 
 	const dailyStreak = $derived(gameStore.player.currentStreak ?? 0);
 	const coins = $derived(gameStore.player.coinCount);

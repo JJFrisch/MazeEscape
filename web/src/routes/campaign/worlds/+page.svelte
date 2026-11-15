@@ -4,7 +4,20 @@
 	import { getAllWorlds } from '$lib/core/levels';
 	import { WORLD_THEMES } from '$lib/worldThemes';
 
+	import { getWorldMapLayout } from '$lib/core/campaignMapLayout';
+
 	const worlds = getAllWorlds();
+
+	// A world opens when the previous world's portal opens: same star count and
+	// final-level rule the campaign map applies to the portal node.
+	function isPortalOpen(worldId: number): boolean {
+		const portal = getWorldMapLayout(worldId)?.nodes.find((n) => n.type === 'portal');
+		const needed = portal?.starsRequired ?? 300;
+		const finalLevelDone = portal?.levelNumber
+			? !!gameStore.getLevelProgress(worldId, portal.levelNumber)?.completed
+			: true;
+		return gameStore.getWorldStarCount(worldId) >= needed && finalLevelDone;
+	}
 </script>
 
 <svelte:head>
@@ -25,7 +38,7 @@
 		{#each worlds as world, i}
 			{@const theme = WORLD_THEMES.find((t) => t.worldId === world.worldId)}
 			{@const stars = gameStore.getWorldStarCount(world.worldId)}
-			{@const isLocked = world.locked && i > 0 && gameStore.getWorldStarCount(worlds[i - 1]?.worldId ?? 0) < 300}
+			{@const isLocked = world.locked && i > 0 && !isPortalOpen(worlds[i - 1]?.worldId ?? 0)}
 
 			<div
 				class="world-card"

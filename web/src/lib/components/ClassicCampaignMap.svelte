@@ -110,6 +110,29 @@
 		return stars >= gate.stars && gate.needs.every(reached);
 	}
 
+	const BOSS = 56;
+	const boss = $derived.by(() => {
+		const b = cfg.boss;
+		if (!b) return null;
+		const mid: Cell = [(b.between[0][0] + b.between[1][0]) / 2, (b.between[0][1] + b.between[1][1]) / 2];
+		return {
+			...b,
+			unlocked: done(b.after) && stars >= b.stars,
+			beaten: done(b.num),
+			left: left(mid, BOSS),
+			top: top(mid, BOSS)
+		};
+	});
+
+	function openBoss() {
+		if (!boss) return;
+		if (!boss.unlocked) {
+			say(done(boss.after) ? `The boss needs ${boss.stars} stars. You have ${stars}.` : `Finish level ${boss.after} to reach the boss.`);
+			return;
+		}
+		activeNode = { id: `classic-${boss.num}`, type: 'boss', levelNumber: boss.num } as MapNode;
+	}
+
 	const portalOpen = $derived(
 		(hasKey || !cfg.portal.needsKey) && done(cfg.portal.finalLevel) && stars >= cfg.portal.stars
 	);
@@ -258,6 +281,18 @@
 				</button>
 			{/each}
 
+			{#if boss}
+				<button
+					type="button"
+					class="boss"
+					class:locked={!boss.unlocked}
+					class:beaten={boss.beaten}
+					style="left: calc(var(--s) * {boss.left}px); top: calc(var(--s) * {boss.top}px);"
+					aria-label="Boss{boss.beaten ? ', beaten' : boss.unlocked ? '' : ', locked'}"
+					onclick={openBoss}
+				>☠</button>
+			{/if}
+
 			{#each treasures.filter((t) => !(t.opened && t.kind !== 'chest')) as t, i (t.id)}
 				<button
 					type="button"
@@ -393,6 +428,23 @@
 	}
 
 	.orb.locked .orb-num { color: var(--orb-locked); }
+
+	.boss {
+		position: absolute;
+		width: calc(var(--s) * 56px);
+		height: calc(var(--s) * 56px);
+		padding: 0;
+		border: calc(var(--s) * 2px) solid #fb923c;
+		border-radius: 50%;
+		background: #3a1708;
+		color: #fdba74;
+		font-size: calc(var(--s) * 30px);
+		line-height: 1;
+		cursor: pointer;
+	}
+
+	.boss.locked { border-color: #7c2d12; color: #7c2d12; cursor: default; }
+	.boss.beaten { background: #f97316; color: #3a1708; }
 
 	.treasure {
 		width: calc(var(--s) * 60px);

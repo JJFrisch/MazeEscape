@@ -67,7 +67,7 @@ const world1Nodes: MapNode[] = [
 	{ id: 'l18', type: 'level', tile: tile(4, 14), levelNumber: '18', area: 5 },
 	{ id: 'l19', type: 'level', tile: tile(6, 14), levelNumber: '19', area: 5 },
 	{ id: 'l20', type: 'level', tile: tile(8, 14), levelNumber: '20', area: 5 },
-	{ id: 'portal1', type: 'portal', tile: tile(10, 14), levelNumber: '20', starsRequired: 55, area: 5 }
+	{ id: 'portal1', type: 'portal', tile: tile(10, 14), levelNumber: '67', starsRequired: 250, area: 5 }
 ];
 
 const world1Paths: MapPathSegment[] = [

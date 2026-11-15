@@ -5,16 +5,17 @@
   scroll sideways, glowing level orbs sitting in its cells, wooden star gates,
   and fog over the areas you have not reached.
 
-  Every number here comes from CampaignPage.xaml / CampaignPage.xaml.cs. The
+  Every number here comes from CampaignPage.xaml / CampaignPage.xaml.cs as they
+  stood with the full 67 levels and 22 bonus levels (before commit ebe3396). The
   native map is a 1700 x 470 canvas holding a 20 x 5 grid; positions below are
   in those units and the whole canvas scales to the available height.
 -->
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
-	import { getWorldMapLayout } from '$lib/core/campaignMapLayout';
 	import EncounterCard from '$lib/components/EncounterCard.svelte';
 	import type { MapNode } from '$lib/core/types';
 
@@ -28,98 +29,208 @@
 	const CELL_W = (MAP_W - PAD_X * 2) / COLS;
 	const CELL_H = MAP_H / ROWS;
 	const ORB = 80;
+	const TREASURE = 60;
 
-	/** (column, row) per level, in play order. Areas 1 to 5 from the native page. */
-	const MAIN_CELLS: [number, number][] = [
-		[3, 3], [3, 2], [2, 2], [2, 1],
-		[1, 2], [1, 3], [2, 3], [2, 4],
-		[4, 4], [5, 4], [5, 3], [4, 3],
-		[5, 2], [6, 2], [6, 1], [5, 1],
-		[7, 1], [8, 1], [8, 0], [7, 0]
+	type Cell = [number, number];
+
+	/** (column, row) of every level button, per area, in the native page's order. */
+	const AREAS: { first: number; main: Cell[]; firstBonus: number; bonus: Cell[] }[] = [
+		{
+			first: 1,
+			main: [[3, 3], [3, 4], [2, 4], [2, 3], [2, 2], [1, 2], [0, 2], [0, 1], [0, 0], [1, 0], [2, 0], [3, 0], [3, 1], [3, 2]],
+			firstBonus: 1,
+			bonus: [[0, 3], [0, 4], [1, 4], [2, 1]]
+		},
+		{
+			first: 15,
+			main: [[4, 2], [4, 1], [5, 1], [5, 0], [6, 0], [6, 1], [6, 2], [5, 2], [5, 3], [4, 3], [4, 4], [5, 4], [6, 4], [7, 4]],
+			firstBonus: 5,
+			bonus: [[7, 1], [7, 2], [7, 3]]
+		},
+		{
+			first: 29,
+			main: [[8, 4], [9, 4], [9, 3], [9, 2], [8, 2], [8, 1], [9, 1], [10, 1], [10, 0], [11, 0], [12, 0], [12, 1], [11, 1], [11, 2], [12, 2]],
+			firstBonus: 8,
+			bonus: [[9, 0], [8, 0]]
+		},
+		{
+			first: 44,
+			main: [[13, 2], [14, 2], [14, 1], [13, 1], [13, 0], [14, 0], [15, 0], [15, 1], [15, 2], [16, 2], [16, 3], [16, 4]],
+			firstBonus: 10,
+			bonus: [[15, 4], [14, 4], [13, 4], [12, 4], [11, 4], [10, 4], [10, 3], [11, 3], [12, 3], [13, 3], [14, 3]]
+		},
+		{
+			first: 56,
+			main: [[17, 4], [17, 3], [18, 3], [18, 4], [19, 4], [19, 3], [19, 2], [19, 1], [18, 1], [17, 1], [17, 0], [18, 0]],
+			firstBonus: 21,
+			bonus: [[17, 2], [16, 0]]
+		}
 	];
-	const BONUS_CELLS: Record<string, [number, number]> = {
-		'4b': [1, 1],
-		'8b': [3, 4],
-		'12b': [4, 2],
-		'16b': [4, 1]
-	};
+
+	const SPOTS: { num: string; area: number; cell: Cell }[] = AREAS.flatMap((a, i) => [
+		...a.main.map((cell, k) => ({ num: String(a.first + k), area: i + 1, cell })),
+		...a.bonus.map((cell, k) => ({ num: `${a.firstBonus + k}b`, area: i + 1, cell }))
+	]);
+
+	/** The level that must be reached, and the stars needed, before each area's fog lifts. */
+	const AREA_ENTRY: { level: string; stars: number }[] = [
+		{ level: '15', stars: 30 },
+		{ level: '29', stars: 80 },
+		{ level: '44', stars: 120 },
+		{ level: '56', stars: 200 }
+	];
+
+	const KEY_ID = 'classic_k1';
+	const FINAL_LEVEL = '67';
+	const PORTAL_STARS = 250;
 
 	interface Gate {
 		x: number; y: number; w: number; h: number;
 		rotate: number;
-		labelX: number; labelY: number;
-		/** Level that must be reachable before the gate opens; null = the world portal. */
-		opensFor: string | null;
+		stars: number;
+		small?: boolean;
+		/** Levels that must be reached before the gate opens. */
+		needs: string[];
+		/** The last gate also needs the key and the final level. */
+		final?: boolean;
 	}
 	const GATES: Gate[] = [
-		{ x: 24, y: 243, w: 35, h: 80, rotate: 270, labelX: 38.5, labelY: 274.5, opensFor: '5' },
-		{ x: 235, y: 91, w: 35, h: 98, rotate: 0, labelX: 250, labelY: 130.5, opensFor: '9' },
-		{ x: 319, y: 187, w: 35, h: 98, rotate: 0, labelX: 334.2, labelY: 225.5, opensFor: '13' },
-		{ x: 570, y: 94, w: 55, h: 96, rotate: 0, labelX: 589.2, labelY: 130.5, opensFor: '17' },
-		{ x: 654.5, y: 375, w: 55, h: 96, rotate: 0, labelX: 674.5, labelY: 412.5, opensFor: null }
+		{ x: 24, y: 243, w: 35, h: 80, rotate: 270, stars: 20, needs: ['1b'] },
+		{ x: 235, y: 91, w: 35, h: 98, rotate: 0, stars: 45, needs: ['4b'] },
+		{ x: 319, y: 187, w: 35, h: 98, rotate: 0, stars: 30, needs: ['15'] },
+		{ x: 570, y: 94, w: 55, h: 96, rotate: 0, stars: 60, needs: ['5b'] },
+		{ x: 654.5, y: 375, w: 55, h: 96, rotate: 0, stars: 80, needs: ['29'] },
+		{ x: 824, y: 0, w: 55, h: 96, rotate: 0, stars: 100, small: true, needs: ['8b'] },
+		{ x: 1078, y: 188, w: 55, h: 96, rotate: 0, stars: 120, small: true, needs: ['44'] },
+		{ x: 1332.5, y: 375, w: 55, h: 96, rotate: 0, stars: 150, small: true, needs: ['10b'] },
+		{ x: 1419, y: 375, w: 55, h: 96, rotate: 0, stars: 200, small: true, needs: ['56'] },
+		{ x: 1460, y: 145, w: 55, h: 88, rotate: 270, stars: 230, small: true, needs: ['21b'] },
+		{ x: 1418.5, y: 0, w: 55, h: 96, rotate: 0, stars: 240, small: true, needs: ['22b'] },
+		{ x: 1585.5, y: 0, w: 55, h: 96, rotate: 0, stars: 0, small: true, needs: [], final: true }
 	];
 
-	/** Width of the fog bank (anchored to the right edge) while each area is the furthest reached. */
-	const FOG_WIDTH: Record<number, number> = { 1: 1360, 2: 1020, 3: 590, 4: 248 };
+	/** Fog banks, anchored to the right edge. Bank n stays until area n + 1 opens, so they stack. */
+	const FOG_WIDTHS = [1360, 1020, 590, 248];
+
+	/** Treasure at the end of each side passage: (column, row) and the level that leads to it. */
+	const TREASURES: { id: string; cell: Cell; after: string; key?: boolean }[] = [
+		{ id: 'c1', cell: [1, 3], after: '3b' },
+		{ id: 'c2', cell: [1, 1], after: '4b' },
+		{ id: 'c3', cell: [4, 0], after: '18' },
+		{ id: 'c4', cell: [6, 3], after: '7b' },
+		{ id: 'c5', cell: [8, 3], after: '33' },
+		{ id: 'c6', cell: [7, 0], after: '9b' },
+		{ id: 'c7', cell: [10, 2], after: '16b' },
+		{ id: 'c8', cell: [15, 3], after: '20b', key: true },
+		{ id: 'c9', cell: [18, 2], after: '21b' },
+		{ id: 'c10', cell: [16, 1], after: '22b' }
+	];
+	const PORTAL_CELL: Cell = [19, 0];
 
 	const worldDef = $derived(getAllWorlds().find((w) => w.worldId === worldId));
 	const levels = $derived(worldDef?.levels ?? []);
-	const webLayout = $derived(getWorldMapLayout(worldId));
 	const stars = $derived(gameStore.getWorldStarCount(worldId));
-	const highestArea = $derived(gameStore.getHighestAreaUnlocked(worldId));
-	const portalNode = $derived(webLayout?.nodes.find((n) => n.type === 'portal'));
-	const gateStars = $derived([
-		...(worldDef?.gateStarRequired ?? []),
-		portalNode?.starsRequired ?? 0
-	]);
 
 	function progress(num: string) {
 		return gameStore.getLevelProgress(worldId, num);
 	}
 
+	function done(num: string): boolean {
+		return !!progress(num)?.completed;
+	}
+
+	/** A level is reached once the level leading to it is finished. */
+	function reached(num: string): boolean {
+		if (num === '1') return true;
+		return levels.some((l) => (l.connectTo1 === num || l.connectTo2 === num) && done(l.levelNumber));
+	}
+
 	function isUnlocked(num: string): boolean {
 		const def = levels.find((l) => l.levelNumber === num);
 		if (!def) return false;
-		if (stars < (def.minimumStarsToUnlock ?? 0)) return false;
-		if (num === '1') return true;
-		return levels.some(
-			(l) => progress(l.levelNumber)?.completed && (l.connectTo1 === num || l.connectTo2 === num)
-		);
+		return reached(num) && stars >= (def.minimumStarsToUnlock ?? 0);
 	}
 
+	const highestArea = $derived.by(() => {
+		let area = 1;
+		for (const entry of AREA_ENTRY) {
+			if (!reached(entry.level) || stars < entry.stars) break;
+			area++;
+		}
+		return area;
+	});
+
+	function left(cell: Cell, size: number): number {
+		return PAD_X + (cell[0] + 0.5) * CELL_W - size / 2;
+	}
+	function top(cell: Cell, size: number): number {
+		return (cell[1] + 0.5) * CELL_H - size / 2;
+	}
+
+	// The native page only draws the buttons of areas that are out of the fog.
 	const orbs = $derived(
-		levels
-			.map((level) => {
-				const num = level.levelNumber;
-				const bonus = num.includes('b');
-				const cell = bonus ? BONUS_CELLS[num] : MAIN_CELLS[parseInt(num) - 1];
-				if (!cell) return null;
-				const unlocked = isUnlocked(num);
-				const earned = progress(num)?.numberOfStars ?? 0;
-				// The native orb art carries up to three stars; the web game awards up to five.
-				const icon = unlocked ? `${bonus ? 'bonus' : 'level'}_${Math.min(earned, 3)}` : `${bonus ? 'bonus' : 'level'}_locked`;
-				return {
-					num, bonus, unlocked, earned, icon,
-					left: PAD_X + (cell[0] + 0.5) * CELL_W - ORB / 2,
-					top: (cell[1] + 0.5) * CELL_H - ORB / 2
-				};
-			})
-			.filter((o): o is NonNullable<typeof o> => o !== null)
+		SPOTS.filter((s) => s.area <= highestArea).map((s) => {
+			const bonus = s.num.includes('b');
+			const unlocked = isUnlocked(s.num);
+			const earned = progress(s.num)?.numberOfStars ?? 0;
+			const kind = bonus ? 'bonus' : 'level';
+			return {
+				num: s.num, bonus, unlocked, earned,
+				icon: unlocked ? `${kind}_${Math.min(earned, 3)}` : `${kind}_locked`,
+				left: left(s.cell, ORB),
+				top: top(s.cell, ORB)
+			};
+		})
 	);
 
-	function gateOpen(i: number): boolean {
-		const gate = GATES[i];
-		if (stars < (gateStars[i] ?? 0)) return false;
-		if (gate.opensFor) return isUnlocked(gate.opensFor);
-		const last = portalNode?.levelNumber;
-		return last ? !!progress(last)?.completed : true;
+	/** The furthest main level that can be played; it pulses, as in the native app. */
+	const currentNum = $derived(
+		orbs.filter((o) => !o.bonus && o.unlocked).reduce((best, o) => (parseInt(o.num) > parseInt(best) ? o.num : best), '1')
+	);
+
+	// Collected map items live in storage, which is not reactive; bump this to re-read them.
+	let itemsVersion = $state(0);
+	function collected(id: string): boolean {
+		void itemsVersion;
+		return gameStore.isMapItemCollected(worldId, id);
 	}
 
-	const fogWidth = $derived(FOG_WIDTH[highestArea] ?? 0);
+	const hasKey = $derived(collected(KEY_ID));
+
+	function gateOpen(gate: Gate): boolean {
+		if (gate.final) return hasKey && done(FINAL_LEVEL);
+		return stars >= gate.stars && gate.needs.every(reached);
+	}
+
+	const portalOpen = $derived(hasKey && done(FINAL_LEVEL) && stars >= PORTAL_STARS);
+
+	const treasures = $derived(
+		TREASURES.filter((t) => !(t.key && hasKey)).map((t) => {
+			const opened = collected(`classic_${t.id}`);
+			return {
+				...t,
+				opened,
+				ready: done(t.after) && !opened,
+				left: left(t.cell, TREASURE),
+				top: top(t.cell, TREASURE)
+			};
+		})
+	);
 
 	// ── Scale the native canvas to the height we are given ──────────────────
 	let viewportH = $state(0);
+	let scroller = $state<HTMLDivElement | null>(null);
 	const scale = $derived(viewportH > 0 ? viewportH / MAP_H : 1);
+
+	onMount(() => {
+		// Open on the level the player is up to.
+		requestAnimationFrame(() => {
+			const spot = SPOTS.find((s) => s.num === currentNum);
+			if (!scroller || !spot) return;
+			const x = (PAD_X + (spot.cell[0] + 0.5) * CELL_W) * scale;
+			scroller.scrollLeft = Math.max(0, x - scroller.clientWidth / 2);
+		});
+	});
 
 	// ── Interaction ─────────────────────────────────────────────────────────
 	let activeNode = $state<MapNode | null>(null);
@@ -128,6 +239,7 @@
 	);
 	let notice = $state('');
 	let noticeTimer: ReturnType<typeof setTimeout> | undefined;
+	let lastPrize = $state<{ id: string; coins: number } | null>(null);
 
 	function say(text: string) {
 		notice = text;
@@ -137,39 +249,83 @@
 
 	function openLevel(num: string) {
 		if (!isUnlocked(num)) {
-			const def = levels.find((l) => l.levelNumber === num);
-			const need = def?.minimumStarsToUnlock ?? 0;
-			say(need > stars ? `Level ${num} needs ${need} stars. You have ${stars}.` : `Finish the level before ${num} first.`);
+			const need = levels.find((l) => l.levelNumber === num)?.minimumStarsToUnlock ?? 0;
+			say(reached(num) && need > stars ? `Level ${num} needs ${need} stars. You have ${stars}.` : `Finish the level before ${num} first.`);
 			return;
 		}
-		activeNode =
-			webLayout?.nodes.find((n) => n.levelNumber === num) ??
-			({ id: `classic-${num}`, type: num.includes('b') ? 'bonus_level' : 'level', levelNumber: num } as MapNode);
+		activeNode = { id: `classic-${num}`, type: num.includes('b') ? 'bonus_level' : 'level', levelNumber: num } as MapNode;
 	}
 
-	function pressGate(i: number) {
-		const need = gateStars[i] ?? 0;
-		if (!gateOpen(i)) {
-			say(stars < need ? `This gate needs ${need} stars. You have ${stars}.` : 'Finish the levels before this gate first.');
+	function pressGate(gate: Gate) {
+		if (gateOpen(gate)) return;
+		if (gate.final) say('This gate needs the key and the last level.');
+		else say(stars < gate.stars ? `This gate needs ${gate.stars} stars. You have ${stars}.` : 'Finish the levels before this gate first.');
+	}
+
+	function openTreasure(t: (typeof treasures)[number]) {
+		if (!t.ready) {
+			if (!t.opened) say(`Finish level ${t.after} to reach this.`);
 			return;
 		}
-		if (GATES[i].opensFor === null) void goto(`${base}/campaign/worlds/${worldId + 1}`);
-		else say('Gate open.');
+		gameStore.collectMapItem(worldId, t.key ? KEY_ID : `classic_${t.id}`);
+		itemsVersion++;
+		if (t.key) {
+			say('Key found.');
+			return;
+		}
+		// The native chest pays a random 100 to 999 coins.
+		const coins = 100 + Math.floor(Math.random() * 900);
+		gameStore.addCoins(coins);
+		lastPrize = { id: t.id, coins };
+	}
+
+	function pressPortal() {
+		if (portalOpen) void goto(`${base}/campaign/worlds/${worldId + 1}`);
+		else if (!done(FINAL_LEVEL) || !hasKey) say('The portal needs the key and the last level.');
+		else say(`The portal needs ${PORTAL_STARS} stars. You have ${stars}.`);
 	}
 </script>
 
 <div class="classic" style="background-image: url('{base}/images/background_blue_1.png');">
-	<div class="scroller" bind:clientHeight={viewportH}>
+	<div class="scroller" bind:this={scroller} bind:clientHeight={viewportH}>
 		<div class="canvas" style="--s: {scale}; width: {MAP_W * scale}px; height: {MAP_H * scale}px;">
 			<img class="maze" src="{base}/images/classic/campaign_background_1.png" alt="" draggable="false" />
+
+			{#each GATES as gate, i}
+				{@const open = gateOpen(gate)}
+				<button
+					type="button"
+					class="gate"
+					style="left: calc(var(--s) * {gate.x}px); top: calc(var(--s) * {gate.y}px); width: calc(var(--s) * {gate.w}px); height: calc(var(--s) * {gate.h}px); transform: rotate({gate.rotate}deg);"
+					aria-label={open ? 'Open gate' : gate.final ? 'Gate, needs the key' : `Gate, needs ${gate.stars} stars`}
+					onclick={() => pressGate(gate)}
+				>
+					<img src="{base}/images/classic/{open ? 'gate_opened' : 'gate4'}.png" alt="" draggable="false" />
+				</button>
+				{#if !open}
+					<span
+						class="gate-label"
+						class:small={gate.small}
+						style="left: calc(var(--s) * {gate.x + gate.w / 2}px); top: calc(var(--s) * {gate.y + gate.h / 2}px);"
+						aria-hidden="true"
+					>
+						{#if gate.final}
+							<img src="{base}/images/classic/key6.png" alt="" draggable="false" />
+						{:else}
+							{gate.stars}
+						{/if}
+					</span>
+				{/if}
+			{/each}
 
 			{#each orbs as orb (orb.num)}
 				<button
 					type="button"
 					class="orb"
 					class:locked={!orb.unlocked}
+					class:current={orb.num === currentNum}
 					style="left: calc(var(--s) * {orb.left}px); top: calc(var(--s) * {orb.top}px);"
-					aria-label="{orb.bonus ? 'Bonus level' : 'Level'} {orb.num}{orb.unlocked ? `, ${orb.earned} of 5 stars` : ', locked'}"
+					aria-label="{orb.bonus ? 'Bonus level' : 'Level'} {orb.num}{orb.unlocked ? `, ${orb.earned} stars` : ', locked'}"
 					onclick={() => openLevel(orb.num)}
 				>
 					<img src="{base}/images/classic/{orb.icon}.png" alt="" draggable="false" />
@@ -179,42 +335,55 @@
 				</button>
 			{/each}
 
-			{#each GATES as gate, i}
-				{@const open = gateOpen(i)}
+			{#each treasures as t, i (t.id)}
 				<button
 					type="button"
-					class="gate"
-					style="left: calc(var(--s) * {gate.x}px); top: calc(var(--s) * {gate.y}px); width: calc(var(--s) * {gate.w}px); height: calc(var(--s) * {gate.h}px); transform: rotate({gate.rotate}deg);"
-					aria-label="{open ? 'Open gate' : `Gate, needs ${gateStars[i] ?? 0} stars`}"
-					onclick={() => pressGate(i)}
+					class="treasure"
+					class:wobble={!t.opened}
+					style="left: calc(var(--s) * {t.left}px); top: calc(var(--s) * {t.top}px); --delay: {(i * 1.7) % 9}s;"
+					aria-label={t.key ? 'Key' : t.opened ? 'Opened chest' : 'Chest'}
+					onclick={() => openTreasure(t)}
 				>
-					<img src="{base}/images/classic/{open ? 'gate_opened' : 'gate4'}.png" alt="" draggable="false" />
+					<img
+						src="{base}/images/{t.key ? 'classic/key6' : lastPrize?.id === t.id ? 'classic/coin_pile' : t.opened ? 'classic/opened_chest' : 'chest'}.png"
+						alt=""
+						draggable="false"
+					/>
+					{#if lastPrize?.id === t.id}
+						<span class="prize">{lastPrize.coins}</span>
+					{/if}
 				</button>
-				{#if !open}
-					<span
-						class="gate-label"
-						style="left: calc(var(--s) * {gate.labelX}px); top: calc(var(--s) * {gate.labelY}px);"
-						aria-hidden="true"
-					>{gateStars[i] ?? ''}</span>
-				{/if}
 			{/each}
 
-			{#if fogWidth > 0}
-				<img
-					class="fog"
-					src="{base}/images/classic/fog.png"
-					alt=""
-					draggable="false"
-					style="width: calc(var(--s) * {fogWidth}px);"
-				/>
-			{/if}
+			<button
+				type="button"
+				class="portal"
+				class:shut={!portalOpen}
+				style="left: calc(var(--s) * {left(PORTAL_CELL, 40)}px); top: calc(var(--s) * {top(PORTAL_CELL, 60)}px);"
+				aria-label={portalOpen ? 'Portal to the next world' : 'Portal, closed'}
+				onclick={pressPortal}
+			>
+				<img src="{base}/images/portal_purple.gif" alt="" draggable="false" />
+			</button>
+
+			{#each FOG_WIDTHS as width, i}
+				{#if highestArea <= i + 1}
+					<img
+						class="fog"
+						src="{base}/images/classic/fog.png"
+						alt=""
+						draggable="false"
+						style="width: calc(var(--s) * {width}px);"
+					/>
+				{/if}
+			{/each}
 		</div>
 	</div>
 
 	<nav class="dock" aria-label="Campaign shortcuts" style="background-image: url('{base}/images/classic/background_blue_3.png');">
 		<div class="dock-bar">
 			<a href="{base}/equip" aria-label="Equip"><img src="{base}/images/classic/toolkit.png" alt="" /></a>
-			<a href="{base}/" aria-label="Home"><img src="{base}/images/classic/home_button_icon.png" alt="" /></a>
+			<a href="{base}/campaign/worlds" aria-label="All worlds"><img src="{base}/images/classic/home_button_icon.png" alt="" /></a>
 			<a href="{base}/shop" aria-label="Shop"><img src="{base}/images/classic/shop_button_image.png" alt="" /></a>
 		</div>
 	</nav>
@@ -263,7 +432,9 @@
 	}
 
 	.orb,
-	.gate {
+	.gate,
+	.treasure,
+	.portal {
 		position: absolute;
 		padding: 0;
 		border: 0;
@@ -278,7 +449,9 @@
 	}
 
 	.orb img,
-	.gate img {
+	.gate img,
+	.treasure img,
+	.portal img {
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
@@ -295,20 +468,76 @@
 		inset: 0;
 		display: grid;
 		place-items: center;
-		color: #d3d3d3;
+		color: #fff;
 		font-size: calc(var(--s) * 16px);
 		pointer-events: none;
+	}
+
+	.orb.locked .orb-num { color: #d3d3d3; }
+
+	.treasure {
+		width: calc(var(--s) * 60px);
+		height: calc(var(--s) * 60px);
+	}
+
+	.portal {
+		width: calc(var(--s) * 40px);
+		height: calc(var(--s) * 60px);
+		border: 1px solid #000;
+		border-radius: 50%;
+		overflow: hidden;
+	}
+
+	.portal img { object-fit: fill; }
+	.portal.shut { cursor: default; }
+
+	.prize {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: calc(var(--s) * -14px);
+		color: gold;
+		font-weight: 700;
+		font-size: calc(var(--s) * 16px);
+		text-align: center;
+		text-shadow: 0 1px 2px #000;
+		pointer-events: none;
+	}
+
+	@media (prefers-reduced-motion: no-preference) {
+		.orb.current { animation: orb-pulse 2s ease-in-out infinite; }
+		.treasure.wobble img { animation: chest-wobble 9s ease-in-out var(--delay, 0s) infinite; }
+	}
+
+	@keyframes orb-pulse {
+		0%, 100% { transform: scale(1); opacity: 0.7; }
+		50% { transform: scale(1.1); opacity: 1; }
+	}
+
+	@keyframes chest-wobble {
+		0%, 78%, 100% { transform: rotate(0deg); }
+		83% { transform: rotate(10deg); }
+		92% { transform: rotate(-10deg); }
 	}
 
 	.gate:hover { opacity: 0.85; }
 
 	.gate-label {
 		position: absolute;
+		transform: translate(-50%, -50%);
 		color: gold;
 		font-weight: 700;
 		font-size: calc(var(--s) * 12px);
 		line-height: 1;
 		pointer-events: none;
+	}
+
+	.gate-label.small { font-size: calc(var(--s) * 9px); }
+
+	.gate-label img {
+		display: block;
+		width: calc(var(--s) * 20px);
+		height: calc(var(--s) * 20px);
 	}
 
 	.fog {

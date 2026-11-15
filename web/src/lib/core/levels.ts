@@ -74,68 +74,124 @@ function buildLevel(def: LevelDef, id: number): CampaignLevel {
 }
 
 // ---------------------------------------------------------------------------
-// World 1: Cybernetic Labyrinths, Pathbound structure (20 normal, 4 bonus)
+// World 1: Cybernetic Labyrinths (67 levels, 22 bonus levels)
+// Sizes, generators, connections and star gates are the native app's
+// InitializeWorld1Levels(). The native app derives star thresholds from each
+// generated maze's path length; here they are estimated from the grid area.
 // ---------------------------------------------------------------------------
 const world1Defs: LevelDef[] = [
-	{ num: '1', w: 20, h: 20, type: 'huntAndKill', archetype: 'Grid Intro', feel: 'Welcoming, readable, and confidence-building.', targetClearTimeSec: 45, twoStar: 110, threeStar: 55 },
-	{ num: '2', w: 22, h: 20, type: 'kruskals', archetype: 'City Blocks', feel: 'Brisk lanes and tidy decisions.', targetClearTimeSec: 55, twoStar: 120, threeStar: 60 },
-	{ num: '3', w: 22, h: 22, type: 'growingTree_50_50', archetype: 'Organic Light', feel: 'Softer flow with light wandering.', targetClearTimeSec: 60, twoStar: 130, threeStar: 65 },
-	{ num: '4', w: 24, h: 22, type: 'growingTree_50_0', archetype: 'Banded Horizontal', feel: 'First real choke points and route planning.', targetClearTimeSec: 75, twoStar: 140, threeStar: 75, connects: ['4b'] },
-	{ num: '4b', w: 21, h: 21, type: 'kruskals', archetype: 'Donut Reset', feel: 'A celebratory ring-like palate cleanser.', targetClearTimeSec: 65, twoStar: 120, threeStar: 65, shape: 'circular', connects: ['5'] },
+	// Area 1
+	{ num: '1', w: 5, h: 5, type: 'huntAndKill', twoStar: 26, threeStar: 20, connects: ['2'] },
+	{ num: '2', w: 6, h: 6, type: 'kruskals', twoStar: 33, threeStar: 23, connects: ['3'] },
+	{ num: '3', w: 6, h: 6, type: 'prims', twoStar: 33, threeStar: 23, connects: ['4'] },
+	{ num: '4', w: 8, h: 8, type: 'growingTree_50_0', twoStar: 52, threeStar: 31, connects: ['5'] },
+	{ num: '5', w: 8, h: 8, type: 'growingTree_50_50', twoStar: 52, threeStar: 31, connects: ['6'] },
+	{ num: '6', w: 8, h: 8, type: 'growingTree_75_25', twoStar: 52, threeStar: 31, connects: ['7'] },
+	{ num: '7', w: 8, h: 8, type: 'growingTree_25_75', twoStar: 52, threeStar: 31, connects: ['8', '1b'] },
+	{ num: '8', w: 10, h: 12, type: 'prims', twoStar: 88, threeStar: 43, connects: ['9'] },
+	{ num: '9', w: 12, h: 10, type: 'growingTree_25_75', twoStar: 88, threeStar: 43, connects: ['10'] },
+	{ num: '10', w: 11, h: 11, type: 'backtracking', twoStar: 89, threeStar: 43, connects: ['11'] },
+	{ num: '11', w: 12, h: 10, type: 'growingTree_50_0', twoStar: 88, threeStar: 43, connects: ['12'] },
+	{ num: '12', w: 10, h: 12, type: 'growingTree_75_25', twoStar: 88, threeStar: 43, connects: ['13'] },
+	{ num: '13', w: 11, h: 11, type: 'kruskals', twoStar: 89, threeStar: 43, connects: ['14', '4b'] },
+	{ num: '14', w: 14, h: 9, type: 'growingTree_50_50', twoStar: 92, threeStar: 44, connects: ['15'] },
 
-	{ num: '5', w: 24, h: 24, type: 'kruskals', archetype: 'Hub and Spoke', feel: 'A center landmark teaches reorientation.', targetClearTimeSec: 85, twoStar: 155, threeStar: 85, minStars: 6 },
-	{ num: '6', w: 26, h: 24, type: 'growingTree_25_75', archetype: 'Organic Winding', feel: 'Longer commitments, still fair.', targetClearTimeSec: 95, twoStar: 170, threeStar: 95 },
-	{ num: '7', w: 26, h: 26, type: 'prims', archetype: 'Radial Light', feel: 'Circular pull with readable macro-structure.', targetClearTimeSec: 105, twoStar: 185, threeStar: 105 },
-	{ num: '8', w: 28, h: 24, type: 'prims', archetype: 'Dense Grid', feel: 'Active decision density without punishment spikes.', targetClearTimeSec: 115, twoStar: 195, threeStar: 115, connects: ['8b'] },
-	{ num: '8b', w: 24, h: 22, type: 'growingTree_75_25', archetype: 'Crescent Reset', feel: 'A softer exploratory detour after density.', targetClearTimeSec: 85, twoStar: 155, threeStar: 85, shape: 'triangular', connects: ['9'] },
+	// Area 1 bonus levels
+	{ num: '1b', w: 15, h: 12, type: 'growingTree_50_0', twoStar: 127, threeStar: 52, connects: ['2b'], minStars: 20 },
+	{ num: '2b', w: 15, h: 15, type: 'backtracking', twoStar: 156, threeStar: 59, connects: ['3b'] },
+	{ num: '3b', w: 14, h: 15, type: 'growingTree_75_25', twoStar: 147, threeStar: 57, connects: [] },
+	{ num: '4b', w: 18, h: 12, type: 'kruskals', twoStar: 150, threeStar: 57, connects: [], minStars: 45 },
 
-	{ num: '9', w: 28, h: 26, type: 'huntAndKill', archetype: 'Cavern Rectangle', feel: 'Moodier flow and mild uncertainty.', targetClearTimeSec: 130, twoStar: 215, threeStar: 130, minStars: 15 },
-	{ num: '10', w: 30, h: 26, type: 'growingTree_50_0', archetype: 'Banded Vertical', feel: 'Macro-navigation starts to matter.', targetClearTimeSec: 145, twoStar: 230, threeStar: 145 },
-	{ num: '11', w: 30, h: 28, type: 'backtracking', archetype: 'Spiral Pressure', feel: 'Draws the player inward, tense but legible.', targetClearTimeSec: 160, twoStar: 245, threeStar: 160 },
-	{ num: '12', w: 32, h: 28, type: 'kruskals', archetype: 'Hub plus Ring', feel: 'A mid-world boss structure with multiple good routes.', targetClearTimeSec: 175, twoStar: 260, threeStar: 175, connects: ['12b'] },
-	{ num: '12b', w: 27, h: 27, type: 'prims', archetype: 'Clover Reset', feel: 'Strong landmarking and low-friction exploration.', targetClearTimeSec: 105, twoStar: 200, threeStar: 105, shape: 'hexagonal', connects: ['13'] },
+	// Area 2
+	{ num: '15', w: 15, h: 15, type: 'kruskals', twoStar: 156, threeStar: 59, connects: ['16'], minStars: 30 },
+	{ num: '16', w: 14, h: 16, type: 'growingTree_50_0', twoStar: 156, threeStar: 58, connects: ['17'] },
+	{ num: '17', w: 16, h: 14, type: 'huntAndKill', twoStar: 156, threeStar: 58, connects: ['18'] },
+	{ num: '18', w: 13, h: 16, type: 'prims', twoStar: 145, threeStar: 56, connects: ['19'] },
+	{ num: '19', w: 16, h: 13, type: 'growingTree_50_50', twoStar: 145, threeStar: 56, connects: ['20'] },
+	{ num: '20', w: 15, h: 15, type: 'backtracking', twoStar: 156, threeStar: 59, connects: ['21', '5b'] },
+	{ num: '21', w: 15, h: 15, type: 'kruskals', twoStar: 156, threeStar: 59, connects: ['22'] },
+	{ num: '22', w: 17, h: 13, type: 'growingTree_75_25', twoStar: 154, threeStar: 58, connects: ['23'] },
+	{ num: '23', w: 17, h: 17, type: 'growingTree_50_0', twoStar: 198, threeStar: 66, connects: ['24'] },
+	{ num: '24', w: 16, h: 18, type: 'prims', twoStar: 197, threeStar: 66, connects: ['25'] },
+	{ num: '25', w: 17, h: 16, type: 'growingTree_50_50', twoStar: 187, threeStar: 64, connects: ['26'] },
+	{ num: '26', w: 16, h: 18, type: 'huntAndKill', twoStar: 197, threeStar: 66, connects: ['27'] },
+	{ num: '27', w: 15, h: 19, type: 'backtracking', twoStar: 195, threeStar: 66, connects: ['28'] },
+	{ num: '28', w: 23, h: 15, type: 'huntAndKill', twoStar: 234, threeStar: 72, connects: ['29'] },
 
-	{ num: '13', w: 32, h: 30, type: 'growingTree_50_50', archetype: 'Asymmetric Grid', feel: 'Clever route reading with less symmetry.', targetClearTimeSec: 190, twoStar: 280, threeStar: 190, minStars: 27 },
-	{ num: '14', w: 34, h: 30, type: 'kruskals', archetype: 'Radial Hub', feel: 'A strong center with deceptive spokes.', targetClearTimeSec: 205, twoStar: 300, threeStar: 205 },
-	{ num: '15', w: 34, h: 32, type: 'growingTree_25_75', archetype: 'Braided Organic', feel: 'Dense but forgiving, with recoverable mistakes.', targetClearTimeSec: 220, twoStar: 320, threeStar: 220 },
-	{ num: '16', w: 36, h: 32, type: 'growingTree_75_25', archetype: 'Banded Pockets', feel: 'Layered districts and expedition pacing.', targetClearTimeSec: 235, twoStar: 340, threeStar: 235, connects: ['16b'] },
-	{ num: '16b', w: 30, h: 28, type: 'backtracking', archetype: 'Broken Spiral Reset', feel: 'Short spectacle before the final climb.', targetClearTimeSec: 120, twoStar: 250, threeStar: 120, shape: 'circular', connects: ['17'] },
+	// Area 2 bonus levels
+	{ num: '5b', w: 20, h: 12, type: 'huntAndKill', twoStar: 166, threeStar: 60, connects: ['6b'], minStars: 60 },
+	{ num: '6b', w: 12, h: 20, type: 'prims', twoStar: 166, threeStar: 60, connects: ['7b'] },
+	{ num: '7b', w: 20, h: 16, type: 'kruskals', twoStar: 218, threeStar: 70, connects: [] },
 
-	{ num: '17', w: 36, h: 34, type: 'backtracking', archetype: 'Spiral Capstone', feel: 'Large, dramatic, and still readable by shape.', targetClearTimeSec: 250, twoStar: 360, threeStar: 250, minStars: 42 },
-	{ num: '18', w: 38, h: 34, type: 'growingTree_50_50', archetype: 'Hybrid Grid and Organic', feel: 'A mastery test in mixed navigation styles.', targetClearTimeSec: 265, twoStar: 385, threeStar: 265 },
-	{ num: '19', w: 40, h: 34, type: 'kruskals', archetype: 'Fortress Hub', feel: 'Sector-based navigation and longer commitments.', targetClearTimeSec: 280, twoStar: 410, threeStar: 280 },
-	{ num: '20', w: 42, h: 36, type: 'backtracking', archetype: 'Capstone Hybrid', feel: 'Epic, earned, and clearly structured final climb.', targetClearTimeSec: 300, twoStar: 435, threeStar: 300, connects: [] }
+	// Area 3
+	{ num: '29', w: 19, h: 19, type: 'growingTree_75_25', twoStar: 245, threeStar: 74, connects: ['30'], minStars: 80 },
+	{ num: '30', w: 17, h: 20, type: 'kruskals', twoStar: 231, threeStar: 72, connects: ['31'] },
+	{ num: '31', w: 21, h: 20, type: 'prims', twoStar: 283, threeStar: 80, connects: ['32'] },
+	{ num: '32', w: 22, h: 20, type: 'growingTree_50_0', twoStar: 296, threeStar: 82, connects: ['33'] },
+	{ num: '33', w: 22, h: 20, type: 'backtracking', twoStar: 296, threeStar: 82, connects: ['34'] },
+	{ num: '34', w: 23, h: 22, type: 'growingTree_75_25', twoStar: 339, threeStar: 88, connects: ['35'] },
+	{ num: '35', w: 24, h: 23, type: 'growingTree_50_50', twoStar: 369, threeStar: 92, connects: ['36'] },
+	{ num: '36', w: 25, h: 22, type: 'growingTree_25_75', twoStar: 368, threeStar: 91, connects: ['37'] },
+	{ num: '37', w: 21, h: 25, type: 'kruskals', twoStar: 351, threeStar: 89, connects: ['38', '8b'] },
+	{ num: '38', w: 22, h: 26, type: 'prims', twoStar: 382, threeStar: 93, connects: ['39'] },
+	{ num: '39', w: 23, h: 24, type: 'huntAndKill', twoStar: 369, threeStar: 92, connects: ['40'] },
+	{ num: '40', w: 22, h: 18, type: 'growingTree_75_25', twoStar: 267, threeStar: 78, connects: ['41'] },
+	{ num: '41', w: 21, h: 25, type: 'growingTree_50_50', twoStar: 351, threeStar: 89, connects: ['42'] },
+	{ num: '42', w: 24, h: 23, type: 'huntAndKill', twoStar: 369, threeStar: 92, connects: ['43'] },
+	{ num: '43', w: 25, h: 25, type: 'prims', twoStar: 416, threeStar: 98, connects: ['44'] },
+
+	// Area 3 bonus levels
+	{ num: '8b', w: 20, h: 12, type: 'kruskals', twoStar: 166, threeStar: 60, connects: ['9b'], minStars: 100 },
+	{ num: '9b', w: 20, h: 12, type: 'huntAndKill', twoStar: 166, threeStar: 60, connects: [] },
+
+	// Area 4
+	{ num: '44', w: 26, h: 21, type: 'growingTree_25_75', twoStar: 365, threeStar: 91, connects: ['45'], minStars: 120 },
+	{ num: '45', w: 26, h: 26, type: 'huntAndKill', twoStar: 449, threeStar: 101, connects: ['46'] },
+	{ num: '46', w: 27, h: 26, type: 'prims', twoStar: 466, threeStar: 103, connects: ['47'] },
+	{ num: '47', w: 26, h: 27, type: 'growingTree_75_25', twoStar: 466, threeStar: 103, connects: ['48'] },
+	{ num: '48', w: 22, h: 20, type: 'kruskals', twoStar: 296, threeStar: 82, connects: ['49'] },
+	{ num: '49', w: 25, h: 27, type: 'growingTree_50_50', twoStar: 449, threeStar: 101, connects: ['50'] },
+	{ num: '50', w: 25, h: 27, type: 'prims', twoStar: 449, threeStar: 101, connects: ['51'] },
+	{ num: '51', w: 26, h: 24, type: 'growingTree_75_25', twoStar: 416, threeStar: 97, connects: ['52'] },
+	{ num: '52', w: 27, h: 25, type: 'kruskals', twoStar: 449, threeStar: 101, connects: ['53'] },
+	{ num: '53', w: 28, h: 26, type: 'huntAndKill', twoStar: 483, threeStar: 105, connects: ['54'] },
+	{ num: '54', w: 27, h: 25, type: 'growingTree_50_50', twoStar: 449, threeStar: 101, connects: ['55'] },
+	{ num: '55', w: 28, h: 28, type: 'kruskals', twoStar: 520, threeStar: 109, connects: ['56', '10b'] },
+
+	// Area 4 bonus levels
+	{ num: '10b', w: 22, h: 26, type: 'kruskals', twoStar: 382, threeStar: 93, connects: ['11b'], minStars: 150 },
+	{ num: '11b', w: 23, h: 23, type: 'growingTree_75_25', twoStar: 354, threeStar: 90, connects: ['12b'] },
+	{ num: '12b', w: 24, h: 24, type: 'growingTree_50_50', twoStar: 384, threeStar: 94, connects: ['13b'] },
+	{ num: '13b', w: 25, h: 25, type: 'prims', twoStar: 416, threeStar: 98, connects: ['14b'] },
+	{ num: '14b', w: 20, h: 25, type: 'growingTree_25_75', twoStar: 335, threeStar: 87, connects: ['15b'] },
+	{ num: '15b', w: 26, h: 26, type: 'kruskals', twoStar: 449, threeStar: 101, connects: ['16b'] },
+	{ num: '16b', w: 27, h: 24, type: 'backtracking', twoStar: 431, threeStar: 99, connects: ['17b'] },
+	{ num: '17b', w: 22, h: 27, type: 'huntAndKill', twoStar: 396, threeStar: 95, connects: ['18b'] },
+	{ num: '18b', w: 23, h: 25, type: 'growingTree_50_50', twoStar: 384, threeStar: 94, connects: ['19b'] },
+	{ num: '19b', w: 25, h: 27, type: 'prims', twoStar: 449, threeStar: 101, connects: ['20b'] },
+	{ num: '20b', w: 4, h: 4, type: 'huntAndKill', twoStar: 20, threeStar: 16, connects: [] },
+
+	// Area 5
+	{ num: '56', w: 29, h: 29, type: 'growingTree_75_25', twoStar: 557, threeStar: 113, connects: ['57'], minStars: 200 },
+	{ num: '57', w: 29, h: 31, type: 'prims', twoStar: 594, threeStar: 117, connects: ['58'] },
+	{ num: '58', w: 30, h: 30, type: 'growingTree_50_50', twoStar: 595, threeStar: 117, connects: ['59'] },
+	{ num: '59', w: 30, h: 30, type: 'prims', twoStar: 595, threeStar: 117, connects: ['60'] },
+	{ num: '60', w: 30, h: 30, type: 'backtracking', twoStar: 595, threeStar: 117, connects: ['61'] },
+	{ num: '61', w: 30, h: 30, type: 'kruskals', twoStar: 595, threeStar: 117, connects: ['62'] },
+	{ num: '62', w: 31, h: 31, type: 'growingTree_50_50', twoStar: 635, threeStar: 121, connects: ['63'] },
+	{ num: '63', w: 32, h: 32, type: 'kruskals', twoStar: 676, threeStar: 125, connects: ['64'] },
+	{ num: '64', w: 33, h: 31, type: 'growingTree_50_50', twoStar: 675, threeStar: 125, connects: ['65'] },
+	{ num: '65', w: 32, h: 33, type: 'prims', twoStar: 696, threeStar: 127, connects: ['66', '21b'] },
+	{ num: '66', w: 33, h: 33, type: 'kruskals', twoStar: 718, threeStar: 129, connects: ['67', '22b'] },
+	{ num: '67', w: 4, h: 4, type: 'huntAndKill', twoStar: 20, threeStar: 16, connects: [] },
+
+	// Area 5 bonus levels
+	{ num: '21b', w: 33, h: 33, type: 'growingTree_50_50', twoStar: 718, threeStar: 129, connects: [], minStars: 230 },
+	{ num: '22b', w: 34, h: 34, type: 'prims', twoStar: 761, threeStar: 133, connects: [], minStars: 240 },
 ];
 
 type AuthoredLevelMeta = Pick<LevelDef, 'encounterTitle' | 'flavorText' | 'archetype' | 'feel' | 'targetClearTimeSec'>;
 type World2Area = 1 | 2 | 3 | 4 | 5;
-
-const WORLD1_META: Record<string, AuthoredLevelMeta> = {
-	'1': { encounterTitle: 'Opening Circuit', flavorText: 'The first lanes are bright and forgiving, asking only for clean reads and steady hands.' },
-	'2': { encounterTitle: 'Lane Theory', flavorText: 'Orderly blocks turn every choice into a small lesson about momentum and restraint.' },
-	'3': { encounterTitle: 'Soft Current', flavorText: 'The route loosens here, inviting curiosity without ever fully hiding the line forward.' },
-	'4': { encounterTitle: 'Pressure Bands', flavorText: 'Horizontal tension starts to matter, and the maze asks you to think a turn ahead.' },
-	'4b': { encounterTitle: 'Halo Break', flavorText: 'A circular detour clears the head and rewards players who can read the whole ring at once.' },
-	'5': { encounterTitle: 'Central Signal', flavorText: 'A strong midpoint gives this floor a landmark rhythm, so every return to center feels earned.' },
-	'6': { encounterTitle: 'Green Route', flavorText: 'Longer corridors create commitment, but the punishment for doubt is still fair.' },
-	'7': { encounterTitle: 'Lantern Orbit', flavorText: 'The shape nudges the eye around the map, turning orientation into its own quiet challenge.' },
-	'8': { encounterTitle: 'Dense Pulse', flavorText: 'Decision density rises fast here, yet the maze stays readable if you trust the broad structure.' },
-	'8b': { encounterTitle: 'Crescent Drift', flavorText: 'This angled bonus run relaxes the pacing just enough to make the next climb feel fresh.' },
-	'9': { encounterTitle: 'Cavern Static', flavorText: 'The floor darkens in mood, trading certainty for a more cautious, exploratory rhythm.' },
-	'10': { encounterTitle: 'Vertical Divide', flavorText: 'Columnar pressure takes over, and route planning starts to happen on a larger scale.' },
-	'11': { encounterTitle: 'Spiral Draw', flavorText: 'Everything seems to lean inward, building tension while still leaving enough clues to recover.' },
-	'12': { encounterTitle: 'Ring Junction', flavorText: 'Multiple viable routes make this one feel like a summit before the world turns another corner.' },
-	'12b': { encounterTitle: 'Clover Skies', flavorText: 'A hex bonus with strong landmarks and light friction lets the player breathe without losing focus.' },
-	'13': { encounterTitle: 'Tilted Survey', flavorText: 'Subtle asymmetry keeps the maze clever, rewarding players who read shape before detail.' },
-	'14': { encounterTitle: 'Spoke Mirage', flavorText: 'The center promises clarity, then quietly asks whether you can tell a true lane from a lure.' },
-	'15': { encounterTitle: 'Braided Run', flavorText: 'The map grows denser, but mistakes remain recoverable if you move with intent.' },
-	'16': { encounterTitle: 'Pocket Districts', flavorText: 'Layered neighborhoods turn the floor into an expedition, with each pocket revealing the next.' },
-	'16b': { encounterTitle: 'Broken Halo', flavorText: 'A short spectacle of curved motion resets the player before the final push.' },
-	'17': { encounterTitle: 'Spiral Crown', flavorText: 'This is where scale becomes drama, but the maze still honors every strong read you make.' },
-	'18': { encounterTitle: 'Mixed Terrain', flavorText: 'Rectilinear logic and organic drift collide here, testing whether you can switch styles on command.' },
-	'19': { encounterTitle: 'Fortress Sectors', flavorText: 'The route breaks into districts, making commitment and recovery equally important.' },
-	'20': { encounterTitle: 'Pathbound Apex', flavorText: 'The world closes with a maze that feels large because of structure, not noise, and victory should feel fully earned.' }
-};
 
 // ---------------------------------------------------------------------------
 // World 2: Galactic Grids (110 main levels, fully defined)
@@ -514,8 +570,9 @@ export function getWorld1(): WorldDefinition {
 		imageUrl: 'background_maze_3',
 		numberOfLevels: world1Defs.length,
 		locked: false,
-		gateStarRequired: [6, 15, 27, 42],
-		levels: world1Defs.map((d, i) => buildLevel({ ...d, ...WORLD1_META[d.num] }, i + 1))
+		// Stars that lift the fog over areas 2 to 5 (the native gates before levels 15, 29, 44, 56).
+		gateStarRequired: [30, 80, 120, 200],
+		levels: world1Defs.map((d, i) => buildLevel(d, i + 1))
 	};
 }
 

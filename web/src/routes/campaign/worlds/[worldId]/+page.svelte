@@ -6,6 +6,8 @@
 	import { getWorldTheme } from '$lib/worldThemes';
 	import { getWorldMapLayout } from '$lib/core/campaignMapLayout';
 	import CampaignMazeMap from '$lib/components/CampaignMazeMap.svelte';
+	import ClassicCampaignMap from '$lib/components/ClassicCampaignMap.svelte';
+	import { onMount } from 'svelte';
 
 	const worldId = $derived(Number($page.params.worldId));
 	const worldDef = $derived(getAllWorlds().find((w) => w.worldId === worldId));
@@ -13,6 +15,26 @@
 	const starCount = $derived(gameStore.getWorldStarCount(worldId));
 	const theme = $derived(getWorldTheme(worldId));
 	const mapLayout = $derived(getWorldMapLayout(worldId));
+
+	// Two looks for the same campaign: the classic map from the native app
+	// (drawn for World 1 so far) and the neon node map.
+	const LOOK_KEY = 'mazeescape_campaign_look';
+	type CampaignLook = 'classic' | 'neon';
+	let look = $state<CampaignLook>('classic');
+	const hasClassic = $derived(worldId === 1);
+	const showClassic = $derived(hasClassic && look === 'classic');
+
+	onMount(() => {
+		try {
+			const saved = localStorage.getItem(LOOK_KEY);
+			if (saved === 'classic' || saved === 'neon') look = saved;
+		} catch { /* storage unavailable: keep the default */ }
+	});
+
+	function toggleLook() {
+		look = look === 'classic' ? 'neon' : 'classic';
+		try { localStorage.setItem(LOOK_KEY, look); } catch { /* not persisted */ }
+	}
 
 	// Fallback grid helpers (used for worlds without a maze map yet)
 	function isLevelUnlocked(levelNum: string): boolean {
@@ -65,6 +87,11 @@
 		</div>
 
 		<div class="strip-end">
+			{#if hasClassic && mapLayout}
+				<button type="button" class="look-toggle" onclick={toggleLook}>
+					{look === 'classic' ? 'Neon map' : 'Classic map'}
+				</button>
+			{/if}
 			<img src="{base}/images/full_star.png" alt="Stars:" class="star-icon" />
 			<span class="star-value" style="color: var(--color-accent-gold)">{starCount}</span>
 			<span class="star-denom">/ {worldDef.numberOfLevels * 5}</span>
@@ -73,7 +100,12 @@
 		<div class="accent-bar" style="background: {theme.accentColor}"></div>
 	</div>
 
-	{#if mapLayout}
+	{#if showClassic}
+		<!-- ── Classic map (native app look) ─────────────────── -->
+		<div class="map-wrapper">
+			<ClassicCampaignMap {worldId} />
+		</div>
+	{:else if mapLayout}
 		<!-- ── Maze map view ────────────────────────────────── -->
 		<div class="map-wrapper">
 			<CampaignMazeMap {worldId} layout={mapLayout} />
@@ -175,6 +207,19 @@
 {/if}
 
 <style>
+	.look-toggle {
+		margin-right: 12px;
+		padding: 5px 12px;
+		border: 1px solid rgba(255, 255, 255, 0.28);
+		border-radius: 999px;
+		background: rgba(0, 0, 0, 0.35);
+		color: #fff;
+		font: inherit;
+		font-size: 0.78rem;
+		cursor: pointer;
+	}
+	.look-toggle:hover { background: rgba(0, 0, 0, 0.55); }
+
 	/* ── Sticky header strip ─────────────────────────────── */
 	.world-strip {
 		position: sticky;

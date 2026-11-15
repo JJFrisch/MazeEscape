@@ -454,7 +454,7 @@ The triangular cell packing creates the most visually intricate maze in this col
 		<div class="algo-hero-badge">Nerd's Reference</div>
 		<h1 class="algo-title">Maze Algorithm Encyclopedia</h1>
 		<p class="algo-subtitle">
-			All 20 generation algorithms used in Maze Escape: Pathbound — inventor credits, visual
+			All {ALGORITHMS.length} generation algorithms used in Maze Escape: Pathbound — inventor credits, visual
 			descriptions, solving strategies, and live seeded previews.
 		</p>
 

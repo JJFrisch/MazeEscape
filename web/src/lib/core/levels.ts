@@ -320,6 +320,117 @@ const world2Defs: LevelDef[] = [
 	{ num: '110', w: 35, h: 35, type: 'huntAndKill', twoStar: 810, threeStar: 160, minStars: 250, connects: [] }
 ];
 
+// Bonus levels on World 2's side passages: sizes, generators and connections
+// from the native app's InitializeWorld2Levels(), star thresholds estimated from
+// the grid area, and gate requirements from this world's gateStarRequired.
+const world2BonusDefs: LevelDef[] = [
+	{ num: '1b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['2b'], minStars: 50 },
+	{ num: '2b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['3b'] },
+	{ num: '3b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['4b'] },
+	{ num: '4b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['5b'] },
+	{ num: '5b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: [] },
+	{ num: '6b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['7b'], minStars: 80 },
+	{ num: '7b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['8b'] },
+	{ num: '8b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: [] },
+	{ num: '9b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['10b'], minStars: 120 },
+	{ num: '10b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['11b'] },
+	{ num: '11b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['12b'] },
+	{ num: '12b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['13b'] },
+	{ num: '13b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['14b'] },
+	{ num: '14b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['15b'] },
+	{ num: '15b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['16b', '21b'] },
+	{ num: '16b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['17b'] },
+	{ num: '17b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['18b'] },
+	{ num: '18b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['19b'] },
+	{ num: '19b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['20b'] },
+	{ num: '20b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: [] },
+	{ num: '21b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: [] },
+	{ num: '22b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['23b'], minStars: 150 },
+	{ num: '23b', w: 24, h: 23, type: 'growingTree_75_25', twoStar: 369, threeStar: 92, connects: ['24b'] },
+	{ num: '24b', w: 28, h: 23, type: 'kruskals', twoStar: 429, threeStar: 99, connects: [] },
+	{ num: '25b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: [], minStars: 185 },
+	{ num: '26b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['27b'], minStars: 260 },
+	{ num: '27b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['28b'] },
+	{ num: '28b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['29b'] },
+	{ num: '29b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['30b'] },
+	{ num: '30b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: [] },
+	{ num: '31b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['32b'], minStars: 305 },
+	{ num: '32b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['33b'] },
+	{ num: '33b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['34b'] },
+	{ num: '34b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['35b'] },
+	{ num: '35b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['36b'] },
+	{ num: '36b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['37b'] },
+	{ num: '37b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['38b'] },
+	{ num: '38b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: [] },
+	{ num: '39b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['40b'], minStars: 410 },
+	{ num: '40b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['41b'] },
+	{ num: '41b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['42b'] },
+	{ num: '42b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['43b'] },
+	{ num: '43b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['44b'] },
+	{ num: '44b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['45b'] },
+	{ num: '45b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['46b'] },
+	{ num: '46b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: [] },
+	{ num: '47b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['48b'], minStars: 440 },
+	{ num: '48b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['49b'] },
+	{ num: '49b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: [] },
+	{ num: '50b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['51b'], minStars: 300 },
+	{ num: '51b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['52b'] },
+	{ num: '52b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['53b'] },
+	{ num: '53b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['54b', '63b'] },
+	{ num: '54b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['55b'] },
+	{ num: '55b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['56b'] },
+	{ num: '56b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['57b'] },
+	{ num: '57b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['58b'] },
+	{ num: '58b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['59b'] },
+	{ num: '59b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['60b'] },
+	{ num: '60b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['61b'] },
+	{ num: '61b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['62b'] },
+	{ num: '62b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: [] },
+	{ num: '63b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['64b'] },
+	{ num: '64b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['65b'] },
+	{ num: '65b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: [] },
+	{ num: '66b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['67b'], minStars: 435 },
+	{ num: '67b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['68b'] },
+	{ num: '68b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['69b'] },
+	{ num: '69b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['70b', '74b'] },
+	{ num: '70b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['71b', '72b'] },
+	{ num: '71b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: [] },
+	{ num: '72b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['73b'] },
+	{ num: '73b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: [] },
+	{ num: '74b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['75b'] },
+	{ num: '75b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['76b'] },
+	{ num: '76b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['77b'] },
+	{ num: '77b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['78b'] },
+	{ num: '78b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['79b'] },
+	{ num: '79b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['80b'] },
+	{ num: '80b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['81b', '63b'] },
+	{ num: '81b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['82b'] },
+	{ num: '82b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['83b'] },
+	{ num: '83b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['84b'] },
+	{ num: '84b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['85b'] },
+	{ num: '85b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['86b'] },
+	{ num: '86b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: [] },
+	{ num: '87b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['88b'], minStars: 450 },
+	{ num: '88b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['89b'] },
+	{ num: '89b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['90b'] },
+	{ num: '90b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: [] },
+	{ num: '91b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['92b'], minStars: 480 },
+	{ num: '92b', w: 25, h: 25, type: 'backtracking', twoStar: 416, threeStar: 98, connects: ['93b'] },
+	{ num: '93b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['94b'] },
+	{ num: '94b', w: 28, h: 22, type: 'kruskals', twoStar: 410, threeStar: 97, connects: ['95b', '97b'] },
+	{ num: '95b', w: 25, h: 22, type: 'growingTree_50_0', twoStar: 368, threeStar: 91, connects: ['96b'] },
+	{ num: '96b', w: 5, h: 5, type: 'backtracking', twoStar: 26, threeStar: 20, connects: [] },
+	{ num: '97b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['98b'] },
+	{ num: '98b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: ['99b'] },
+	{ num: '99b', w: 24, h: 25, type: 'growingTree_75_25', twoStar: 400, threeStar: 96, connects: [] },
+];
+
+/** The main-path level each bonus passage branches from. */
+const WORLD2_BONUS_LINKS: Record<string, string> = {
+	'1': '1b', '5': '6b', '13': '9b', '21': '22b', '22': '25b', '31': '26b', '36': '31b',
+	'53': '39b', '57': '47b', '58': '50b', '70': '66b', '95': '87b', '96': '91b'
+};
+
 const WORLD2_TITLES: Record<number, string[]> = {
 	1: [
 		'Docking Lines',
@@ -581,10 +692,16 @@ export function getWorld2(): WorldDefinition {
 		worldId: 2,
 		worldName: 'Galactic Grids',
 		imageUrl: 'space_background11',
-		numberOfLevels: world2Defs.length,
+		numberOfLevels: world2Defs.length + world2BonusDefs.length,
 		locked: true,
 		gateStarRequired: [50, 80, 120, 150, 185, 220, 260, 305, 370, 410, 440, 300, 395, 435, 460, 450, 480],
-		levels: world2Defs.map((d, i) => buildLevel({ ...d, ...getWorld2Meta(d) }, i + 1))
+		levels: [
+			...world2Defs.map((d) => {
+				const branch = WORLD2_BONUS_LINKS[d.num];
+				return { ...d, ...getWorld2Meta(d), ...(branch ? { connects: [branch, ...(d.connects ?? [])] } : {}) };
+			}),
+			...world2BonusDefs.map((d) => ({ ...d, connects: [...(d.connects ?? [])] }))
+		].map((d, i) => buildLevel(d, i + 1))
 	};
 }
 

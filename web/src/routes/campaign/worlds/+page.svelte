@@ -1,15 +1,24 @@
+<!--
+  The worlds picker as the native app draws it (WorldsPage.xaml): one tall card
+  per world that you swipe between, the world's art behind a name band, a small
+  score panel, and the Play World button.
+-->
 <script lang="ts">
 	import { base } from '$app/paths';
+	import { goto } from '$app/navigation';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { getAllWorlds } from '$lib/core/levels';
-	import { WORLD_THEMES } from '$lib/worldThemes';
-
 	import { getWorldMapLayout } from '$lib/core/campaignMapLayout';
 
 	const worlds = getAllWorlds();
+	const ART: Record<number, string> = {
+		1: 'background_maze_3.png',
+		2: 'space_background11.png',
+		3: 'classic/carousel_maze_4.png'
+	};
 
 	// A world opens when the previous world's portal opens: same star count and
-	// final-level rule the campaign map applies to the portal node.
+	// final-level rule the campaign map applies to the portal.
 	function isPortalOpen(worldId: number): boolean {
 		const portal = getWorldMapLayout(worldId)?.nodes.find((n) => n.type === 'portal');
 		const needed = portal?.starsRequired ?? 300;
@@ -18,437 +27,277 @@
 			: true;
 		return gameStore.getWorldStarCount(worldId) >= needed && finalLevelDone;
 	}
+
+	const cards = $derived(
+		worlds.map((world, i) => {
+			const main = world.levels.filter((l) => /^\d+$/.test(l.levelNumber));
+			const beaten = main
+				.filter((l) => gameStore.getLevelProgress(world.worldId, l.levelNumber)?.completed)
+				.reduce((top, l) => Math.max(top, parseInt(l.levelNumber)), 0);
+			return {
+				world,
+				locked: world.locked && i > 0 && !isPortalOpen(worlds[i - 1].worldId),
+				empty: world.levels.length === 0,
+				beaten,
+				total: main.length,
+				stars: gameStore.getWorldStarCount(world.worldId)
+			};
+		})
+	);
+
+	let track = $state<HTMLDivElement | null>(null);
+	let index = $state(0);
+	let notice = $state('');
+	let noticeTimer: ReturnType<typeof setTimeout> | undefined;
+
+	function say(text: string) {
+		notice = text;
+		clearTimeout(noticeTimer);
+		noticeTimer = setTimeout(() => (notice = ''), 2600);
+	}
+
+	function show(i: number) {
+		const card = track?.children[i] as HTMLElement | undefined;
+		if (!track || !card) return;
+		track.scrollTo({ left: card.offsetLeft - track.offsetLeft, behavior: 'smooth' });
+	}
+
+	function onScroll() {
+		if (!track) return;
+		const step = (track.children[0] as HTMLElement).offsetWidth + 20;
+		index = Math.round(track.scrollLeft / step);
+	}
+
+	function choose(card: (typeof cards)[number]) {
+		if (card.locked) say('Defeat the previous world to unlock this one.');
+		else if (card.empty) say('World Coming Soon!');
+		else void goto(`${base}/campaign/worlds/${card.world.worldId}`);
+	}
 </script>
 
 <svelte:head>
 	<title>Campaign Worlds – Maze Escape: Pathbound</title>
 </svelte:head>
 
-<div class="worlds-page">
-	<div class="page-header">
-		<div class="page-eyebrow">
-			<span class="eyebrow-dot"></span>
-			Campaign Mode
-		</div>
-		<h1 class="page-title">Campaign Worlds</h1>
-		<p class="page-sub">Select a world to begin your journey through the labyrinth.</p>
-	</div>
+<div class="worlds">
+	<header class="titles">
+		<p class="game">Maze Escape</p>
+		<h1>Worlds</h1>
+	</header>
 
-	<div class="worlds-grid">
-		{#each worlds as world, i}
-			{@const theme = WORLD_THEMES.find((t) => t.worldId === world.worldId)}
-			{@const stars = gameStore.getWorldStarCount(world.worldId)}
-			{@const isLocked = world.locked && i > 0 && !isPortalOpen(worlds[i - 1]?.worldId ?? 0)}
-
-			<div
-				class="world-card"
-				class:locked={isLocked}
-				style="
-					--i: {i};
-					--world-accent: {theme?.accentColor ?? '#38bdf8'};
-					--world-accent-dim: {theme?.accentDim ?? 'rgba(56,189,248,0.18)'};
-					{theme?.bgImageFile
-						? `background-image: ${theme.overlayGradient}, url('${base}/images/${theme.bgImageFile}');`
-						: `background: linear-gradient(135deg, #042014, #064424);`
-					}
-				"
+	<div class="track" bind:this={track} onscroll={onScroll}>
+		{#each cards as card (card.world.worldId)}
+			<button
+				type="button"
+				class="card"
+				class:locked={card.locked}
+				style="background-image: url('{base}/images/{ART[card.world.worldId]}');"
+				aria-label="{card.world.worldName}{card.locked ? ', locked' : ''}"
+				onclick={() => choose(card)}
 			>
-				{#if isLocked}
-					<div class="lock-overlay">
-						<img src="{base}/images/lock.png" alt="Locked" class="lock-img" />
-						<span class="lock-text">Complete previous world to unlock</span>
-					</div>
-				{/if}
+				<span class="name">{card.world.worldName}</span>
 
-				<!-- Motif decoration top-right -->
-				{#if theme?.motif === 'tech'}
-					<div class="motif-badge tech-motif">⬡ CYBER</div>
-				{:else if theme?.motif === 'space'}
-					<div class="motif-badge space-motif">✦ GALACTIC</div>
+				{#if card.locked}
+					<img class="lock" src="{base}/images/lock.png" alt="" draggable="false" />
 				{:else}
-					<div class="motif-badge elemental-motif">◈ ELEMENTAL</div>
+					<span class="panel">
+						<img src="{base}/images/classic/grid_background.png" alt="" draggable="false" />
+						<span class="score beaten">{card.beaten} / {card.total}</span>
+						<span class="score stars">{card.stars} Stars</span>
+					</span>
+					<img class="play" src="{base}/images/classic/play_world_button.png" alt="Play World" draggable="false" />
 				{/if}
-
-				<div class="world-body">
-					<div class="world-num">World {world.worldId}</div>
-					<h2 class="world-name">{world.worldName}</h2>
-					{#if theme}
-						<p class="world-tagline" style="color: {theme.textAccent}">{theme.tagline}</p>
-					{/if}
-
-					<!-- Progress bar -->
-					<div class="progress-section">
-						<div class="progress-row">
-							<span class="progress-label">Stars</span>
-							<span class="progress-value" style="color: var(--color-accent-gold)">
-								<img src="{base}/images/full_star.png" alt="" class="star-icon-sm" />
-								{stars}
-							</span>
-						</div>
-						<div class="progress-bar-track">
-							<div
-								class="progress-bar-fill"
-								style="
-									--fill-w: {Math.min((stars / (world.numberOfLevels * 5)) * 100, 100)}%;
-									background: {theme?.accentColor ?? '#38bdf8'};
-								"
-							></div>
-						</div>
-						<div class="progress-row">
-							<span class="progress-label">Levels</span>
-							<span class="progress-value">{world.numberOfLevels}</span>
-						</div>
-					</div>
-
-					{#if !isLocked && world.levels.length > 0}
-						<a
-							href="{base}/campaign/worlds/{world.worldId}"
-							class="play-btn"
-							style="
-								border-color: {theme?.accentColor ?? '#38bdf8'};
-								color: {theme?.accentColor ?? '#38bdf8'};
-								box-shadow: 0 0 18px {theme?.accentDim ?? 'rgba(56,189,248,0.18)'};
-							"
-						>
-							Enter World →
-						</a>
-					{:else if world.levels.length === 0}
-						<span class="coming-soon">Coming Soon</span>
-					{/if}
-				</div>
-
-				<!-- Chest decoration -->
-				{#if !isLocked}
-					<img
-						src="{base}/images/{world.worldId === 2 ? 'world2_chest' : 'chest'}.png"
-						alt=""
-						class="card-deco-chest"
-						aria-hidden="true"
-					/>
-				{/if}
-			</div>
+			</button>
 		{/each}
 	</div>
+
+	{#if index > 0}
+		<button type="button" class="arrow prev" aria-label="Previous world" onclick={() => show(index - 1)}>
+			<img src="{base}/images/classic/arrow.png" alt="" />
+		</button>
+	{/if}
+	{#if index < cards.length - 1}
+		<button type="button" class="arrow next" aria-label="Next world" onclick={() => show(index + 1)}>
+			<img src="{base}/images/classic/arrow.png" alt="" />
+		</button>
+	{/if}
+
+	<a class="home" href="{base}/" aria-label="Home">
+		<img src="{base}/images/classic/home_button_icon.png" alt="" />
+	</a>
+
+	{#if notice}
+		<p class="notice" role="status">{notice}</p>
+	{/if}
 </div>
 
 <style>
-	.worlds-page {
-		max-width: 1000px;
-		margin: 0 auto;
-	}
-
-	/* ── Page header ─────────────────────────────── */
-	.page-header {
-		text-align: center;
-		margin-bottom: var(--space-10);
-		animation: fade-up 0.5s ease both;
-	}
-
-	@keyframes fade-up {
-		from { opacity: 0; transform: translateY(16px); }
-		to   { opacity: 1; transform: translateY(0); }
-	}
-
-	.page-eyebrow {
-		display: inline-flex;
-		align-items: center;
-		gap: var(--space-2);
-		padding: 5px 14px;
-		background: rgba(56, 189, 248, 0.08);
-		border: 1px solid rgba(56, 189, 248, 0.25);
-		border-radius: var(--radius-full);
-		font-size: var(--text-xs);
-		font-weight: 700;
-		letter-spacing: 0.10em;
-		text-transform: uppercase;
-		color: #93c5fd;
-		margin-bottom: var(--space-4);
-	}
-	.eyebrow-dot {
-		width: 6px;
-		height: 6px;
-		background: var(--color-accent-primary);
-		border-radius: 50%;
-		box-shadow: 0 0 6px var(--color-accent-primary);
-		animation: pulse 2s ease-in-out infinite;
-	}
-	@keyframes pulse {
-		0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
-	}
-
-	.page-title {
-		font-family: var(--font-display);
-		font-size: clamp(2rem, 5vw, 3rem);
-		font-weight: 700;
-		color: var(--color-text-primary);
-		margin-bottom: var(--space-3);
-		letter-spacing: -0.02em;
-	}
-
-	.page-sub {
-		color: var(--color-text-secondary);
-		font-size: var(--text-lg);
-	}
-
-	/* ── Grid ────────────────────────────────────── */
-	.worlds-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: var(--space-6);
-	}
-
-	/* ── World card ──────────────────────────────── */
-	@keyframes card-rise {
-		from { transform: translateY(28px); opacity: 0; }
-		to   { transform: translateY(0);    opacity: 1; }
-	}
-
-	.world-card {
+	.worlds {
 		position: relative;
-		border-radius: var(--radius-2xl);
+		height: calc(100dvh - var(--header-height) - 3rem);
+		min-height: 520px;
+		max-width: 700px;
+		margin: 0 auto;
+		background: #000;
 		overflow: hidden;
+	}
+
+	.titles {
+		position: absolute;
+		inset: 20px 0 auto;
+		z-index: 2;
+		text-align: center;
+		pointer-events: none;
+	}
+
+	.game {
+		margin: 0;
+		color: whitesmoke;
+		font-size: 1.4rem;
+		line-height: 1.5;
+	}
+
+	.titles h1 {
+		margin: 6px 0 0;
+		color: lightblue;
+		font-size: 1.1rem;
+		font-weight: 400;
+	}
+
+	.track {
+		display: flex;
+		gap: 20px;
+		height: 100%;
+		overflow-x: auto;
+		overflow-y: hidden;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+	}
+
+	.track::-webkit-scrollbar { display: none; }
+
+	.card {
+		position: relative;
+		flex: 0 0 100%;
+		height: 100%;
+		padding: 0;
+		border: 0;
+		scroll-snap-align: start;
+		background-color: #000;
 		background-size: cover;
 		background-position: center;
-		min-height: 380px;
-		display: flex;
-		flex-direction: column;
-		justify-content: flex-end;
-		border: 1px solid rgba(255, 255, 255, 0.10);
-		transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
-		animation: card-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 130ms) both;
+		color: #fff;
+		font: inherit;
+		cursor: pointer;
 	}
 
-	/* Shimmer sweep */
-	.world-card::before {
+	.card.locked::before {
 		content: '';
 		position: absolute;
 		inset: 0;
-		z-index: 2;
-		pointer-events: none;
-		background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.09) 50%, transparent 60%);
-		background-size: 200% 100%;
-		background-position: -200% 0;
-		transition: background-position 0.6s ease;
-		border-radius: var(--radius-2xl);
+		background: rgba(0, 0, 0, 0.3);
 	}
 
-	.world-card:not(.locked):hover::before {
-		background-position: 200% 0;
-	}
-
-	.world-card:not(.locked):hover {
-		transform: translateY(-8px);
-		box-shadow: 0 16px 60px var(--world-accent-dim, rgba(56,189,248,0.22));
-		border-color: var(--world-accent, #38bdf8);
-	}
-
-	.world-card.locked {
-		filter: grayscale(0.5);
-		opacity: 0.68;
-	}
-
-	/* ── Lock overlay ────────────────────────────── */
-	.lock-overlay {
+	.name {
 		position: absolute;
-		inset: 0;
-		z-index: 20;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: var(--space-3);
-		background: rgba(0, 0, 0, 0.60);
-		border-radius: var(--radius-2xl);
+		top: 130px;
+		left: 50%;
+		width: min(300px, 90%);
+		height: 40px;
+		transform: translateX(-50%);
+		display: grid;
+		place-items: center;
+		background: rgba(0, 0, 0, 0.5);
+		font-size: 20px;
+		font-weight: 700;
 	}
 
-	.lock-img {
-		width: 52px;
-		height: 52px;
-		object-fit: contain;
-		filter: drop-shadow(0 0 10px rgba(255,255,255,0.25));
-		animation: float-y 3s ease-in-out infinite;
+	.panel {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 250px;
+		transform: translate(-50%, -75%);
 	}
 
-	.lock-text {
-		font-size: var(--text-sm);
-		color: #94a3b8;
+	.panel img {
+		display: block;
+		width: 100%;
+	}
+
+	.score {
+		position: absolute;
+		top: 60%;
+		width: 50%;
+		color: #222;
+		font-size: 12px;
+		font-weight: 700;
 		text-align: center;
-		padding: 0 var(--space-6);
 	}
 
-	/* ── Motif badge ─────────────────────────────── */
-	.motif-badge {
+	.score.beaten { left: 0; }
+	.score.stars { right: 0; }
+
+	.play {
 		position: absolute;
-		top: var(--space-4);
-		right: var(--space-4);
-		z-index: 5;
-		font-size: 0.65rem;
-		font-weight: 800;
-		letter-spacing: 0.12em;
-		padding: 4px var(--space-3);
-		border-radius: var(--radius-full);
-		backdrop-filter: blur(6px);
-		animation: glow-throb 3s ease-in-out infinite;
+		top: 72%;
+		left: 50%;
+		width: 230px;
+		transform: translateX(-50%);
+		transition: transform 120ms ease;
 	}
 
-	.tech-motif {
-		background: rgba(56, 189, 248, 0.18);
-		border: 1px solid rgba(56, 189, 248, 0.4);
-		color: #38bdf8;
-	}
+	.card:hover .play { transform: translateX(-50%) scale(1.04); }
 
-	.space-motif {
-		background: rgba(192, 132, 252, 0.18);
-		border: 1px solid rgba(192, 132, 252, 0.4);
-		color: #c084fc;
-	}
-
-	.elemental-motif {
-		background: rgba(52, 211, 153, 0.18);
-		border: 1px solid rgba(52, 211, 153, 0.4);
-		color: #34d399;
-	}
-
-	/* ── Card body ───────────────────────────────── */
-	.world-body {
-		position: relative;
-		z-index: 5;
-		padding: var(--space-6);
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-3);
-	}
-
-	.world-num {
-		font-size: var(--text-xs);
-		font-weight: 700;
-		letter-spacing: 0.10em;
-		text-transform: uppercase;
-		color: rgba(255, 255, 255, 0.50);
-	}
-
-	.world-name {
-		font-family: var(--font-display);
-		font-size: var(--text-2xl);
-		font-weight: 700;
-		color: #f0f6ff;
-		line-height: 1.15;
-	}
-
-	.world-tagline {
-		font-size: var(--text-sm);
-		line-height: 1.45;
-		opacity: 0.90;
-	}
-
-	/* ── Progress ────────────────────────────────── */
-	.progress-section {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
-		margin-top: var(--space-1);
-	}
-
-	.progress-row {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		font-size: var(--text-sm);
-	}
-
-	.progress-label {
-		color: rgba(255, 255, 255, 0.50);
-	}
-
-	.progress-value {
-		color: rgba(255, 255, 255, 0.85);
-		font-weight: 600;
-		display: flex;
-		align-items: center;
-		gap: 4px;
-	}
-
-	.star-icon-sm {
-		width: 14px;
-		height: 14px;
-		object-fit: contain;
-	}
-
-	.progress-bar-track {
-		height: 5px;
-		background: rgba(255, 255, 255, 0.10);
-		border-radius: var(--radius-full);
-		overflow: hidden;
-	}
-
-	@keyframes bar-fill {
-		from { width: 0; }
-		to   { width: var(--fill-w, 0%); }
-	}
-
-	.progress-bar-fill {
-		height: 100%;
-		border-radius: var(--radius-full);
-		width: var(--fill-w, 0%);
-		animation: bar-fill 0.9s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 130ms + 300ms) both;
-		box-shadow: 0 0 8px currentColor;
-	}
-
-	/* ── Play button ─────────────────────────────── */
-	.play-btn {
-		display: inline-flex;
-		align-items: center;
-		align-self: flex-start;
-		padding: var(--space-2) var(--space-5);
-		background: rgba(255, 255, 255, 0.08);
-		border: 1px solid;
-		border-radius: var(--radius-lg);
-		font-family: var(--font-display);
-		font-weight: 600;
-		font-size: var(--text-sm);
-		text-decoration: none;
-		transition: all var(--transition-fast);
-		backdrop-filter: blur(4px);
-		margin-top: var(--space-2);
-	}
-
-	.play-btn:hover {
-		background: rgba(255, 255, 255, 0.16);
-		transform: translateX(4px);
-		box-shadow: 0 0 16px var(--world-accent-dim, rgba(56,189,248,0.3));
-	}
-
-	.coming-soon {
-		font-size: var(--text-sm);
-		color: rgba(255, 255, 255, 0.38);
-		font-style: italic;
-		margin-top: var(--space-2);
-	}
-
-	/* ── Chest decoration ────────────────────────── */
-	.card-deco-chest {
+	.lock {
 		position: absolute;
-		top: var(--space-5);
-		left: var(--space-5);
-		width: 56px;
-		height: 56px;
-		object-fit: contain;
-		filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
-		animation: float-y 4s ease-in-out infinite;
-		z-index: 5;
+		top: 42%;
+		left: 50%;
+		width: 30%;
+		transform: translateX(-50%);
 	}
 
-	/* ── World 3 gradient fallback ───────────────── */
-	.world-card:nth-child(3):not([class*='locked']) {
-		background: linear-gradient(135deg, #042014 0%, #064424 50%, #021a10 100%) !important;
+	.arrow {
+		position: absolute;
+		top: 50%;
+		z-index: 2;
+		width: 50px;
+		height: 50px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		transform: translateY(-50%);
+		cursor: pointer;
 	}
 
-	@media (max-width: 640px) {
-		.worlds-grid {
-			grid-template-columns: 1fr;
-		}
-		.world-card {
-			min-height: 320px;
-		}
+	.arrow img { width: 100%; height: 100%; object-fit: contain; }
+	.arrow.prev { left: 0; }
+	.arrow.next { right: 0; }
+	.arrow.next img { transform: rotate(180deg); }
+
+	.home {
+		position: absolute;
+		left: 50%;
+		bottom: 3%;
+		z-index: 2;
+		height: 55px;
+		transform: translateX(-50%);
+	}
+
+	.home img { height: 100%; width: auto; }
+
+	.notice {
+		position: absolute;
+		left: 50%;
+		bottom: 90px;
+		z-index: 3;
+		transform: translateX(-50%);
+		margin: 0;
+		padding: 8px 14px;
+		border-radius: 10px;
+		background: rgba(0, 0, 0, 0.78);
+		color: #fff;
+		font-size: 0.9rem;
+		white-space: nowrap;
 	}
 </style>

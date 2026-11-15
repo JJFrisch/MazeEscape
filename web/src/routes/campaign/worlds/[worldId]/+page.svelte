@@ -7,6 +7,7 @@
 	import { getWorldMapLayout } from '$lib/core/campaignMapLayout';
 	import CampaignMazeMap from '$lib/components/CampaignMazeMap.svelte';
 	import ClassicCampaignMap from '$lib/components/ClassicCampaignMap.svelte';
+	import { getClassicMap } from '$lib/core/classicMaps';
 
 	const worldId = $derived(Number($page.params.worldId));
 	const worldDef = $derived(getAllWorlds().find((w) => w.worldId === worldId));
@@ -15,8 +16,8 @@
 	const theme = $derived(getWorldTheme(worldId));
 	const mapLayout = $derived(getWorldMapLayout(worldId));
 
-	// World 1 uses the map from the native app; other worlds use the node map.
-	const showClassic = $derived(worldId === 1);
+	// Worlds 1 and 2 use the maps from the native app.
+	const showClassic = $derived(getClassicMap(worldId) !== null);
 
 	// Fallback grid helpers (used for worlds without a maze map yet)
 	function isLevelUnlocked(levelNum: string): boolean {

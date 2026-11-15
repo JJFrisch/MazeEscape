@@ -1,5 +1,5 @@
 import type { AuthChangeEvent, RealtimeChannel, Session } from '@supabase/supabase-js';
-import { getSupabaseBrowserClient } from './client';
+import { getSupabaseBrowserClient, SupabaseConfigError, SupabaseUrlError } from './client';
 import { authStore } from './authStore.svelte';
 
 interface InitializeSupabaseAuthOptions {
@@ -8,7 +8,19 @@ interface InitializeSupabaseAuthOptions {
 }
 
 export function initializeSupabaseAuth(options: InitializeSupabaseAuthOptions = {}): () => void {
-	const supabase = getSupabaseBrowserClient();
+	let supabase: ReturnType<typeof getSupabaseBrowserClient>;
+	try {
+		supabase = getSupabaseBrowserClient();
+	} catch (err) {
+		if (err instanceof SupabaseConfigError || err instanceof SupabaseUrlError) {
+			// No backend in this build: play as a guest with local saves.
+			console.warn(`[auth] ${err.message} Running in guest mode.`);
+			authStore.handleAuthEvent('INITIAL_SESSION', null);
+			void options.onSignedOut?.();
+			return () => {};
+		}
+		throw err;
+	}
 
 	const handleSession = (event: AuthChangeEvent, session: Session | null) => {
 		authStore.handleAuthEvent(event, session);

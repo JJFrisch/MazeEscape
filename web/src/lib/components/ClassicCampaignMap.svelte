@@ -112,6 +112,9 @@
 		return stars >= gate.stars && gate.needs.every(reached);
 	}
 
+	// Smaller than a level button and raised a little, so the disc clears the maze walls.
+	const BOSS = 56;
+	const BOSS_LIFT = 4;
 	const boss = $derived.by(() => {
 		const b = cfg.boss;
 		const spot = b && allSpots.find((s) => s.num === b.replaces);
@@ -120,8 +123,8 @@
 			num: b.num,
 			unlocked: isUnlocked(b.num),
 			beaten: done(b.num),
-			left: left(spot.cell, cfg.orb),
-			top: top(spot.cell, cfg.orb)
+			left: left(spot.cell, BOSS),
+			top: top(spot.cell, BOSS) - BOSS_LIFT
 		};
 	});
 
@@ -433,14 +436,15 @@
 
 	.boss {
 		position: absolute;
-		width: calc(var(--s) * var(--orb));
-		height: calc(var(--s) * var(--orb));
+		box-sizing: border-box;
+		width: calc(var(--s) * 56px);
+		height: calc(var(--s) * 56px);
 		padding: 0;
 		border: calc(var(--s) * 3px) solid #fb923c;
 		border-radius: 50%;
 		background: #3a1708;
 		color: #fdba74;
-		font-size: calc(var(--s) * 36px);
+		font-size: calc(var(--s) * 30px);
 		line-height: 1;
 		cursor: pointer;
 	}

@@ -27,12 +27,14 @@
 	const cellW = $derived((cfg.mapW - PAD_X * 2) / cfg.cols);
 	const cellH = $derived(cfg.mapH / cfg.rows);
 
-	const spots = $derived(
+	const allSpots = $derived(
 		cfg.areas.flatMap((a, i) => [
 			...a.main.map((cell, k) => ({ num: String(a.first + k), area: i + 1, cell })),
 			...a.bonus.map((cell, k) => ({ num: `${a.firstBonus + k}b`, area: i + 1, cell }))
 		])
 	);
+	// A boss stands in for the level whose cell it takes.
+	const spots = $derived(allSpots.filter((s) => s.num !== cfg.boss?.replaces));
 
 	const worldDef = $derived(getAllWorlds().find((w) => w.worldId === worldId));
 	const levels = $derived(worldDef?.levels ?? []);
@@ -110,24 +112,24 @@
 		return stars >= gate.stars && gate.needs.every(reached);
 	}
 
-	const BOSS = 56;
 	const boss = $derived.by(() => {
 		const b = cfg.boss;
-		if (!b) return null;
-		const mid: Cell = [(b.between[0][0] + b.between[1][0]) / 2, (b.between[0][1] + b.between[1][1]) / 2];
+		const spot = b && allSpots.find((s) => s.num === b.replaces);
+		if (!b || !spot) return null;
 		return {
-			...b,
-			unlocked: done(b.after) && stars >= b.stars,
+			num: b.num,
+			unlocked: isUnlocked(b.num),
 			beaten: done(b.num),
-			left: left(mid, BOSS),
-			top: top(mid, BOSS)
+			left: left(spot.cell, cfg.orb),
+			top: top(spot.cell, cfg.orb)
 		};
 	});
 
 	function openBoss() {
 		if (!boss) return;
 		if (!boss.unlocked) {
-			say(done(boss.after) ? `The boss needs ${boss.stars} stars. You have ${stars}.` : `Finish level ${boss.after} to reach the boss.`);
+			const need = levels.find((l) => l.levelNumber === boss.num)?.minimumStarsToUnlock ?? 0;
+			say(reached(boss.num) && need > stars ? `The boss needs ${need} stars. You have ${stars}.` : 'Finish the level before the boss first.');
 			return;
 		}
 		activeNode = { id: `classic-${boss.num}`, type: 'boss', levelNumber: boss.num } as MapNode;
@@ -431,14 +433,14 @@
 
 	.boss {
 		position: absolute;
-		width: calc(var(--s) * 56px);
-		height: calc(var(--s) * 56px);
+		width: calc(var(--s) * var(--orb));
+		height: calc(var(--s) * var(--orb));
 		padding: 0;
-		border: calc(var(--s) * 2px) solid #fb923c;
+		border: calc(var(--s) * 3px) solid #fb923c;
 		border-radius: 50%;
 		background: #3a1708;
 		color: #fdba74;
-		font-size: calc(var(--s) * 30px);
+		font-size: calc(var(--s) * 36px);
 		line-height: 1;
 		cursor: pointer;
 	}

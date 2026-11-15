@@ -66,8 +66,8 @@ export interface ClassicMapConfig {
 	gates: ClassicGate[];
 	treasures: ClassicTreasure[];
 	portal: { cell: Cell; stars: number; finalLevel: string; needsKey: boolean };
-	/** A boss level that sits on the wall between two cells; it opens after `after` with `stars`. */
-	boss?: { num: string; between: [Cell, Cell]; after: string; stars: number };
+	/** A boss level that takes the cell, and the place in the path, of a numbered level. */
+	boss?: { num: string; replaces: string };
 }
 
 const WORLD_1: ClassicMapConfig = {
@@ -247,9 +247,8 @@ const WORLD_2: ClassicMapConfig = {
 		{ id: 'c30', cell: [35, 1], after: '107' }
 	],
 	portal: { cell: [32, 1], stars: 20, finalLevel: '110', needsKey: false },
-	// The native map has no free cell, so the web game's boss stands on the wall
-	// between levels 22 and 23, where area 1 meets area 2. Same 55 stars as the node map.
-	boss: { num: '22-boss', between: [[8, 4], [9, 4]], after: '22', stars: 55 }
+	// The native map has no free cell, so the web game's boss takes level 23's.
+	boss: { num: '22-boss', replaces: '23' }
 };
 
 export function getClassicMap(worldId: number): ClassicMapConfig | null {

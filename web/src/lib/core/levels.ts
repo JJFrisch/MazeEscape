@@ -320,6 +320,8 @@ const world2Defs: LevelDef[] = [
 	{ num: '110', w: 35, h: 35, type: 'huntAndKill', twoStar: 810, threeStar: 160, minStars: 250, connects: [] }
 ];
 
+const WORLD2_BOSS = { num: '22-boss', after: '22', replaces: '23', next: '24', stars: 55 };
+
 // Bonus levels on World 2's side passages: sizes, generators and connections
 // from the native app's InitializeWorld2Levels(), star thresholds estimated from
 // the grid area, and gate requirements from this world's gateStarRequired.
@@ -692,14 +694,22 @@ export function getWorld2(): WorldDefinition {
 		worldId: 2,
 		worldName: 'Galactic Grids',
 		imageUrl: 'space_background11',
-		numberOfLevels: world2Defs.length + world2BonusDefs.length,
+		numberOfLevels: world2Defs.length - 1 + world2BonusDefs.length,
 		locked: true,
 		gateStarRequired: [50, 80, 120, 150, 185, 220, 260, 305, 370, 410, 440, 300, 395, 435, 460, 450, 480],
 		levels: [
-			...world2Defs.map((d) => {
-				const branch = WORLD2_BONUS_LINKS[d.num];
-				return { ...d, ...getWorld2Meta(d), ...(branch ? { connects: [branch, ...(d.connects ?? [])] } : {}) };
-			}),
+			...world2Defs
+				// The boss takes level 23's place on the map and in the path: 22, boss, 24.
+				.filter((d) => d.num !== WORLD2_BOSS.replaces)
+				.map((d) => {
+					const branch = WORLD2_BONUS_LINKS[d.num];
+					const connects = [...(branch ? [branch] : []), ...(d.connects ?? [])];
+					if (d.num === WORLD2_BOSS.after) connects.push(WORLD2_BOSS.num);
+					if (d.num === WORLD2_BOSS.num) {
+						return { ...d, ...getWorld2Meta(d), connects: [WORLD2_BOSS.next], minStars: WORLD2_BOSS.stars };
+					}
+					return { ...d, ...getWorld2Meta(d), ...(connects.length ? { connects } : {}) };
+				}),
 			...world2BonusDefs.map((d) => ({ ...d, connects: [...(d.connects ?? [])] }))
 		].map((d, i) => buildLevel(d, i + 1))
 	};

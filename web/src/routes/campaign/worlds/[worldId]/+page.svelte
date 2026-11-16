@@ -57,11 +57,11 @@
 			}
 		"
 	>
-		<a href="{base}/campaign/worlds" class="back-link">
+		<a href="{base}/campaign/worlds" class="back-link" aria-label="All Worlds">
 			<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
 				<path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 			</svg>
-			All Worlds
+			<span class="back-text">All Worlds</span>
 		</a>
 
 		<div class="strip-center">
@@ -428,6 +428,9 @@
 		.world-strip {
 			padding: 0.6rem 0.9rem;
 		}
+		/* Phone: keep the chevron, drop its label, and let the world name wrap. */
+		.back-text { display: none; }
+		.world-title { white-space: normal; overflow: visible; }
 		.levels-grid {
 			grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
 		}

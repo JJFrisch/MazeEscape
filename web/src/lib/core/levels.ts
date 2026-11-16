@@ -169,7 +169,8 @@ const world1Defs: LevelDef[] = [
 	{ num: '17b', w: 22, h: 27, type: 'huntAndKill', twoStar: 396, threeStar: 95, connects: ['18b'] },
 	{ num: '18b', w: 23, h: 25, type: 'growingTree_50_50', twoStar: 384, threeStar: 94, connects: ['19b'] },
 	{ num: '19b', w: 25, h: 27, type: 'prims', twoStar: 449, threeStar: 101, connects: ['20b'] },
-	{ num: '20b', w: 4, h: 4, type: 'huntAndKill', twoStar: 20, threeStar: 16, connects: [] },
+	// 4 x 4 placeholder in the native data; sized to follow 19b.
+	{ num: '20b', w: 26, h: 26, type: 'huntAndKill', twoStar: 449, threeStar: 101, connects: [] },
 
 	// Area 5
 	{ num: '56', w: 29, h: 29, type: 'growingTree_75_25', twoStar: 557, threeStar: 113, connects: ['57'], minStars: 200 },
@@ -183,7 +184,8 @@ const world1Defs: LevelDef[] = [
 	{ num: '64', w: 33, h: 31, type: 'growingTree_50_50', twoStar: 675, threeStar: 125, connects: ['65'] },
 	{ num: '65', w: 32, h: 33, type: 'prims', twoStar: 696, threeStar: 127, connects: ['66', '21b'] },
 	{ num: '66', w: 33, h: 33, type: 'kruskals', twoStar: 718, threeStar: 129, connects: ['67', '22b'] },
-	{ num: '67', w: 4, h: 4, type: 'huntAndKill', twoStar: 20, threeStar: 16, connects: [] },
+	// 4 x 4 placeholder in the native data; sized to follow 66 as the world's last level.
+	{ num: '67', w: 34, h: 34, type: 'huntAndKill', twoStar: 761, threeStar: 133, connects: [] },
 
 	// Area 5 bonus levels
 	{ num: '21b', w: 33, h: 33, type: 'growingTree_50_50', twoStar: 718, threeStar: 129, connects: [], minStars: 230 },

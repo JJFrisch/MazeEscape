@@ -246,7 +246,8 @@ const WORLD_2: ClassicMapConfig = {
 		{ id: 'c29', cell: [38, 4], after: '99b' },
 		{ id: 'c30', cell: [35, 1], after: '107' }
 	],
-	portal: { cell: [32, 1], stars: 20, finalLevel: '110', needsKey: false },
+	// 300 stars, the same number the worlds picker uses to open the next world.
+	portal: { cell: [32, 1], stars: 300, finalLevel: '110', needsKey: false },
 	// The native map has no free cell, so the web game's boss takes level 23's.
 	boss: { num: '22-boss', replaces: '23' }
 };

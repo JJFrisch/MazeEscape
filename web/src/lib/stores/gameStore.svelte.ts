@@ -16,6 +16,11 @@ import { getSupabaseBrowserClient } from '$lib/supabase/client';
 
 const STORAGE_KEY = 'mazeescape_player';
 const LEVEL_STORAGE_KEY = 'mazeescape_levels';
+
+/** Stars a level counts toward gates and totals: the first three. Stars four and five only add to the run's rewards. */
+function countedStars(level: { star1?: boolean; star2?: boolean; star3?: boolean }): number {
+	return (level.star1 ? 1 : 0) + (level.star2 ? 1 : 0) + (level.star3 ? 1 : 0);
+}
 const DAILY_STORAGE_KEY = 'mazeescape_daily';
 const GHOST_STORAGE_KEY = 'mazeescape_level_ghosts';
 const EVENT_PROGRESS_STORAGE_KEY = 'mazeescape_event_progress';
@@ -350,6 +355,8 @@ function createGameStore() {
 		if (initialized) return;
 		player = normalizePlayerData(loadFromStorage<Partial<PlayerData>>(STORAGE_KEY, defaultPlayerData()));
 		levelProgress = loadFromStorage(LEVEL_STORAGE_KEY, {});
+		// A level counts three stars; older saves may hold a five-star total.
+		for (const level of Object.values(levelProgress)) level.numberOfStars = countedStars(level);
 		dailyResults = loadFromStorage(DAILY_STORAGE_KEY, {});
 		ghostRuns = loadFromStorage(GHOST_STORAGE_KEY, {});
 		eventProgress = loadFromStorage(EVENT_PROGRESS_STORAGE_KEY, {});
@@ -979,12 +986,12 @@ function createGameStore() {
 			level.star1 = level.star1 || existing.star1;
 			level.star2 = level.star2 || existing.star2;
 			level.star3 = level.star3 || existing.star3;
-			level.numberOfStars = (level.star1 ? 1 : 0) + (level.star2 ? 1 : 0) + (level.star3 ? 1 : 0);
 			level.bestMoves = existing.bestMoves > 0 ? Math.min(level.bestMoves || Infinity, existing.bestMoves) : level.bestMoves;
 			level.bestTime = existing.bestTime > 0 ? Math.min(level.bestTime || Infinity, existing.bestTime) : level.bestTime;
 			level.completed = level.completed || existing.completed;
 		}
 
+		level.numberOfStars = countedStars(level);
 		levelProgress[key] = { ...level };
 		if (replaceBestRun) {
 			ghostRuns[key] = { moves: [...bestRunMoves], updatedAt: Date.now() };

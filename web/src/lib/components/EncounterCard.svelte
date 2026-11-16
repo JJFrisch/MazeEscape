@@ -177,10 +177,10 @@
 				<div class="best-header">Your Best Run</div>
 				<div class="best-stats">
 					<div class="best-stars">
-						{#each Array(5) as _, i}
+						{#each Array(3) as _, i}
 							<span class="star" class:filled={i < progress.numberOfStars}>★</span>
 						{/each}
-						<span class="star-count">{progress.numberOfStars}/5</span>
+						<span class="star-count">{progress.numberOfStars}/3</span>
 					</div>
 					<div class="best-nums">
 						<span>⏱ {formatTime(progress.bestTime)}</span>

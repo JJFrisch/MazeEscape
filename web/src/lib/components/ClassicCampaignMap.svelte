@@ -15,6 +15,7 @@
 	import { getAllWorlds, getLevelByNumber } from '$lib/core/levels';
 	import EncounterCard from '$lib/components/EncounterCard.svelte';
 	import { getClassicMap, type Cell, type ClassicGate } from '$lib/core/classicMaps';
+	import { isZoneUnlocked, zoneLockReason } from '$lib/core/zoneLocks';
 	import type { MapNode } from '$lib/core/types';
 
 	let { worldId }: { worldId: number } = $props();
@@ -163,10 +164,11 @@
 	const scale = $derived(viewportH > 0 ? viewportH / cfg.mapH : 1);
 
 	onMount(() => {
-		// Open on the level the player is up to.
+		// Open on the level the player is up to. A player who has finished nothing
+		// here starts at the left edge, where the map begins.
 		requestAnimationFrame(() => {
 			const spot = spots.find((s) => s.num === currentNum);
-			if (!scroller || !spot) return;
+			if (!scroller || !spot || !spots.some((s) => done(s.num))) return;
 			const x = (PAD_X + (spot.cell[0] + 0.5) * cellW) * scale;
 			scroller.scrollLeft = Math.max(0, x - scroller.clientWidth / 2);
 		});
@@ -178,6 +180,8 @@
 		activeNode && worldDef ? getLevelByNumber(worldDef, activeNode.levelNumber ?? '') : undefined
 	);
 	let notice = $state('');
+	// The dock's Equip and Shop buttons say what unlocks the Vault until it opens.
+	const vaultOpen = $derived(isZoneUnlocked('vault'));
 	let noticeTimer: ReturnType<typeof setTimeout> | undefined;
 	let lastPrize = $state<{ id: string; coins: number } | null>(null);
 
@@ -341,9 +345,17 @@
 
 	<nav class="dock" aria-label="Campaign shortcuts" style="background-image: url('{base}/images/{cfg.dockImage}');">
 		<div class="dock-bar" class:dark={cfg.dockDark}>
-			<a href="{base}/equip" aria-label="Equip"><img src="{base}/images/classic/toolkit.png" alt="" /></a>
+			{#if vaultOpen}
+				<a href="{base}/equip" aria-label="Equip"><img src="{base}/images/classic/toolkit.png" alt="" /></a>
+			{:else}
+				<button type="button" aria-label="Equip" onclick={() => say(zoneLockReason('vault'))}><img src="{base}/images/classic/toolkit.png" alt="" /></button>
+			{/if}
 			<a href="{base}/campaign/worlds" aria-label="All worlds"><img src="{base}/images/classic/home_button_icon.png" alt="" /></a>
-			<a href="{base}/shop" aria-label="Shop"><img src="{base}/images/classic/shop_button_image.png" alt="" /></a>
+			{#if vaultOpen}
+				<a href="{base}/shop" aria-label="Shop"><img src="{base}/images/classic/shop_button_image.png" alt="" /></a>
+			{:else}
+				<button type="button" aria-label="Shop" onclick={() => say(zoneLockReason('vault'))}><img src="{base}/images/classic/shop_button_image.png" alt="" /></button>
+			{/if}
 		</div>
 	</nav>
 
@@ -548,15 +560,19 @@
 
 	.dock-bar.dark { background: rgba(0, 0, 0, 0.6); }
 
-	.dock-bar a {
+	.dock-bar a,
+	.dock-bar button {
 		display: grid;
 		place-items: center;
 		height: 70px;
 		transition: transform 120ms ease, opacity 120ms ease;
 	}
 
-	.dock-bar a:hover { opacity: 0.78; }
-	.dock-bar a:active { transform: scale(0.95); opacity: 0.6; }
+	.dock-bar a:hover,
+	.dock-bar button:hover { opacity: 0.78; }
+	.dock-bar a:active,
+	.dock-bar button:active { transform: scale(0.95); opacity: 0.6; }
+	.dock-bar button { padding: 0; border: 0; background: none; cursor: pointer; }
 	.dock-bar img { height: 62px; width: auto; }
 
 	.notice {

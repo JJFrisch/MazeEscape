@@ -1,11 +1,24 @@
 <script lang="ts">
 	import { base } from '$app/paths';
-	import { goto } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { authStore } from '$lib/supabase/authStore.svelte';
 	import { getAllWorlds } from '$lib/core/levels';
+	import { isZoneUnlocked, zoneLockReason } from '$lib/core/zoneLocks';
 
 	const worlds = getAllWorlds();
+
+	// A player who has not finished a level yet arrives on the World 1 map, one
+	// press from playing. Only the arrival is redirected, so the logo still opens
+	// this hub, and anyone with progress lands here as before.
+	let skippingHub = $state(false);
+	afterNavigate(({ type }) => {
+		if (type !== 'enter') return;
+		gameStore.init();
+		if (Object.values(gameStore.levelProgress).some((level) => level.completed)) return;
+		skippingHub = true;
+		goto(`${base}/campaign/worlds/1`, { replaceState: true });
+	});
 
 	// Live stats for each zone
 	const totalStars = $derived(
@@ -16,12 +29,13 @@
 	const dailyStreak = $derived(gameStore.player.currentStreak ?? 0);
 	const coins = $derived(gameStore.player.coinCount);
 
-	// Daily locked until level 10
-	const dailyLocked = $derived(
-		worlds[0]?.levels.find(l => l.levelNumber === '10')
-			? !gameStore.getLevelProgress(1, '10')?.completed
-			: false
-	);
+	// Zones open as World 1 levels are completed; see $lib/core/zoneLocks.
+	const spireLocked = $derived(!isZoneUnlocked('spire'));
+	const arenaLocked = $derived(!isZoneUnlocked('arena'));
+	const vaultLocked = $derived(!isZoneUnlocked('vault'));
+	// The Archives card stays open: until the zone unlocks it leads to the
+	// Algorithms page alone, which is open at every level.
+	const archivesLocked = $derived(!isZoneUnlocked('archives'));
 
 	function handleZoneClick(e: MouseEvent, href: string, locked: boolean) {
 		if (locked) return;
@@ -68,8 +82,8 @@
 			href: `${base}/daily`,
 			stat: dailyStreak > 0 ? `🔥 ${dailyStreak} day streak` : 'No streak yet',
 			description: 'A fresh labyrinth generated every 24 hours',
-			locked: dailyLocked,
-			lockReason: 'Complete Level 10 to unlock',
+			locked: spireLocked,
+			lockReason: zoneLockReason('spire'),
 		},
 		{
 			id: 'arena',
@@ -81,6 +95,8 @@
 			href: `${base}/leaderboard`,
 			stat: 'Global rankings',
 			description: 'Compete for the top of the board',
+			locked: arenaLocked,
+			lockReason: zoneLockReason('arena'),
 		},
 		{
 			id: 'vault',
@@ -93,6 +109,8 @@
 			stat: `${coins.toLocaleString()} coins`,
 			description: 'Powerups, skins, and trail effects',
 			secondary: [{ label: 'Equip', href: `${base}/equip` }],
+			locked: vaultLocked,
+			lockReason: zoneLockReason('vault'),
 		},
 		{
 			id: 'archives',
@@ -101,13 +119,15 @@
 			glyph: '≡',
 			color: '#22d3ee',
 			colorDim: 'rgba(34,211,238,0.13)',
-			href: `${base}/codex`,
+			href: archivesLocked ? `${base}/algorithms` : `${base}/codex`,
 			stat: 'Lore & mastery',
 			description: 'Codex of worlds, algorithm lore & chronicles',
-			secondary: [
-				{ label: 'Algorithms', href: `${base}/algorithms` },
-				{ label: 'Chronicles', href: `${base}/stats` },
-			],
+			secondary: archivesLocked
+				? undefined
+				: [
+						{ label: 'Algorithms', href: `${base}/algorithms` },
+						{ label: 'Chronicles', href: `${base}/stats` },
+					],
 		},
 		{
 			id: 'sanctum',
@@ -156,6 +176,7 @@
 	<title>Maze Escape: Pathbound — World Map</title>
 </svelte:head>
 
+{#if !skippingHub}
 <div class="map-shell">
 
 	<!-- Ambient background -->
@@ -269,6 +290,7 @@
 	</div>
 
 </div>
+{/if}
 
 <style>
 	/* ── Shell ────────────────────────────────────────────────── */

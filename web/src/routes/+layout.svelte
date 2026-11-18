@@ -8,6 +8,8 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { base } from '$app/paths';
+	import { goto } from '$app/navigation';
+	import { guardedZoneForPath, isZoneUnlocked } from '$lib/core/zoneLocks';
 
 	let { children } = $props();
 
@@ -34,6 +36,16 @@
 		if (path.includes('/auth'))       return { icon: '🔮', name: 'The Sanctum' };
 		return null;
 	})());
+
+	// A locked zone's pages send the player back to the hub, where the zone's
+	// card says what unlocks it. Saved progress has to be loaded before judging.
+	const lockedZone = $derived.by(() => {
+		const zone = guardedZoneForPath(path);
+		return zone && gameStore.initialized && !isZoneUnlocked(zone) ? zone : null;
+	});
+	$effect(() => {
+		if (lockedZone) goto(`${base}/`, { replaceState: true });
+	});
 
 	onMount(() => {
 		themeStore.init();
@@ -102,10 +114,18 @@
 			<!-- Right side -->
 			<div class="header-right">
 				<!-- Coins -->
-				<a href="{base}/shop" class="coin-chip" aria-label="Coins — go to shop">
-					<img src="{base}/images/coin.png" alt="" class="coin-img" aria-hidden="true" />
-					<span class="coin-value">{gameStore.player.coinCount.toLocaleString()}</span>
-				</a>
+				{#if isZoneUnlocked('vault')}
+					<a href="{base}/shop" class="coin-chip" aria-label="Coins — go to shop">
+						<img src="{base}/images/coin.png" alt="" class="coin-img" aria-hidden="true" />
+						<span class="coin-value">{gameStore.player.coinCount.toLocaleString()}</span>
+					</a>
+				{:else}
+					<!-- The shop is locked: the chip shows the count and leads nowhere. -->
+					<span class="coin-chip coin-chip-locked">
+						<img src="{base}/images/coin.png" alt="" class="coin-img" aria-hidden="true" />
+						<span class="coin-value">{gameStore.player.coinCount.toLocaleString()}</span>
+					</span>
+				{/if}
 
 				<!-- Account -->
 				<a
@@ -152,7 +172,9 @@
 
 	<!-- ── Main content ──────────────────────────────────────────── -->
 	<main class="app-main" class:app-main-map={isHome}>
-		{@render children()}
+		{#if !lockedZone}
+			{@render children()}
+		{/if}
 	</main>
 
 	<!-- ── Footer (legal / info pages only) ─────────────────────── -->
@@ -296,7 +318,7 @@
 		text-decoration: none;
 		transition: all var(--transition-fast);
 	}
-	.coin-chip:hover {
+	a.coin-chip:hover {
 		background: rgba(245, 158, 11, 0.15);
 		border-color: rgba(245, 158, 11, 0.45);
 	}

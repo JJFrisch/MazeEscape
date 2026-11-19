@@ -47,6 +47,7 @@
 </svelte:head>
 
 {#if worldDef}
+<div class="world-screen">
 	<!-- ── Sticky header strip ───────────────────────────── -->
 	<div
 		class="world-strip"
@@ -70,7 +71,7 @@
 		</div>
 
 		<div class="strip-end">
-			<img src="{base}/images/full_star.png" alt="Stars:" class="star-icon" />
+			<img src="{base}/images/full_star.webp" alt="Stars:" class="star-icon" />
 			<span class="star-value" style="color: var(--color-accent-gold)">{starCount}</span>
 			<span class="star-denom">/ {worldDef.numberOfLevels * 3}</span>
 		</div>
@@ -113,7 +114,7 @@
 								<div class="star-row">
 									{#each Array(3) as _, si}
 										<img
-											src="{base}/images/{si < stars ? 'full_star' : 'empty_star'}.png"
+											src="{base}/images/{si < stars ? 'full_star' : 'empty_star'}.webp"
 											alt=""
 											class="star-img"
 											aria-hidden="true"
@@ -125,7 +126,7 @@
 						{:else}
 							<div class="level-card locked" style="--i: {i}" aria-label="Level {level.levelNumber} - Locked">
 								<span class="level-num">{level.levelNumber}</span>
-								<img src="{base}/images/lock.png" alt="Locked" class="lock-sm-img" />
+								<img src="{base}/images/lock.webp" alt="Locked" class="lock-sm-img" />
 							</div>
 						{/if}
 					{/each}
@@ -155,7 +156,7 @@
 									<div class="star-row">
 										{#each Array(3) as _, si}
 											<img
-												src="{base}/images/{si < stars ? 'full_star' : 'empty_star'}.png"
+												src="{base}/images/{si < stars ? 'full_star' : 'empty_star'}.webp"
 												alt=""
 												class="star-img"
 												aria-hidden="true"
@@ -167,7 +168,7 @@
 							{:else}
 								<div class="level-card locked bonus" style="--i: {i}" aria-label="Bonus {level.levelNumber} - Locked">
 									<span class="level-num">{level.levelNumber}</span>
-									<img src="{base}/images/lock.png" alt="Locked" class="lock-sm-img" />
+									<img src="{base}/images/lock.webp" alt="Locked" class="lock-sm-img" />
 								</div>
 							{/if}
 						{/each}
@@ -177,6 +178,7 @@
 		</div>
 	{/if}
 
+</div>
 {:else}
 	<div class="not-found">
 		<h1>World not found</h1>
@@ -282,20 +284,20 @@
 	}
 
 	/* ── Maze map wrapper ────────────────────────────────── */
-	.map-wrapper {
-		/* Subtract header (3.5rem), world-strip (64px), and app-main's
-		   top + bottom padding (2 × var(--space-6) = 3rem) so content
-		   fits exactly in the viewport with zero page scroll. */
-		height: calc(100dvh - var(--header-height) - 64px - 3rem);
-		width: 100%;
-		overflow: hidden;
+	/* The strip and the map share the space under the app header, so the page
+	   itself never scrolls whatever height the strip takes. 3rem is app-main's
+	   top and bottom padding. */
+	.world-screen:has(.map-wrapper) {
+		display: flex;
+		flex-direction: column;
+		height: calc(100dvh - var(--header-height) - 3rem);
 	}
 
-	@media (max-width: 640px) {
-		/* app-main padding shrinks to var(--space-4) = 1rem per side on mobile */
-		.map-wrapper {
-			height: calc(100dvh - var(--header-height) - 64px - 2rem);
-		}
+	.map-wrapper {
+		flex: 1;
+		min-height: 0;
+		width: 100%;
+		overflow: hidden;
 	}
 
 	/* ── Fallback grid layout ────────────────────────────── */

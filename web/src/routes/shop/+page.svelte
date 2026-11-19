@@ -76,7 +76,7 @@
 		<div class="balance-card">
 			<span class="balance-label">Balance</span>
 			<div class="balance-amount">
-				<img src="/images/coin.png" alt="" class="balance-coin" aria-hidden="true" />
+				<img src="/images/coin.webp" alt="" class="balance-coin" aria-hidden="true" />
 				<span>{gameStore.player.coinCount.toLocaleString()}</span>
 			</div>
 			{#if (gameStore.player.gemCount ?? 0) > 0}
@@ -151,7 +151,7 @@
 						disabled={!canAfford}
 						onclick={() => buyItem(item.name, item.cost)}
 					>
-						<img src="/images/coin.png" alt="" class="btn-coin" aria-hidden="true" />
+						<img src="/images/coin.webp" alt="" class="btn-coin" aria-hidden="true" />
 						{item.cost.toLocaleString()}
 					</button>
 				</div>

@@ -116,13 +116,13 @@
 				<!-- Coins -->
 				{#if isZoneUnlocked('vault')}
 					<a href="{base}/shop" class="coin-chip" aria-label="Coins — go to shop">
-						<img src="{base}/images/coin.png" alt="" class="coin-img" aria-hidden="true" />
+						<img src="{base}/images/coin.webp" alt="" class="coin-img" aria-hidden="true" />
 						<span class="coin-value">{gameStore.player.coinCount.toLocaleString()}</span>
 					</a>
 				{:else}
 					<!-- The shop is locked: the chip shows the count and leads nowhere. -->
 					<span class="coin-chip coin-chip-locked">
-						<img src="{base}/images/coin.png" alt="" class="coin-img" aria-hidden="true" />
+						<img src="{base}/images/coin.webp" alt="" class="coin-img" aria-hidden="true" />
 						<span class="coin-value">{gameStore.player.coinCount.toLocaleString()}</span>
 					</span>
 				{/if}

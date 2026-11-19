@@ -845,7 +845,7 @@
 		content: '';
 		position: fixed;
 		inset: 0;
-		background: url('/images/spire_background.jpg') center / cover no-repeat;
+		background: url('/images/spire_background.webp') center / cover no-repeat;
 		z-index: -2;
 		pointer-events: none;
 	}

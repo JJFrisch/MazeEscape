@@ -10,11 +10,12 @@
 	import { getAllWorlds } from '$lib/core/levels';
 	import { getWorldMapLayout } from '$lib/core/campaignMapLayout';
 
-	const worlds = getAllWorlds();
+	// A world with no levels yet stays off the picker.
+	const worlds = getAllWorlds().filter((world) => world.levels.length > 0);
 	const ART: Record<number, string> = {
-		1: 'background_maze_3.png',
-		2: 'space_background11.png',
-		3: 'classic/carousel_maze_4.png'
+		1: 'background_maze_3.webp',
+		2: 'space_background11.webp',
+		3: 'classic/carousel_maze_4.webp'
 	};
 
 	// A world opens when the previous world's portal opens: same star count and
@@ -98,14 +99,14 @@
 				<span class="name">{card.world.worldName}</span>
 
 				{#if card.locked}
-					<img class="lock" src="{base}/images/lock.png" alt="" draggable="false" />
+					<img class="lock" src="{base}/images/lock.webp" alt="" draggable="false" />
 				{:else}
 					<span class="panel">
-						<img src="{base}/images/classic/grid_background.png" alt="" draggable="false" />
+						<img src="{base}/images/classic/grid_background.webp" alt="" draggable="false" />
 						<span class="score beaten">{card.beaten} / {card.total}</span>
 						<span class="score stars">{card.stars} Stars</span>
 					</span>
-					<img class="play" src="{base}/images/classic/play_world_button.png" alt="Play World" draggable="false" />
+					<img class="play" src="{base}/images/classic/play_world_button.webp" alt="Play World" draggable="false" />
 				{/if}
 			</button>
 		{/each}
@@ -113,17 +114,17 @@
 
 	{#if index > 0}
 		<button type="button" class="arrow prev" aria-label="Previous world" onclick={() => show(index - 1)}>
-			<img src="{base}/images/classic/arrow.png" alt="" />
+			<img src="{base}/images/classic/arrow.webp" alt="" />
 		</button>
 	{/if}
 	{#if index < cards.length - 1}
 		<button type="button" class="arrow next" aria-label="Next world" onclick={() => show(index + 1)}>
-			<img src="{base}/images/classic/arrow.png" alt="" />
+			<img src="{base}/images/classic/arrow.webp" alt="" />
 		</button>
 	{/if}
 
 	<a class="home" href="{base}/" aria-label="Home">
-		<img src="{base}/images/classic/home_button_icon.png" alt="" />
+		<img src="{base}/images/classic/home_button_icon.webp" alt="" />
 	</a>
 
 	{#if notice}

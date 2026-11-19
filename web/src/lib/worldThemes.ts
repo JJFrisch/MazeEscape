@@ -26,7 +26,7 @@ export const WORLD_THEMES: WorldTheme[] = [
 		worldId: 1,
 		name: 'Cybernetic Labyrinths',
 		tagline: 'Navigate neon circuits through digital mazes',
-		bgImageFile: 'background_blue_1.png',
+		bgImageFile: 'background_blue_1.webp',
 		accentColor: '#38bdf8',
 		accentDim: 'rgba(56,189,248,0.18)',
 		overlayGradient:
@@ -38,7 +38,7 @@ export const WORLD_THEMES: WorldTheme[] = [
 		worldId: 2,
 		name: 'Galactic Grids',
 		tagline: 'Chart a path through cosmic labyrinths',
-		bgImageFile: 'space_background11.png',
+		bgImageFile: 'space_background11.webp',
 		accentColor: '#c084fc',
 		accentDim: 'rgba(192,132,252,0.18)',
 		overlayGradient:

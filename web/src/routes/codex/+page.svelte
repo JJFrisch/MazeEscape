@@ -222,7 +222,7 @@
 		<!-- Currency chips -->
 		<div class="currency-chips">
 			<div class="chip coin-chip">
-				<img src="/images/coin.png" alt="" class="chip-coin" aria-hidden="true" />
+				<img src="/images/coin.webp" alt="" class="chip-coin" aria-hidden="true" />
 				<span>{gameStore.player.coinCount.toLocaleString()}</span>
 			</div>
 			<div class="chip shard-chip">✦ {gameStore.player.crystalShards ?? 0}</div>

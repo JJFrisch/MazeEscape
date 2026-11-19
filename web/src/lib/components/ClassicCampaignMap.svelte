@@ -139,6 +139,23 @@
 		activeNode = { id: `classic-${boss.num}`, type: 'boss', levelNumber: boss.num } as MapNode;
 	}
 
+	// The native app points an arrow at the first level until it is finished.
+	const ARROW = 64;
+	const startArrow = $derived.by(() => {
+		const first = spots.find((s) => s.num === '1');
+		if (!first || done('1')) return null;
+		const cx = PAD_X + (first.cell[0] + 0.5) * cellW;
+		const cy = (first.cell[1] + 0.5) * cellH;
+		const reach = cfg.orb * 0.3;
+		// The art points down and to the right, with its tip at 82% across and 62% down.
+		const mirrored = cx - reach - ARROW * 0.82 < 0;
+		return {
+			mirrored,
+			left: mirrored ? cx + reach - ARROW * 0.18 : cx - reach - ARROW * 0.82,
+			top: cy - reach - ARROW * 0.62
+		};
+	});
+
 	const portalOpen = $derived(
 		(hasKey || !cfg.portal.needsKey) && done(cfg.portal.finalLevel) && stars >= cfg.portal.stars
 	);
@@ -227,9 +244,9 @@
 	}
 
 	function treasureImage(t: (typeof treasures)[number]): string {
-		if (t.kind === 'key') return 'classic/key6.png';
-		if (t.kind === 'skin') return `player_image${t.skinId}_icon.png`;
-		if (lastPrize?.id === t.id) return 'classic/coin_pile.png';
+		if (t.kind === 'key') return 'classic/key6.webp';
+		if (t.kind === 'skin') return `player_image${t.skinId}_icon.webp`;
+		if (lastPrize?.id === t.id) return 'classic/coin_pile.webp';
 		return t.opened ? cfg.openedChestImage : cfg.chestImage;
 	}
 
@@ -255,7 +272,7 @@
 					aria-label={open ? 'Open gate' : gate.final ? 'Gate, needs the key' : `Gate, needs ${gate.stars} stars`}
 					onclick={() => pressGate(gate)}
 				>
-					<img src="{base}/images/{open ? 'classic/gate_opened.png' : cfg.gateImage}" alt="" draggable="false" />
+					<img src="{base}/images/{open ? 'classic/gate_opened.webp' : cfg.gateImage}" alt="" draggable="false" />
 				</button>
 				{#if !open}
 					<span
@@ -265,7 +282,7 @@
 						aria-hidden="true"
 					>
 						{#if gate.final}
-							<img src="{base}/images/classic/key6.png" alt="" draggable="false" />
+							<img src="{base}/images/classic/key6.webp" alt="" draggable="false" />
 						{:else}
 							{gate.stars}
 						{/if}
@@ -283,7 +300,7 @@
 					aria-label="{orb.bonus ? 'Bonus level' : 'Level'} {orb.num}{orb.unlocked ? `, ${orb.earned} stars` : ', locked'}"
 					onclick={() => openLevel(orb.num)}
 				>
-					<img src="{base}/images/{orb.icon}.png" alt="" draggable="false" />
+					<img src="{base}/images/{orb.icon}.webp" alt="" draggable="false" />
 					{#if !orb.bonus}
 						<span class="orb-num">{orb.num}</span>
 					{/if}
@@ -329,11 +346,22 @@
 				<img src="{base}/images/portal_purple.gif" alt="" draggable="false" />
 			</button>
 
+			{#if startArrow}
+				<img
+					class="start-arrow"
+					class:mirrored={startArrow.mirrored}
+					src="{base}/images/classic/pointer_arrow.webp"
+					alt=""
+					draggable="false"
+					style="left: calc(var(--s) * {startArrow.left}px); top: calc(var(--s) * {startArrow.top}px);"
+				/>
+			{/if}
+
 			{#each cfg.fogWidths as width, i}
 				{#if highestArea <= i + 1}
 					<img
 						class="fog"
-						src="{base}/images/classic/fog.png"
+						src="{base}/images/classic/fog.webp"
 						alt=""
 						draggable="false"
 						style="width: calc(var(--s) * {width}px);"
@@ -346,15 +374,15 @@
 	<nav class="dock" aria-label="Campaign shortcuts" style="background-image: url('{base}/images/{cfg.dockImage}');">
 		<div class="dock-bar" class:dark={cfg.dockDark}>
 			{#if vaultOpen}
-				<a href="{base}/equip" aria-label="Equip"><img src="{base}/images/classic/toolkit.png" alt="" /></a>
+				<a href="{base}/equip" aria-label="Equip"><img src="{base}/images/classic/toolkit.webp" alt="" /></a>
 			{:else}
-				<button type="button" aria-label="Equip" onclick={() => say(zoneLockReason('vault'))}><img src="{base}/images/classic/toolkit.png" alt="" /></button>
+				<button type="button" aria-label="Equip" onclick={() => say(zoneLockReason('vault'))}><img src="{base}/images/classic/toolkit.webp" alt="" /></button>
 			{/if}
-			<a href="{base}/campaign/worlds" aria-label="All worlds"><img src="{base}/images/classic/home_button_icon.png" alt="" /></a>
+			<a href="{base}/campaign/worlds" aria-label="All worlds"><img src="{base}/images/classic/home_button_icon.webp" alt="" /></a>
 			{#if vaultOpen}
-				<a href="{base}/shop" aria-label="Shop"><img src="{base}/images/classic/shop_button_image.png" alt="" /></a>
+				<a href="{base}/shop" aria-label="Shop"><img src="{base}/images/classic/shop_button_image.webp" alt="" /></a>
 			{:else}
-				<button type="button" aria-label="Shop" onclick={() => say(zoneLockReason('vault'))}><img src="{base}/images/classic/shop_button_image.png" alt="" /></button>
+				<button type="button" aria-label="Shop" onclick={() => say(zoneLockReason('vault'))}><img src="{base}/images/classic/shop_button_image.webp" alt="" /></button>
 			{/if}
 		</div>
 	</nav>
@@ -493,9 +521,25 @@
 		pointer-events: none;
 	}
 
+	.start-arrow {
+		position: absolute;
+		width: calc(var(--s) * 64px);
+		height: calc(var(--s) * 64px);
+		pointer-events: none;
+		user-select: none;
+	}
+
+	.start-arrow.mirrored { transform: scaleX(-1); }
+
 	@media (prefers-reduced-motion: no-preference) {
+		.start-arrow { animation: arrow-fade 2s ease-in-out 10; }
 		.orb.current { animation: orb-pulse 2s ease-in-out infinite; }
 		.treasure.wobble img { animation: chest-wobble 9s ease-in-out var(--delay, 0s) infinite; }
+	}
+
+	@keyframes arrow-fade {
+		0%, 100% { opacity: 1; }
+		50% { opacity: 0.2; }
 	}
 
 	@keyframes orb-pulse {

@@ -258,7 +258,7 @@
 
 			<div class="data-stats-grid">
 				<div class="data-stat">
-					<img src="{base}/images/coin.png" alt="" class="stat-icon" aria-hidden="true"/>
+					<img src="{base}/images/coin.webp" alt="" class="stat-icon" aria-hidden="true"/>
 					<span class="stat-val">{gameStore.player.coinCount.toLocaleString()}</span>
 					<span class="stat-lbl">Coins</span>
 				</div>

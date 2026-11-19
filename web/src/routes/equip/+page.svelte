@@ -51,7 +51,7 @@
 		</div>
 		<div class="balance-chips">
 			<div class="balance-chip coin-chip">
-				<img src="{base}/images/coin.png" alt="" class="chip-icon" aria-hidden="true" />
+				<img src="{base}/images/coin.webp" alt="" class="chip-icon" aria-hidden="true" />
 				<span>{gameStore.player.coinCount.toLocaleString()}</span>
 			</div>
 			<div class="balance-chip gem-chip">
@@ -83,7 +83,7 @@
 
 				<div class="skin-img-wrap">
 					<img
-						src="{base}/images/{skin.imageUrl}_icon.png"
+						src="{base}/images/{skin.imageUrl}_icon.webp"
 						alt={skin.name}
 						class="skin-img"
 					/>
@@ -113,7 +113,7 @@
 		<div class="confirm-modal">
 			<div class="confirm-img-wrap">
 				<img
-					src="{base}/images/{confirmSkin.imageUrl}_icon.png"
+					src="{base}/images/{confirmSkin.imageUrl}_icon.webp"
 					alt={confirmSkin.name}
 					class="confirm-img"
 				/>
@@ -128,7 +128,7 @@
 				{/if}
 			{:else}
 				<div class="confirm-price coin-price">
-					<img src="{base}/images/coin.png" alt="" class="confirm-coin" aria-hidden="true" />
+					<img src="{base}/images/coin.webp" alt="" class="confirm-coin" aria-hidden="true" />
 					{confirmSkin.coinPrice.toLocaleString()}
 				</div>
 				<p class="confirm-balance">Your coins: {gameStore.player.coinCount.toLocaleString()}</p>

@@ -8,6 +8,7 @@
 	import CampaignMazeMap from '$lib/components/CampaignMazeMap.svelte';
 	import ClassicCampaignMap from '$lib/components/ClassicCampaignMap.svelte';
 	import { getClassicMap } from '$lib/core/classicMaps';
+	import BackButton from '$lib/components/BackButton.svelte';
 
 	const worldId = $derived(Number($page.params.worldId));
 	const worldDef = $derived(getAllWorlds().find((w) => w.worldId === worldId));
@@ -58,12 +59,7 @@
 			}
 		"
 	>
-		<a href="{base}/campaign/worlds" class="back-link" aria-label="All Worlds">
-			<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-				<path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-			</svg>
-			<span class="back-text">All Worlds</span>
-		</a>
+		<BackButton href="{base}/campaign/worlds" label="All Worlds" />
 
 		<div class="strip-center">
 			<span class="world-label">World {worldDef.worldId}</span>
@@ -202,20 +198,6 @@
 		gap: 1rem;
 		min-height: 64px;
 	}
-
-	.back-link {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		font-size: 0.8rem;
-		font-weight: 500;
-		color: rgba(255, 255, 255, 0.65);
-		text-decoration: none;
-		white-space: nowrap;
-		flex-shrink: 0;
-		transition: color 0.15s;
-	}
-	.back-link:hover { color: #fff; }
 
 	.strip-center {
 		flex: 1;
@@ -431,7 +413,6 @@
 			padding: 0.6rem 0.9rem;
 		}
 		/* Phone: keep the chevron, drop its label, and let the world name wrap. */
-		.back-text { display: none; }
 		.world-title { white-space: normal; overflow: visible; }
 		.levels-grid {
 			grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));

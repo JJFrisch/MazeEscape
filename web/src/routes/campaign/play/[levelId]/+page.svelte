@@ -1,4 +1,5 @@
 <script lang="ts">
+	import BackButton from '$lib/components/BackButton.svelte';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
@@ -729,7 +730,7 @@
 	>
 		<!-- Top bar: back, timer, moves -->
 		<div class="game-hud">
-			<a href="{base}/campaign/worlds/{worldId}" class="hud-back">← Back</a>
+			<BackButton href="{base}/campaign/worlds/{worldId}" label="Back" />
 
 			<div class="hud-center">
 				<span class="hud-label">Level {levelNumber}</span>
@@ -964,15 +965,6 @@
 		flex-shrink: 0;
 	}
 
-	.hud-back {
-		font-size: var(--text-sm);
-		color: var(--color-text-muted);
-		text-decoration: none;
-	}
-
-	.hud-back:hover {
-		color: var(--color-accent-secondary);
-	}
 
 	.hud-center {
 		display: flex;

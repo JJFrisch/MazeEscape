@@ -1,4 +1,5 @@
 <script lang="ts">
+	import BackButton from '$lib/components/BackButton.svelte';
 	import { base } from '$app/paths';
 	import { onDestroy, onMount, tick } from 'svelte';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
@@ -692,7 +693,7 @@
 		aria-label="Daily maze gameplay"
 	>
 		<div class="game-hud">
-			<button class="hud-back" onclick={backToCalendar}>← Calendar</button>
+			<BackButton label="Calendar" onclick={backToCalendar} />
 			<span class="hud-label">📅 {selectedDateLabel}</span>
 			<div class="hud-stats">
 				<div class="hud-stat">
@@ -1437,14 +1438,6 @@
 		justify-content: space-between;
 		padding: var(--space-2) 0;
 		flex-shrink: 0;
-	}
-
-	.hud-back {
-		background: none;
-		border: none;
-		color: var(--color-text-muted);
-		cursor: pointer;
-		font-size: var(--text-sm);
 	}
 
 	.hud-label {

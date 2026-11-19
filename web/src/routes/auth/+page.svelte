@@ -1,4 +1,5 @@
 <script lang="ts">
+	import BackButton from '$lib/components/BackButton.svelte';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { onMount } from 'svelte';
@@ -214,9 +215,7 @@
 						Forgot your password?
 					</button>
 				{:else if mode === 'reset-request'}
-					<button class="text-btn" type="button" onclick={() => { mode = 'sign-in'; authStore.clearMessages(); }}>
-						← Back to sign in
-					</button>
+					<BackButton label="Back to sign in" onclick={() => { mode = 'sign-in'; authStore.clearMessages(); }} />
 				{/if}
 			</form>
 		{/if}

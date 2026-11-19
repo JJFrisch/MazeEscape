@@ -1,12 +1,25 @@
+<!--
+  The hub, picked by Jake on 2026-11-19 as take C "play first" in
+  static/mock/hub-and-back.html: the native world card for the world the
+  player is up to, with Play World as the one primary action, and the other
+  five zones as plain rows beside it (under it on a phone).
+-->
 <script lang="ts">
 	import { base } from '$app/paths';
 	import { afterNavigate, goto } from '$app/navigation';
 	import { gameStore } from '$lib/stores/gameStore.svelte';
 	import { authStore } from '$lib/supabase/authStore.svelte';
 	import { getAllWorlds } from '$lib/core/levels';
+	import { getWorldMapLayout } from '$lib/core/campaignMapLayout';
 	import { isZoneUnlocked, zoneLockReason } from '$lib/core/zoneLocks';
 
 	const worlds = getAllWorlds();
+	// The same art the worlds picker puts behind each card.
+	const ART: Record<number, string> = {
+		1: 'background_maze_3.png',
+		2: 'space_background11.png',
+		3: 'classic/carousel_maze_4.png'
+	};
 
 	// A player who has not finished a level yet arrives on the World 1 map, one
 	// press from playing. Only the arrival is redirected, so the logo still opens
@@ -20,687 +33,326 @@
 		goto(`${base}/campaign/worlds/1`, { replaceState: true });
 	});
 
-	// Live stats for each zone
-	const totalStars = $derived(
-		worlds.reduce((s, w) => s + gameStore.getWorldStarCount(w.worldId), 0)
+	// A world opens when the previous world's portal opens; the worlds picker
+	// applies the same rule.
+	function isPortalOpen(worldId: number): boolean {
+		const portal = getWorldMapLayout(worldId)?.nodes.find((n) => n.type === 'portal');
+		const finalLevelDone = portal?.levelNumber
+			? !!gameStore.getLevelProgress(worldId, portal.levelNumber)?.completed
+			: true;
+		return gameStore.getWorldStarCount(worldId) >= (portal?.starsRequired ?? 300) && finalLevelDone;
+	}
+
+	/** The furthest world the player can play: the card shows this one. */
+	const world = $derived.by(() => {
+		let current = worlds[0];
+		for (let i = 1; i < worlds.length; i++) {
+			if (worlds[i].levels.length === 0 || !isPortalOpen(worlds[i - 1].worldId)) break;
+			current = worlds[i];
+		}
+		return current;
+	});
+	const mainLevels = $derived(world.levels.filter((l) => /^\d+$/.test(l.levelNumber)));
+	const beaten = $derived(
+		mainLevels
+			.filter((l) => gameStore.getLevelProgress(world.worldId, l.levelNumber)?.completed)
+			.reduce((top, l) => Math.max(top, parseInt(l.levelNumber)), 0)
 	);
-	const maxStars = $derived(worlds.reduce((s, w) => s + w.levels.length * 3, 0));
+	const stars = $derived(gameStore.getWorldStarCount(world.worldId));
 
 	const dailyStreak = $derived(gameStore.player.currentStreak ?? 0);
 	const coins = $derived(gameStore.player.coinCount);
-
-	// Zones open as World 1 levels are completed; see $lib/core/zoneLocks.
-	const spireLocked = $derived(!isZoneUnlocked('spire'));
-	const arenaLocked = $derived(!isZoneUnlocked('arena'));
-	const vaultLocked = $derived(!isZoneUnlocked('vault'));
-	// The Archives card stays open: until the zone unlocks it leads to the
-	// Algorithms page alone, which is open at every level.
+	// Until the Archives unlock, their row leads to the Algorithms page alone,
+	// which is open at every level.
 	const archivesLocked = $derived(!isZoneUnlocked('archives'));
 
-	function handleZoneClick(e: MouseEvent, href: string, locked: boolean) {
-		if (locked) return;
-		// Don't navigate if user clicked a secondary link
-		if ((e.target as HTMLElement).closest('.secondary-link')) return;
-		goto(href);
-	}
-
-	type SubLink = { label: string; href: string };
-	type Zone = {
+	type Row = {
 		id: string;
 		name: string;
 		subtitle: string;
-		glyph: string;
-		color: string;
-		colorDim: string;
 		href: string;
 		stat: string;
 		description: string;
-		secondary?: SubLink[];
-		locked?: boolean;
+		links?: { label: string; href: string }[];
 		lockReason?: string;
 	};
 
-	const zones: Zone[] = $derived([
-		{
-			id: 'dungeon',
-			name: 'The Dungeon',
-			subtitle: 'Campaign',
-			glyph: '⚔',
-			color: '#38bdf8',
-			colorDim: 'rgba(56,189,248,0.13)',
-			href: `${base}/campaign/worlds`,
-			stat: `${totalStars} / ${maxStars} ★`,
-			description: 'Navigate procedural labyrinths across 3 worlds',
-		},
+	const rows: Row[] = $derived([
 		{
 			id: 'spire',
 			name: 'The Spire',
 			subtitle: 'Daily Maze',
-			glyph: '◉',
-			color: '#c084fc',
-			colorDim: 'rgba(192,132,252,0.13)',
 			href: `${base}/daily`,
 			stat: dailyStreak > 0 ? `🔥 ${dailyStreak} day streak` : 'No streak yet',
 			description: 'A fresh labyrinth generated every 24 hours',
-			locked: spireLocked,
-			lockReason: zoneLockReason('spire'),
+			lockReason: isZoneUnlocked('spire') ? undefined : zoneLockReason('spire')
 		},
 		{
 			id: 'arena',
 			name: 'The Arena',
 			subtitle: 'Leaderboard',
-			glyph: '◈',
-			color: '#f59e0b',
-			colorDim: 'rgba(245,158,11,0.13)',
 			href: `${base}/leaderboard`,
 			stat: 'Global rankings',
 			description: 'Compete for the top of the board',
-			locked: arenaLocked,
-			lockReason: zoneLockReason('arena'),
+			lockReason: isZoneUnlocked('arena') ? undefined : zoneLockReason('arena')
 		},
 		{
 			id: 'vault',
 			name: 'The Vault',
 			subtitle: 'Shop & Equip',
-			glyph: '◆',
-			color: '#34d399',
-			colorDim: 'rgba(52,211,153,0.13)',
 			href: `${base}/shop`,
 			stat: `${coins.toLocaleString()} coins`,
 			description: 'Powerups, skins, and trail effects',
-			secondary: [{ label: 'Equip', href: `${base}/equip` }],
-			locked: vaultLocked,
-			lockReason: zoneLockReason('vault'),
+			links: [{ label: 'Equip', href: `${base}/equip` }],
+			lockReason: isZoneUnlocked('vault') ? undefined : zoneLockReason('vault')
 		},
 		{
 			id: 'archives',
 			name: 'The Archives',
 			subtitle: 'Knowledge',
-			glyph: '≡',
-			color: '#22d3ee',
-			colorDim: 'rgba(34,211,238,0.13)',
 			href: archivesLocked ? `${base}/algorithms` : `${base}/codex`,
 			stat: 'Lore & mastery',
 			description: 'Codex of worlds, algorithm lore & chronicles',
-			secondary: archivesLocked
+			links: archivesLocked
 				? undefined
 				: [
 						{ label: 'Algorithms', href: `${base}/algorithms` },
-						{ label: 'Chronicles', href: `${base}/stats` },
-					],
+						{ label: 'Chronicles', href: `${base}/stats` }
+					]
 		},
 		{
 			id: 'sanctum',
 			name: 'The Sanctum',
 			subtitle: 'Settings & Account',
-			glyph: '⬡',
-			color: '#a78bfa',
-			colorDim: 'rgba(167,139,250,0.13)',
 			href: `${base}/settings`,
 			stat: authStore.user ? (authStore.user.email?.split('@')[0] ?? 'Signed in') : 'Sign In',
 			description: 'Configure your journey and sync your progress',
-			secondary: [{ label: 'Account', href: `${base}/auth` }],
-		},
+			links: [{ label: 'Account', href: `${base}/auth` }]
+		}
 	]);
-
-	// 7 corridors connecting the 6 zones
-	type Corridor = {
-		dir: 'h' | 'v';
-		gridCol: number;
-		gridRow: number;
-		c1: string;
-		c2: string;
-	};
-
-	const corridors: Corridor[] = $derived([
-		{ dir: 'h', gridCol: 2, gridRow: 1, c1: zones[0].color, c2: zones[1].color },
-		{ dir: 'h', gridCol: 4, gridRow: 1, c1: zones[1].color, c2: zones[2].color },
-		{ dir: 'h', gridCol: 2, gridRow: 3, c1: zones[3].color, c2: zones[4].color },
-		{ dir: 'h', gridCol: 4, gridRow: 3, c1: zones[4].color, c2: zones[5].color },
-		{ dir: 'v', gridCol: 1, gridRow: 2, c1: zones[0].color, c2: zones[3].color },
-		{ dir: 'v', gridCol: 3, gridRow: 2, c1: zones[1].color, c2: zones[4].color },
-		{ dir: 'v', gridCol: 5, gridRow: 2, c1: zones[2].color, c2: zones[5].color },
-	]);
-
-	const roomPositions = [
-		{ gridCol: 1, gridRow: 1 },
-		{ gridCol: 3, gridRow: 1 },
-		{ gridCol: 5, gridRow: 1 },
-		{ gridCol: 1, gridRow: 3 },
-		{ gridCol: 3, gridRow: 3 },
-		{ gridCol: 5, gridRow: 3 },
-	];
 </script>
 
 <svelte:head>
-	<title>Maze Escape: Pathbound — World Map</title>
+	<title>Maze Escape: Pathbound, World Map</title>
 </svelte:head>
 
 {#if !skippingHub}
-<div class="map-shell">
-
-	<!-- Ambient background -->
-	<div class="map-bg" aria-hidden="true">
-		<div class="map-bg-grid"></div>
-		{#each zones as zone}
-			<div
-				class="map-bg-bloom zone-bloom-{zone.id}"
-				style="--bloom-color: {zone.colorDim};"
-			></div>
-		{/each}
-	</div>
-
-	<!-- Title row -->
-	<div class="map-title-row" aria-hidden="true">
-		<span class="map-label">WORLD MAP</span>
-		<span class="map-divider">◇</span>
-		<span class="map-sub">Select a zone to enter</span>
-	</div>
-
-	<!-- ── The map ─────────────────────────────────────────────── -->
-	<div class="map-grid" role="navigation" aria-label="Game zones">
-
-		{#each zones as zone, i}
-			{@const pos = roomPositions[i]}
-			<!-- Using div + onclick to avoid nested <a> hydration issues; main link is the enter button -->
-			<div
-				class="zone-room"
-				class:zone-locked={zone.locked}
-				style="grid-column:{pos.gridCol};grid-row:{pos.gridRow};--zone-color:{zone.color};--zone-dim:{zone.colorDim};"
-				role="button"
-				tabindex={zone.locked ? -1 : 0}
-				aria-label="{zone.name} — {zone.subtitle}"
-				onclick={(e) => handleZoneClick(e, zone.href, zone.locked ?? false)}
-				onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleZoneClick(e as unknown as MouseEvent, zone.href, zone.locked ?? false); }}
-			>
-				<div class="room-glow" aria-hidden="true"></div>
-				<div class="room-corner room-corner-tl" aria-hidden="true"></div>
-				<div class="room-corner room-corner-tr" aria-hidden="true"></div>
-				<div class="room-corner room-corner-bl" aria-hidden="true"></div>
-				<div class="room-corner room-corner-br" aria-hidden="true"></div>
-
-				{#if zone.locked}
-					<div class="room-lock-overlay" aria-hidden="true">
-						<span class="lock-icon">🔒</span>
-						<span class="lock-reason">{zone.lockReason}</span>
-					</div>
-				{/if}
-
-				<div class="room-content">
-					<div class="room-glyph" aria-hidden="true">{zone.glyph}</div>
-					<div class="room-name">{zone.name}</div>
-					<div class="room-subtitle">{zone.subtitle}</div>
-					<div class="room-sep" aria-hidden="true"></div>
-					<div class="room-stat">{zone.stat}</div>
-					<p class="room-desc">{zone.description}</p>
-					{#if zone.secondary}
-						<div class="room-secondary" role="group">
-							{#each zone.secondary as link}
-								<a
-									href={link.href}
-									class="secondary-link"
-									onclick={(e) => e.stopPropagation()}
-									aria-label="{link.label} section"
-								>{link.label}</a>
-							{/each}
-						</div>
-					{/if}
-				</div>
-
-				{#if !zone.locked}
-					<div class="room-enter" aria-hidden="true">
-						<svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-							<path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-						</svg>
-					</div>
-				{/if}
-			</div>
-		{/each}
-
-		<!-- Corridors -->
-		{#each corridors as corr}
-			<div
-				class="corridor corridor-{corr.dir}"
-				style="grid-column:{corr.gridCol};grid-row:{corr.gridRow};--c1:{corr.c1};--c2:{corr.c2};"
-				aria-hidden="true"
-			>
-				<div class="corr-line"></div>
-				<div class="corr-dot corr-dot-a"></div>
-				<div class="corr-dot corr-dot-b"></div>
-				<div class="corr-dot corr-dot-c"></div>
-			</div>
-		{/each}
-
-	</div>
-
-	<!-- Footer row -->
-	<div class="map-footer-row">
-		<a href="{base}/download" class="download-cta">
-			<svg width="11" height="11" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-				<path d="M12 3v12M7 11l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-				<rect x="3" y="18" width="18" height="3" rx="1.5" stroke="currentColor" stroke-width="2"/>
-			</svg>
-			Desktop App
+	<div class="hub">
+		<a
+			class="wcard"
+			href="{base}/campaign/worlds/{world.worldId}"
+			aria-label={world.worldName}
+			style="background-image: url('{base}/images/{ART[world.worldId]}');"
+		>
+			<span class="titles">
+				<span class="game">Maze Escape</span>
+				<span class="worlds">Worlds</span>
+			</span>
+			<span class="name">{world.worldName}</span>
+			<span class="panel">
+				<img src="{base}/images/classic/grid_background.png" alt="" draggable="false" />
+				<span class="score beaten">{beaten} / {mainLevels.length}</span>
+				<span class="score stars">{stars} Stars</span>
+			</span>
+			<img class="play" src="{base}/images/classic/play_world_button.png" alt="Play World" draggable="false" />
 		</a>
-		<span class="map-footer-sep">·</span>
-		<a href="{base}/privacy" class="map-footer-link">Privacy</a>
-		<span class="map-footer-sep">·</span>
-		<a href="{base}/terms" class="map-footer-link">Terms</a>
-		<span class="map-footer-credit">© 2026 Jake Frischmann</span>
+
+		<nav class="rows" aria-label="Game zones">
+			{#each rows as row (row.id)}
+				{#if row.lockReason}
+					<div class="row locked">
+						<h2>{row.name}<span>{row.subtitle}</span></h2>
+						<span class="stat"></span>
+						<p class="desc"><img src="{base}/images/lock.png" alt="" />{row.lockReason}</p>
+					</div>
+				{:else}
+					<!-- The zone name is the row's link and covers the whole row; the
+					     smaller links sit above it. Approved by Jake on 2026-11-19 as an
+					     addition to take C, styled as the pills in the mockup's take B. -->
+					<div class="row open">
+						<h2><a class="main" href={row.href}>{row.name}</a><span>{row.subtitle}</span></h2>
+						<span class="stat">{row.stat}</span>
+						<p class="desc">{row.description}</p>
+						{#if row.links}
+							<span class="links">
+								{#each row.links as link}
+									<a href={link.href}>{link.label}</a>
+								{/each}
+							</span>
+						{/if}
+					</div>
+				{/if}
+			{/each}
+		</nav>
 	</div>
 
-</div>
+	<div class="foot">
+		<a class="dl" href="{base}/download">Desktop App</a>
+		<a href="{base}/privacy">Privacy</a>
+		<a href="{base}/terms">Terms</a>
+		<span class="end">© 2026 Jake Frischmann</span>
+	</div>
 {/if}
 
 <style>
-	/* ── Shell ────────────────────────────────────────────────── */
-	.map-shell {
-		position: relative;
+	/* Values are the mockup's. The three custom properties stand in for its fixed
+	   dark colours so the rows stay readable in the light theme, which the
+	   mockup does not show. DEVIATION: needs Jake's approval (light theme only). */
+	.hub,
+	.foot {
+		--hub-dim: #64748b;
+		--hub-line: rgba(255, 255, 255, 0.12);
+		--hub-hover: rgba(255, 255, 255, 0.04);
 		width: 100%;
-		min-height: calc(100dvh - var(--header-height));
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		overflow: hidden;
-		padding: 16px 20px 10px;
-		box-sizing: border-box;
-		background: var(--color-bg-primary);
+		max-width: 1120px;
+		margin: 0 auto;
+	}
+	:global(html[data-theme='light']) .hub,
+	:global(html[data-theme='light']) .foot {
+		--hub-line: rgba(0, 0, 0, 0.12);
+		--hub-hover: rgba(0, 0, 0, 0.04);
 	}
 
-	/* ── Background ───────────────────────────────────────────── */
-	.map-bg {
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-		z-index: 0;
-	}
-	.map-bg-grid {
-		position: absolute;
-		inset: 0;
-		background-image:
-			linear-gradient(var(--app-grid-line-color) 1px, transparent 1px),
-			linear-gradient(90deg, var(--app-grid-line-color) 1px, transparent 1px);
-		background-size: 40px 40px;
-		opacity: 0.7;
-	}
-	.map-bg-bloom {
-		position: absolute;
-		width: 380px;
-		height: 380px;
-		border-radius: 50%;
-		background: radial-gradient(ellipse, var(--bloom-color) 0%, transparent 70%);
-		filter: blur(70px);
-		animation: bloom-pulse 7s ease-in-out infinite;
-	}
-	.zone-bloom-dungeon  { top: -60px;  left: -60px;  animation-delay: 0s; }
-	.zone-bloom-spire    { top: -60px;  left: calc(50% - 190px); animation-delay: 1.2s; }
-	.zone-bloom-arena    { top: -60px;  right: -60px; animation-delay: 2.4s; }
-	.zone-bloom-vault    { bottom: -60px; left: -60px;  animation-delay: 3.6s; }
-	.zone-bloom-archives { bottom: -60px; left: calc(50% - 190px); animation-delay: 4.8s; }
-	.zone-bloom-sanctum  { bottom: -60px; right: -60px; animation-delay: 6s; }
-
-	@keyframes bloom-pulse {
-		0%, 100% { opacity: 0.4; transform: scale(1); }
-		50%       { opacity: 0.65; transform: scale(1.08); }
-	}
-
-	/* ── Title ──────────────────────────────────────────────────── */
-	.map-title-row {
-		position: relative;
-		z-index: 1;
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		margin-bottom: 14px;
-	}
-	.map-label {
-		font-family: var(--font-display);
-		font-size: var(--text-xs);
-		font-weight: 700;
-		letter-spacing: 0.20em;
-		color: var(--color-text-muted);
-		text-transform: uppercase;
-	}
-	.map-divider { color: var(--color-accent-primary); font-size: 9px; opacity: 0.5; }
-	.map-sub { font-size: var(--text-xs); color: var(--color-text-muted); }
-
-	/* ── Map grid ─────────────────────────────────────────────── */
-	.map-grid {
-		position: relative;
-		z-index: 1;
+	.hub {
 		display: grid;
-		grid-template-columns: 1fr 72px 1fr 72px 1fr;
-		grid-template-rows: 1fr 60px 1fr;
-		width: 100%;
-		max-width: 1060px;
-		flex: 1;
-		max-height: 600px;
-		min-height: 380px;
+		grid-template-columns: minmax(0, 5fr) minmax(0, 4fr);
+		gap: 24px;
+		padding: 24px;
 	}
 
-	/* ── Zone rooms ───────────────────────────────────────────── */
-	.zone-room {
+	/* ── The native world card ─────────────────────────────── */
+	.wcard {
 		position: relative;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		justify-content: flex-end;
-		padding: 18px 20px 16px;
-		background: var(--color-bg-card);
-		border: 1px solid color-mix(in srgb, var(--zone-color) 20%, transparent);
-		border-radius: var(--radius-lg);
-		color: var(--color-text-primary);
+		display: block;
+		min-height: 560px;
+		border-radius: 12px;
 		overflow: hidden;
-		cursor: pointer;
-		user-select: none;
-		transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.2s ease;
-		outline: none;
-	}
-	.zone-room:focus-visible {
-		box-shadow: 0 0 0 2px var(--zone-color);
-	}
-	.zone-room:hover:not(.zone-locked),
-	.zone-room:focus-visible:not(.zone-locked) {
-		border-color: color-mix(in srgb, var(--zone-color) 52%, transparent);
-		box-shadow:
-			0 0 42px color-mix(in srgb, var(--zone-color) 16%, transparent),
-			inset 0 0 56px color-mix(in srgb, var(--zone-color) 5%, transparent);
-		transform: scale(1.012);
-	}
-	.zone-locked { cursor: not-allowed; opacity: 0.4; pointer-events: none; }
-
-	/* Glow layer */
-	.room-glow {
-		position: absolute;
-		inset: 0;
-		background: radial-gradient(ellipse at 40% 85%, var(--zone-dim) 0%, transparent 60%);
-		opacity: 0.65;
-		transition: opacity 0.22s ease;
-		pointer-events: none;
-	}
-	.zone-room:hover .room-glow { opacity: 1; }
-
-	/* Corner accents */
-	.room-corner {
-		position: absolute;
-		width: 8px;
-		height: 8px;
-		border-color: color-mix(in srgb, var(--zone-color) 38%, transparent);
-		border-style: solid;
-		border-width: 0;
-		transition: border-color 0.22s ease;
-	}
-	.zone-room:hover .room-corner {
-		border-color: color-mix(in srgb, var(--zone-color) 70%, transparent);
-	}
-	.room-corner-tl { top: 9px;    left: 9px;   border-top-width: 1.5px; border-left-width: 1.5px;   border-radius: 2px 0 0 0; }
-	.room-corner-tr { top: 9px;    right: 9px;  border-top-width: 1.5px; border-right-width: 1.5px;  border-radius: 0 2px 0 0; }
-	.room-corner-bl { bottom: 9px; left: 9px;   border-bottom-width: 1.5px; border-left-width: 1.5px;  border-radius: 0 0 0 2px; }
-	.room-corner-br { bottom: 9px; right: 9px;  border-bottom-width: 1.5px; border-right-width: 1.5px; border-radius: 0 0 2px 0; }
-
-	/* Lock overlay */
-	.room-lock-overlay {
-		position: absolute;
-		inset: 0;
-		z-index: 10;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 6px;
-		background: var(--color-bg-overlay);
-		border-radius: inherit;
-		backdrop-filter: blur(2px);
-	}
-	.lock-icon  { font-size: 1.5rem; }
-	.lock-reason { font-size: var(--text-xs); color: var(--color-text-muted); text-align: center; padding: 0 12px; }
-
-	/* Room content */
-	.room-content { position: relative; z-index: 2; width: 100%; }
-
-	.room-glyph {
-		font-size: 1.55rem;
-		line-height: 1;
-		color: var(--zone-color);
-		margin-bottom: 9px;
-		font-family: var(--font-display);
-		filter: drop-shadow(0 0 8px color-mix(in srgb, var(--zone-color) 55%, transparent));
-		transition: filter 0.22s ease;
-	}
-	.zone-room:hover .room-glyph {
-		filter: drop-shadow(0 0 16px var(--zone-color));
-	}
-
-	.room-name {
-		font-family: var(--font-display);
-		font-size: var(--text-base);
-		font-weight: 700;
-		color: var(--color-text-primary);
-		line-height: 1.1;
-	}
-	.room-subtitle {
-		font-size: 10px;
-		font-weight: 600;
-		color: var(--zone-color);
-		letter-spacing: 0.10em;
-		text-transform: uppercase;
-		margin-top: 2px;
-		opacity: 0.8;
-	}
-	.room-sep {
-		width: 24px;
-		height: 1px;
-		background: color-mix(in srgb, var(--zone-color) 32%, transparent);
-		margin: 9px 0;
-	}
-	.room-stat {
-		font-family: var(--font-display);
-		font-size: var(--text-sm);
-		font-weight: 600;
-		color: var(--color-text-primary);
-		margin-bottom: 3px;
-	}
-	.room-desc {
-		font-size: var(--text-xs);
-		color: var(--color-text-secondary);
-		line-height: 1.45;
-		margin: 0 0 9px;
-		opacity: 0.75;
-	}
-
-	/* Secondary links */
-	.room-secondary { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 1px; }
-	.secondary-link {
-		display: inline-flex;
-		align-items: center;
-		padding: 2px 8px;
-		background: color-mix(in srgb, var(--zone-color) 10%, transparent);
-		border: 1px solid color-mix(in srgb, var(--zone-color) 26%, transparent);
-		border-radius: var(--radius-full);
-		font-size: 10px;
-		font-weight: 600;
-		color: color-mix(in srgb, var(--zone-color) 80%, white 20%);
+		background: #000 center / cover;
+		color: #fff;
+		text-align: center;
 		text-decoration: none;
-		letter-spacing: 0.03em;
-		transition: all 0.14s ease;
-		pointer-events: all;
+		transition: transform 120ms ease;
 	}
-	.secondary-link:hover {
-		background: color-mix(in srgb, var(--zone-color) 18%, transparent);
-		border-color: color-mix(in srgb, var(--zone-color) 52%, transparent);
-	}
+	.wcard:active { transform: scale(0.98); }
+	.wcard:focus-visible { outline: 2px solid var(--color-accent-primary); outline-offset: 2px; }
 
-	/* Enter arrow */
-	.room-enter {
-		position: absolute;
-		top: 14px;
-		right: 14px;
-		z-index: 2;
-		color: color-mix(in srgb, var(--zone-color) 45%, transparent);
-		opacity: 0;
-		transform: translateX(-5px);
-		transition: opacity 0.18s ease, transform 0.18s ease, color 0.18s ease;
-	}
-	.zone-room:hover .room-enter {
-		opacity: 1;
-		transform: translateX(0);
-		color: var(--zone-color);
-	}
+	.titles { position: absolute; inset: 20px 0 auto; }
+	.titles span { display: block; }
+	.game { font: 400 22px/1.5 var(--font-body); color: whitesmoke; }
+	.worlds { margin-top: 6px; font: 400 18px/1.2 var(--font-body); color: lightblue; }
 
-	/* ── Corridors ────────────────────────────────────────────── */
-	.corridor {
-		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.corr-line {
+	.name {
 		position: absolute;
-		border-radius: 2px;
-	}
-	.corridor-h .corr-line {
-		width: 100%;
-		height: 2px;
-		background: linear-gradient(90deg,
-			color-mix(in srgb, var(--c1) 70%, transparent),
-			color-mix(in srgb, var(--c2) 70%, transparent)
-		);
-		box-shadow: 0 0 6px color-mix(in srgb, var(--c1) 30%, var(--c2) 30%);
-		opacity: 0.55;
-	}
-	.corridor-v .corr-line {
-		width: 2px;
-		height: 100%;
-		background: linear-gradient(180deg,
-			color-mix(in srgb, var(--c1) 70%, transparent),
-			color-mix(in srgb, var(--c2) 70%, transparent)
-		);
-		box-shadow: 0 0 6px color-mix(in srgb, var(--c1) 30%, var(--c2) 30%);
-		opacity: 0.55;
-	}
-
-	/* Animated travel dots */
-	.corr-dot {
-		position: absolute;
-		width: 4px;
-		height: 4px;
-		border-radius: 50%;
-		background: var(--color-text-primary);
-		opacity: 0;
-	}
-	.corridor-h .corr-dot {
-		top: 50%;
-		transform: translateY(-50%);
-		animation: travel-h 3.5s linear infinite;
-	}
-	.corridor-v .corr-dot {
+		top: 130px;
 		left: 50%;
+		width: min(300px, 90%);
+		height: 40px;
 		transform: translateX(-50%);
-		animation: travel-v 3.5s linear infinite;
-	}
-	.corr-dot-a { animation-delay: 0s; }
-	.corr-dot-b { animation-delay: 1.17s; }
-	.corr-dot-c { animation-delay: 2.33s; }
-
-	@keyframes travel-h {
-		0%   { left: 0%;   opacity: 0; }
-		8%   { opacity: 0.65; }
-		92%  { opacity: 0.65; }
-		100% { left: 100%; opacity: 0; }
-	}
-	@keyframes travel-v {
-		0%   { top: 0%;   opacity: 0; }
-		8%   { opacity: 0.65; }
-		92%  { opacity: 0.65; }
-		100% { top: 100%; opacity: 0; }
+		display: grid;
+		place-items: center;
+		background: rgba(0, 0, 0, 0.5);
+		font: 700 20px/1 var(--font-body);
 	}
 
-	/* ── Map footer ───────────────────────────────────────────── */
-	.map-footer-row {
+	.panel {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 250px;
+		transform: translate(-50%, -75%);
+	}
+	.panel img { display: block; width: 100%; }
+	.score {
+		position: absolute;
+		top: 60%;
+		width: 50%;
+		font: 700 12px/1 var(--font-body);
+		color: #222;
+		text-align: center;
+	}
+	.score.beaten { left: 0; }
+	.score.stars { right: 0; }
+
+	.play {
+		position: absolute;
+		top: 72%;
+		left: 50%;
+		width: 230px;
+		transform: translateX(-50%);
+		transition: transform 120ms ease;
+	}
+	.wcard:hover .play { transform: translateX(-50%) scale(1.04); }
+
+	/* ── The other zones ───────────────────────────────────── */
+	.rows { display: flex; flex-direction: column; align-self: center; }
+	.row {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: 4px 16px;
+		align-items: baseline;
+		padding: 16px 8px;
+		border-top: 1px solid var(--hub-line);
+		color: var(--color-text-primary);
+		text-decoration: none;
+		transition: background var(--transition-fast);
+	}
+	.row:last-child { border-bottom: 1px solid var(--hub-line); }
+	.row.open { position: relative; }
+	.row.open:hover { background: var(--hub-hover); }
+	.row.open:has(.main:active) { transform: scale(0.99); }
+	.main { color: inherit; text-decoration: none; }
+	.main::after { content: ''; position: absolute; inset: 0; }
+	.main:focus-visible { outline: none; }
+	.main:focus-visible::after { outline: 2px solid var(--color-accent-primary); outline-offset: 2px; }
+	.links { grid-column: 1 / -1; display: flex; gap: 8px; padding-top: 8px; }
+	.links a {
 		position: relative;
 		z-index: 1;
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		margin-top: 12px;
-		padding-top: 10px;
-		border-top: 1px solid var(--color-border-subtle);
-		width: 100%;
-		max-width: 1060px;
+		padding: 6px 12px;
+		border-radius: 999px;
+		border: 1px solid var(--hub-line);
+		font: 500 12px/1 var(--font-body);
+		color: var(--color-text-secondary);
+		text-decoration: none;
+		transition: color var(--transition-fast), border-color var(--transition-fast);
 	}
-	.download-cta {
+	.links a:hover { color: var(--color-text-primary); border-color: var(--color-text-secondary); }
+	.links a:focus-visible { outline: 2px solid var(--color-accent-primary); outline-offset: 2px; }
+	.row h2 { margin: 0; font: 700 17px/1.2 var(--font-display); }
+	.row h2 span { margin-left: 8px; font: 500 13px/1 var(--font-body); color: var(--color-text-secondary); }
+	.row .stat { font: 600 13px/1 var(--font-display); color: var(--color-text-secondary); text-align: right; }
+	.row .desc { grid-column: 1 / -1; margin: 0; font: 400 13px/1.5 var(--font-body); color: var(--color-text-secondary); }
+	.row.locked { cursor: not-allowed; }
+	.row.locked h2,
+	.row.locked h2 span { color: var(--hub-dim); }
+	.row.locked .desc { display: flex; align-items: center; gap: 8px; }
+	.row.locked .desc img { width: 14px; height: 15px; }
+
+	/* ── Footer ────────────────────────────────────────────── */
+	.foot {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 8px 24px;
+		padding: 16px;
+		font: 500 12px/1 var(--font-body);
+		color: var(--hub-dim);
+	}
+	.foot a { color: var(--color-text-secondary); text-decoration: none; }
+	.foot a:hover { color: var(--color-text-primary); }
+	.foot .dl {
 		display: inline-flex;
 		align-items: center;
-		gap: 5px;
-		padding: 4px 11px;
-		background: rgba(245, 158, 11, 0.09);
-		border: 1px solid rgba(245, 158, 11, 0.28);
-		border-radius: var(--radius-full);
-		font-size: var(--text-xs);
-		font-weight: 600;
+		gap: 6px;
+		padding: 8px 12px;
+		border-radius: 999px;
+		border: 1px solid rgba(245, 158, 11, 0.35);
 		color: var(--color-accent-gold);
-		text-decoration: none;
-		transition: all 0.14s ease;
 	}
-	.download-cta:hover {
-		background: rgba(245, 158, 11, 0.16);
-		border-color: rgba(245, 158, 11, 0.5);
-	}
-	.map-footer-sep { color: var(--color-text-muted); font-size: var(--text-xs); opacity: 0.35; }
-	.map-footer-link {
-		font-size: var(--text-xs);
-		color: var(--color-text-muted);
-		text-decoration: none;
-		transition: color 0.14s ease;
-	}
-	.map-footer-link:hover { color: var(--color-accent-primary); }
-	.map-footer-credit {
-		font-size: var(--text-xs);
-		color: var(--color-text-muted);
-		opacity: 0.45;
-		margin-left: auto;
-	}
+	.foot .end { margin-left: auto; }
 
-	/* ── Responsive ───────────────────────────────────────────── */
-	@media (max-width: 860px) {
-		.map-grid {
-			grid-template-columns: 1fr 52px 1fr;
-			grid-template-rows: repeat(6, minmax(120px, auto));
-			max-height: none;
-			min-height: 0;
-		}
-		/* Re-place rooms into 2-column layout (override inline styles) */
-		.zone-room:nth-child(1) { grid-column: 1 !important; grid-row: 1 !important; }
-		.zone-room:nth-child(2) { grid-column: 3 !important; grid-row: 1 !important; }
-		.zone-room:nth-child(3) { grid-column: 1 !important; grid-row: 3 !important; }
-		.zone-room:nth-child(4) { grid-column: 3 !important; grid-row: 3 !important; }
-		.zone-room:nth-child(5) { grid-column: 1 !important; grid-row: 5 !important; }
-		.zone-room:nth-child(6) { grid-column: 3 !important; grid-row: 5 !important; }
-		/* Show only the 3 pair-connecting corridors */
-		.corridor { display: none !important; }
-		/* corridor[0] = dungeon↔spire = nth-child(7), place at row 1 */
-		.corridor:nth-child(7)  { display: flex !important; grid-column: 2 !important; grid-row: 1 !important; }
-		/* reuse corridor[2] = vault↔archives, repurpose at row 3 (arena↔vault pair) */
-		.corridor:nth-child(9)  { display: flex !important; grid-column: 2 !important; grid-row: 3 !important; }
-		/* reuse corridor[3] = archives↔sanctum, repurpose at row 5 */
-		.corridor:nth-child(10) { display: flex !important; grid-column: 2 !important; grid-row: 5 !important; }
-	}
-
-	@media (max-width: 520px) {
-		.map-shell { padding: 10px 10px 8px; }
-		.map-grid {
-			grid-template-columns: 1fr;
-			grid-template-rows: auto;
-			gap: 8px;
-			max-height: none;
-		}
-		/* :nth-child(n) matches the specificity of the two-column rules above,
-		   which otherwise keep winning and squeeze half the rooms off-grid. */
-		.zone-room:nth-child(n) { grid-column: 1 !important; grid-row: auto !important; }
-		.corridor:nth-child(n)  { display: none !important; }
-		.room-glyph { font-size: 1.25rem; margin-bottom: 6px; }
-		.map-footer-row { flex-wrap: wrap; gap: 8px; }
-		.map-footer-credit { margin-left: 0; }
+	@media (max-width: 640px) {
+		.hub { grid-template-columns: 1fr; padding: 16px; }
+		.wcard { min-height: 480px; }
 	}
 </style>

@@ -197,7 +197,7 @@
 <style>
 	/* Values are the mockup's. The three custom properties stand in for its fixed
 	   dark colours so the rows stay readable in the light theme, which the
-	   mockup does not show. DEVIATION: needs Jake's approval (light theme only). */
+	   mockup does not show. Approved by Jake on 2026-11-19. */
 	.hub,
 	.foot {
 		--hub-dim: #64748b;

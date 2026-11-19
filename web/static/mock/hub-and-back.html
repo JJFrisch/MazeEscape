@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Mockup: the hub and the back button</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* Mockup only. Three takes on the hub (the page at "/") and three on the back button.
+     Sources: the game's own tokens in src/lib/styles/global.css, the native app's home page (MainPage.xaml:
+     poster art, translucent black buttons, press scale 0.9), the native worlds card as drawn in
+     src/routes/campaign/worlds/+page.svelte, and the art in static/images. Every word shown is already in
+     the game, apart from "Label here", which marks a label that does not exist yet. Icons in hub B are stand-ins. */
+  :root {
+    --bg: #060d1a; --bg-2: #080f20; --card: rgba(12, 22, 42, 0.85);
+    --fg: #f0f6ff; --fg-2: #94a3b8; --fg-3: #64748b;
+    --blue: #38bdf8; --gold: #f59e0b;
+    --line: rgba(255, 255, 255, 0.06); --line-strong: rgba(255, 255, 255, 0.12);
+    --display: 'Space Grotesk', 'Inter', system-ui, sans-serif; --body: 'Inter', system-ui, sans-serif; --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --native: rgba(0, 0, 0, 0.8); --native-locked: rgba(40, 40, 40, 0.8);
+    --fast: 150ms ease;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: #03060c; color: var(--fg); font-family: var(--body); -webkit-font-smoothing: antialiased; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  a { color: inherit; }
+  [hidden] { display: none !important; }
+  img { display: block; }
+
+  /* ---------- Mockup chrome (internal, never shipped) ---------- */
+  .mockbar {
+    position: sticky; top: 0; z-index: 60; display: flex; align-items: center; gap: 8px; height: 56px; padding: 0 16px;
+    background: #080a0f; border-bottom: 1px solid var(--line-strong); font: 400 12px/1 var(--mono); color: #8b99ab; overflow-x: auto; white-space: nowrap;
+  }
+  .mockbar button { background: transparent; border: 1px solid rgba(232, 237, 244, 0.18); border-radius: 4px; padding: 8px; color: #e8edf4; flex: none; }
+  .mockbar button[aria-pressed='true'] { background: rgba(232, 237, 244, 0.16); border-color: rgba(232, 237, 244, 0.4); }
+  .mockbar .gap { width: 16px; flex: none; }
+  .notes { max-width: 720px; margin: 24px auto 64px; padding: 16px; border: 1px solid var(--line-strong); border-radius: 4px; background: #080a0f; font: 400 12px/1.6 var(--mono); color: #8b99ab; }
+  .notes b { color: #e8edf4; font-weight: 500; }
+  .notes p { margin: 0 0 8px; }
+
+  /* ---------- The app area: full width, or a 390px phone ---------- */
+  .stage { padding: 24px 16px 0; }
+  .app { container-type: inline-size; max-width: 1120px; margin: 0 auto; background: var(--bg); border: 1px solid var(--line-strong); border-radius: 12px; overflow: hidden; }
+  .app[data-device='phone'] { max-width: 390px; }
+
+  /* The game's slim header, redrawn for context */
+  .hdr { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px; background: rgba(6, 13, 26, 0.85); border-bottom: 1px solid var(--line); }
+  .logo { display: flex; align-items: center; gap: 8px; text-decoration: none; font: 700 14px/1 var(--display); color: var(--fg); }
+  .logo i { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); color: var(--blue); }
+  .logo span span { color: var(--gold); font-weight: 500; }
+  .hdr .grow { flex: 1; }
+  .chip { display: flex; align-items: center; gap: 4px; padding: 4px 10px 4px 7px; border-radius: 999px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); font: 600 12px/1 var(--display); color: var(--gold); }
+  .chip img { width: 16px; height: 16px; }
+  .trail { display: flex; align-items: center; gap: 8px; font: 500 13px/1 var(--body); color: var(--fg-2); min-width: 0; }
+  .trail a { color: var(--fg-2); text-decoration: none; padding: 12px 0; white-space: nowrap; }
+  .trail a:hover { color: var(--fg); text-decoration: underline; text-underline-offset: 4px; }
+  .trail b { color: var(--fg); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .trail svg { flex: none; color: var(--fg-3); }
+
+  .foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding: 16px; font: 500 12px/1 var(--body); color: var(--fg-3); }
+  .foot a { color: var(--fg-2); text-decoration: none; }
+  .foot a:hover { color: var(--fg); }
+  .foot .dl { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px; border: 1px solid rgba(245, 158, 11, 0.35); color: var(--gold); }
+  .foot .end { margin-left: auto; }
+
+  /* ================= Hub A: the native home ================= */
+  .hubA { position: relative; max-width: 700px; margin: 0 auto; min-height: 720px; background: #000 url('../images/maze_escape_background.png') center top / cover no-repeat; display: flex; flex-direction: column; justify-content: flex-end; }
+  .hubA .stack { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 24px; }
+  .nbtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 56px; padding: 8px 16px; border: 0; border-radius: 14px; background: var(--native); color: #fff; text-align: center; text-decoration: none; opacity: 0.97; transition: transform 120ms ease, opacity 120ms ease; }
+  .nbtn:hover { opacity: 0.9; }
+  .nbtn:active { transform: scale(0.9); opacity: 0.9; }
+  .nbtn b { font: 700 15px/1.2 var(--body); }
+  .nbtn small { font: 500 12px/1.3 var(--body); color: rgba(255, 255, 255, 0.72); }
+  .nbtn.primary { grid-column: 1 / -1; min-height: 64px; background: var(--blue); color: #04121f; opacity: 1; }
+  .nbtn.primary b { font-size: 17px; }
+  .nbtn.primary small { color: rgba(4, 18, 31, 0.78); }
+  .nbtn.wide { grid-column: 1 / -1; }
+  .nbtn.locked { background: var(--native-locked); cursor: not-allowed; }
+  .nbtn.locked b { color: rgba(255, 255, 255, 0.72); }
+  .nbtn.locked small { display: inline-flex; align-items: center; gap: 6px; }
+  .nbtn.locked small img { width: 12px; height: 13px; }
+
+  /* ================= Hub B: the map room, cleaned ================= */
+  .hubB { padding: 24px 16px 8px; background:
+      linear-gradient(rgba(56, 189, 248, 0.025) 1px, transparent 1px) 0 0 / 40px 40px,
+      linear-gradient(90deg, rgba(56, 189, 248, 0.025) 1px, transparent 1px) 0 0 / 40px 40px, var(--bg); }
+  .rooms { display: grid; grid-template-columns: 1fr 48px 1fr 48px 1fr; grid-template-rows: auto 40px auto; max-width: 1040px; margin: 0 auto; }
+  .room { position: relative; display: flex; flex-direction: column; gap: 8px; min-height: 216px; padding: 24px; border-radius: 12px; background: var(--card); border: 1px solid var(--line-strong); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 24px rgba(0, 0, 0, 0.45); text-decoration: none; color: var(--fg); transition: transform var(--fast), border-color var(--fast); }
+  a.room:hover { transform: translateY(-2px); border-color: var(--zone); }
+  a.room:active { transform: scale(0.98); }
+  .room .ico { color: var(--zone); height: 24px; }
+  .room h3 { margin: 8px 0 0; font: 700 18px/1.2 var(--display); }
+  .room .sub { font: 500 13px/1.2 var(--body); color: var(--zone); }
+  .room .stat { margin-top: 8px; font: 600 14px/1.3 var(--display); }
+  .room .desc { margin: 0; font: 400 13px/1.5 var(--body); color: var(--fg-2); }
+  .room .links { display: flex; gap: 8px; margin-top: auto; padding-top: 8px; }
+  .room .links span { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-strong); font: 500 12px/1 var(--body); color: var(--fg-2); }
+  .room.primary { background: var(--blue); border-color: var(--blue); color: #04121f; }
+  .room.primary .ico, .room.primary .sub { color: #04121f; }
+  .room.primary .desc { color: rgba(4, 18, 31, 0.78); }
+  .room.locked { background: rgba(12, 22, 42, 0.5); border-style: dashed; cursor: not-allowed; }
+  .room.locked h3, .room.locked .sub, .room.locked .ico { color: var(--fg-3); }
+  .room.locked .stat { display: flex; align-items: center; gap: 8px; color: var(--fg-2); font-family: var(--body); font-weight: 500; }
+  .room.locked .stat img { width: 14px; height: 15px; }
+  .room.locked .desc { color: var(--fg-3); }
+  .corr { align-self: center; justify-self: stretch; height: 1px; background: var(--line-strong); }
+  .corr.v { align-self: stretch; justify-self: center; width: 1px; height: auto; }
+  @container (max-width: 640px) {
+    .rooms { grid-template-columns: 1fr; grid-template-rows: none; gap: 16px; }
+    .rooms > * { grid-column: 1 !important; grid-row: auto !important; }
+    .corr { display: none; }
+    .room { min-height: 0; }
+  }
+
+  /* ================= Hub C: play first ================= */
+  .hubC { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 4fr); gap: 24px; padding: 24px; }
+  .wcard { position: relative; min-height: 560px; border: 0; padding: 0; border-radius: 12px; overflow: hidden; background: #000 url('../images/background_maze_3.png') center / cover; color: #fff; text-align: center; display: block; text-decoration: none; transition: transform 120ms ease; }
+  .wcard:active { transform: scale(0.98); }
+  .wcard .titles { position: absolute; inset: 20px 0 auto; }
+  .wcard .titles p { margin: 0; font: 400 22px/1.5 var(--body); color: whitesmoke; }
+  .wcard .titles h3 { margin: 6px 0 0; font: 400 18px/1.2 var(--body); color: lightblue; }
+  .wcard .name { position: absolute; top: 130px; left: 50%; width: min(300px, 90%); height: 40px; transform: translateX(-50%); display: grid; place-items: center; background: rgba(0, 0, 0, 0.5); font: 700 20px/1 var(--body); }
+  .wcard .panel { position: absolute; top: 50%; left: 50%; width: 250px; transform: translate(-50%, -75%); }
+  .wcard .panel img { width: 100%; }
+  .wcard .panel span { position: absolute; top: 60%; width: 50%; font: 700 12px/1 var(--body); color: #222; text-align: center; }
+  .wcard .panel .a { left: 0; } .wcard .panel .b { right: 0; }
+  .wcard .play { position: absolute; top: 72%; left: 50%; width: 230px; transform: translateX(-50%); transition: transform 120ms ease; }
+  .wcard:hover .play { transform: translateX(-50%) scale(1.04); }
+  .rows { display: flex; flex-direction: column; align-self: center; }
+  .row { display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: baseline; padding: 16px 8px; border-top: 1px solid var(--line-strong); text-decoration: none; color: var(--fg); transition: background var(--fast); }
+  .row:last-child { border-bottom: 1px solid var(--line-strong); }
+  a.row:hover { background: rgba(255, 255, 255, 0.04); }
+  a.row:active { transform: scale(0.99); }
+  .row h3 { margin: 0; font: 700 17px/1.2 var(--display); }
+  .row h3 span { margin-left: 8px; font: 500 13px/1 var(--body); color: var(--fg-2); }
+  .row .stat { font: 600 13px/1 var(--display); color: var(--fg-2); text-align: right; }
+  .row .desc { grid-column: 1 / -1; margin: 0; font: 400 13px/1.5 var(--body); color: var(--fg-2); }
+  .row.locked { cursor: not-allowed; }
+  .row.locked h3, .row.locked h3 span { color: var(--fg-3); }
+  .row.locked .desc { display: flex; align-items: center; gap: 8px; color: var(--fg-2); }
+  .row.locked .desc img { width: 14px; height: 15px; }
+  @container (max-width: 640px) {
+    .hubC { grid-template-columns: 1fr; padding: 16px; }
+    .wcard { min-height: 480px; }
+  }
+
+  /* ================= Back buttons ================= */
+  .strip { position: relative; display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: linear-gradient(135deg, rgba(4, 12, 28, 0.82), rgba(4, 12, 28, 0.55)), url('../images/background_maze_3.png') center / cover; border-bottom: 2px solid var(--blue); }
+  .strip .mid { flex: 1; min-width: 0; }
+  .strip .mid small { display: block; font: 700 10px/1.4 var(--body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); }
+  .strip .mid h3 { margin: 0; font: 700 20px/1.2 var(--display); }
+  .strip .stars { display: flex; align-items: center; gap: 6px; font: 600 13px/1 var(--display); color: var(--gold); flex: none; }
+  .strip .stars img { width: 16px; height: 16px; }
+  .strip .stars span { color: var(--fg-2); font-weight: 500; }
+  .mapslice { height: 200px; background: #0a0f1a url('../images/classic/campaign_background_1.png') left center / auto 100% no-repeat; opacity: 0.9; }
+
+  /* Back A: the native button (Settings and Info on MainPage.xaml) */
+  .backA { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 16px 0 12px; border: 0; border-radius: 12px; background: var(--native); color: #fff; font: 600 14px/1 var(--body); text-decoration: none; flex: none; transition: transform 120ms ease, opacity 120ms ease; }
+  .backA img { height: 16px; width: auto; }
+  .backA:hover, .backA.is-hover { opacity: 0.9; background: rgba(0, 0, 0, 0.62); }
+  .backA:active, .backA.is-press { transform: scale(0.9); opacity: 0.9; }
+
+  /* Back B: the quiet link the world page has today, given one size and a full hit area */
+  .backB { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 8px 0 0; color: rgba(255, 255, 255, 0.65); font: 500 14px/1 var(--body); text-decoration: none; flex: none; transition: color var(--fast); }
+  .backB svg { transition: transform var(--fast); }
+  .backB:hover, .backB.is-hover { color: #fff; }
+  .backB:hover svg, .backB.is-hover svg { transform: translateX(-3px); }
+  .backB:active, .backB.is-press { color: #fff; transform: scale(0.96); }
+
+  .kit { padding: 24px; display: grid; gap: 24px; }
+  .kit h4 { margin: 0 0 12px; font: 500 12px/1 var(--mono); color: var(--fg-3); }
+  .kit .line { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; padding: 16px; border-radius: 8px; background: #0b1424; }
+  .kit .line figure { margin: 0; display: grid; gap: 8px; justify-items: start; }
+  .kit .line figcaption { font: 400 11px/1 var(--mono); color: var(--fg-3); }
+  .is-focus { outline: 2px solid var(--blue); outline-offset: 2px; }
+  @container (max-width: 640px) {
+    .strip { padding: 12px; gap: 12px; }
+    .backA span, .backB span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .backA { padding: 0 12px; }
+    .trail a.far, .trail svg.far { display: none; }
+    .hdr:has(.trail) .logo > span { display: none; }
+    .hubA .stack { grid-template-columns: 1fr; gap: 12px; padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="mockbar">
+  <span>hub</span>
+  <button data-set="hub" data-v="A" aria-pressed="true">A native home</button>
+  <button data-set="hub" data-v="B" aria-pressed="false">B map room</button>
+  <button data-set="hub" data-v="C" aria-pressed="false">C play first</button>
+  <span class="gap"></span><span>back</span>
+  <button data-set="back" data-v="A" aria-pressed="false">A native button</button>
+  <button data-set="back" data-v="B" aria-pressed="false">B quiet link</button>
+  <button data-set="back" data-v="C" aria-pressed="false">C header trail</button>
+  <span class="gap"></span><span>player</span>
+  <button data-set="lvl" data-v="0" aria-pressed="true">new</button>
+  <button data-set="lvl" data-v="12" aria-pressed="false">after level 12</button>
+  <button data-set="lvl" data-v="20" aria-pressed="false">after level 20</button>
+  <span class="gap"></span><span>device</span>
+  <button data-set="device" data-v="full" aria-pressed="true">full</button>
+  <button data-set="device" data-v="phone" aria-pressed="false">phone</button>
+</div>
+
+<div class="stage"><div class="app" id="app" data-device="full"></div></div>
+<div class="notes" id="notes"></div>
+
+<script>
+  const LOCK = '<img src="../images/lock.png" alt="" />';
+  const CHEV = '<svg class="X" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const SEP = '<svg class="X" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const LOGO = '<svg width="18" height="18" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="1.5" y="1.5" width="25" height="25" rx="4" stroke="currentColor" stroke-width="2"/><path d="M7 7h14v5H12v4h9v5H7v-5h5v-4H7z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+  const ico = (d) => `<svg class="ico" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const ICONS = {
+    dungeon: ico('<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 8h8v3h-5v3h5v2H8v-2h3v-3H8z"/>'),
+    spire: ico('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+    arena: ico('<path d="M9 21V9h6v12M3 21v-7h6M15 21v-9h6v9M2 21h20"/>'),
+    vault: ico('<path d="M12 3l8 9-8 9-8-9z"/><path d="M4 12h16"/>'),
+    archives: ico('<path d="M4 5h16M4 10h16M4 15h16M4 20h10"/>'),
+    sanctum: ico('<path d="M12 2l8.5 5v10L12 22l-8.5-5V7z"/><circle cx="12" cy="12" r="3"/>')
+  };
+
+  const state = { hub: 'A', back: null, lvl: 0, device: 'full' };
+
+  function zones() {
+    const l = state.lvl;
+    const stars = l === 0 ? 0 : l === 12 ? 27 : 46;
+    const coins = l === 0 ? 0 : l === 12 ? 340 : 615;
+    const lock = (n) => (l >= n ? null : `Complete Level ${n} to unlock`);
+    return [
+      { id: 'dungeon', color: '#38bdf8', name: 'The Dungeon', sub: 'Campaign', stat: `${stars} / 894 ★`, desc: 'Navigate procedural labyrinths across 3 worlds' },
+      { id: 'spire', color: '#c084fc', name: 'The Spire', sub: 'Daily Maze', stat: 'No streak yet', desc: 'A fresh labyrinth generated every 24 hours', lock: lock(10) },
+      { id: 'arena', color: '#f59e0b', name: 'The Arena', sub: 'Leaderboard', stat: 'Global rankings', desc: 'Compete for the top of the board', lock: lock(20) },
+      { id: 'vault', color: '#34d399', name: 'The Vault', sub: 'Shop & Equip', stat: `${coins} coins`, desc: 'Powerups, skins, and trail effects', links: ['Equip'], lock: lock(1) },
+      { id: 'archives', color: '#22d3ee', name: 'The Archives', sub: 'Knowledge', stat: 'Lore & mastery', desc: 'Codex of worlds, algorithm lore & chronicles', links: l >= 5 ? ['Algorithms', 'Chronicles'] : null },
+      { id: 'sanctum', color: '#a78bfa', name: 'The Sanctum', sub: 'Settings & Account', stat: 'Sign In', desc: 'Configure your journey and sync your progress', links: ['Account'] }
+    ];
+  }
+
+  function header(trail) {
+    const coins = zones()[3].stat.split(' ')[0];
+    return `<div class="hdr"><a class="logo" href="#"><i>${LOGO}</i><span>Maze Escape<span> Pathbound</span></span></a>${trail ?? ''}<span class="grow"></span><span class="chip"><img src="../images/coin.png" alt="" />${coins}</span></div>`;
+  }
+  const footer = () => `<div class="foot"><a class="dl" href="#">Desktop App</a><a href="#">Privacy</a><a href="#">Terms</a><span class="end">© 2026 Jake Frischmann</span></div>`;
+
+  function hubA() {
+    const [d, ...rest] = zones();
+    const btn = (z, i) => z.lock
+      ? `<span class="nbtn locked${i === 4 ? ' wide' : ''}"><b>${z.name}</b><small>${LOCK}${z.lock}</small></span>`
+      : `<a class="nbtn${i === 4 ? ' wide' : ''}" href="#"><b>${z.name}</b><small>${z.stat}</small></a>`;
+    return `${header()}<div class="hubA"><div class="stack"><a class="nbtn primary" href="#"><b>${d.name}</b><small>${d.stat}</small></a>${rest.map(btn).join('')}</div></div>${footer()}`;
+  }
+
+  function hubB() {
+    const pos = [[1, 1], [3, 1], [5, 1], [1, 3], [3, 3], [5, 3]];
+    const rooms = zones().map((z, i) => {
+      const at = `grid-column:${pos[i][0]};grid-row:${pos[i][1]};--zone:${z.color};`;
+      const head = `${ICONS[z.id]}<h3>${z.name}</h3><span class="sub">${z.sub}</span>`;
+      if (z.lock) return `<div class="room locked" style="${at}">${head}<span class="stat">${LOCK}${z.lock}</span><p class="desc">${z.desc}</p></div>`;
+      const links = z.links ? `<span class="links">${z.links.map((t) => `<span>${t}</span>`).join('')}</span>` : '';
+      return `<a class="room${i === 0 ? ' primary' : ''}" href="#" style="${at}">${head}<span class="stat">${z.stat}</span><p class="desc">${z.desc}</p>${links}</a>`;
+    }).join('');
+    const corr = [[2, 1, 'h'], [4, 1, 'h'], [2, 3, 'h'], [4, 3, 'h'], [1, 2, 'v'], [3, 2, 'v'], [5, 2, 'v']]
+      .map(([c, r, d]) => `<div class="corr ${d}" style="grid-column:${c};grid-row:${r};"></div>`).join('');
+    return `${header()}<div class="hubB"><div class="rooms">${rooms}${corr}</div></div>${footer()}`;
+  }
+
+  function hubC() {
+    const [, ...rest] = zones();
+    const beaten = state.lvl, stars = state.lvl === 0 ? 0 : state.lvl === 12 ? 27 : 46;
+    const row = (z) => z.lock
+      ? `<div class="row locked"><h3>${z.name}<span>${z.sub}</span></h3><span class="stat"></span><p class="desc">${LOCK}${z.lock}</p></div>`
+      : `<a class="row" href="#"><h3>${z.name}<span>${z.sub}</span></h3><span class="stat">${z.stat}</span><p class="desc">${z.desc}</p></a>`;
+    return `${header()}<div class="hubC">
+      <a class="wcard" href="#" aria-label="Cybernetic Labyrinths">
+        <span class="titles"><p>Maze Escape</p><h3>Worlds</h3></span>
+        <span class="name">Cybernetic Labyrinths</span>
+        <span class="panel"><img src="../images/classic/grid_background.png" alt="" /><span class="a">${beaten} / 89</span><span class="b">${stars} Stars</span></span>
+        <img class="play" src="../images/classic/play_world_button.png" alt="Play World" />
+      </a>
+      <div class="rows">${rest.map(row).join('')}</div>
+    </div>${footer()}`;
+  }
+
+  function back() {
+    const v = state.back;
+    const mk = (cls, label, extra = '') => v === 'A'
+      ? `<a class="backA ${extra}" href="#"><img src="../images/classic/arrow.png" alt="" /><span>${label}</span></a>`
+      : `<a class="backB ${extra}" href="#">${CHEV.replace('class="X"', '')}<span>${label}</span></a>`;
+    const strip = (btn) => `<div class="strip">${btn}<div class="mid"><small>World 1</small><h3>Cybernetic Labyrinths</h3></div><div class="stars"><img src="../images/full_star.png" alt="" />0 <span>/ 267</span></div></div><div class="mapslice"></div>`;
+    if (v === 'C') {
+      const trail = `<span class="trail">${SEP.replace('class="X"', 'class="far"')}<a class="far" href="#">The Dungeon</a>${SEP.replace('class="X"', '')}<a href="#">All Worlds</a>${SEP.replace('class="X"', '')}<b>Cybernetic Labyrinths</b></span>`;
+      return `${header(trail)}${strip('')}`;
+    }
+    const states = ['', 'is-hover', 'is-press', 'is-focus'].map((s, i) => `<figure>${mk('', 'All Worlds', s)}<figcaption>${['rest', 'hover', 'press', 'focus'][i]}</figcaption></figure>`).join('');
+    const places = ['All Worlds', 'Calendar', 'Back to sign in', 'Label here'].map((t) => mk('', t)).join('');
+    return `${header()}${strip(mk('', 'All Worlds'))}<div class="kit"><div><h4>all states</h4><div class="line">${states}</div></div><div><h4>every place it appears</h4><div class="line">${places}</div></div></div>`;
+  }
+
+  const NOTES = {
+    hubA: '<p><b>Hub A, native home.</b> The home page of the native app: the poster art, translucent black buttons with a 14px radius, and the press that scales to 0.9. The Dungeon is the one solid button. A locked zone turns grey and shows its lock line with the native lock.</p>',
+    hubB: '<p><b>Hub B, map room.</b> Today\'s six rooms and corridors, kept. Changes: the Dungeon is the one solid fill, a locked room stays readable and shows its lock line where the stat sits, the glyphs and emoji become one-stroke icons (stand-ins), the uppercase "WORLD MAP" row is gone, and the footer has no dot separators.</p>',
+    hubC: '<p><b>Hub C, play first.</b> The native worlds card for the player\'s current world is the page, with Play World as the one primary action. The other five zones are plain rows beside it, under it on a phone.</p>',
+    backA: '<p><b>Back A, native button.</b> The Settings and Info button from the native home: translucent black, 12px radius, 42px tall, the native arrow, press scales to 0.9. On a phone it keeps the arrow and hides the label.</p>',
+    backB: '<p><b>Back B, quiet link.</b> The link the world page has today, used everywhere at one size with a 44px hit area. The chevron slides 3px left on hover.</p>',
+    backC: '<p><b>Back C, header trail.</b> No button on the page. The header trail becomes links: each step goes back one level. On a phone the trail drops its first step.</p>',
+    shared: '<p>Every word is already in the game. "Label here" marks pages that have no back label yet (Shop, Equip, Leaderboard, Codex, Algorithms, Chronicles, Settings). Dark theme only in this mockup.</p>'
+  };
+
+  function render() {
+    const app = document.getElementById('app');
+    app.dataset.device = state.device;
+    app.innerHTML = state.back ? back() : { A: hubA, B: hubB, C: hubC }[state.hub]();
+    document.getElementById('notes').innerHTML = (state.back ? NOTES['back' + state.back] : NOTES['hub' + state.hub]) + NOTES.shared;
+    document.querySelectorAll('.mockbar button').forEach((b) => {
+      const { set, v } = b.dataset;
+      const on = set === 'hub' ? !state.back && state.hub === v : set === 'back' ? state.back === v : String(state[set]) === v;
+      b.setAttribute('aria-pressed', String(on));
+    });
+    app.querySelectorAll('a[href="#"]').forEach((a) => a.addEventListener('click', (e) => e.preventDefault()));
+  }
+
+  document.querySelector('.mockbar').addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (!b) return;
+    const { set, v } = b.dataset;
+    if (set === 'hub') { state.hub = v; state.back = null; }
+    else if (set === 'back') state.back = v;
+    else if (set === 'lvl') state.lvl = Number(v);
+    else state.device = v;
+    render();
+  });
+  render();
+</script>
+</body>
+</html>

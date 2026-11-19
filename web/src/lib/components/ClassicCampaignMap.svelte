@@ -343,7 +343,7 @@
 				aria-label={portalOpen ? 'Portal to the next world' : 'Portal, closed'}
 				onclick={pressPortal}
 			>
-				<img src="{base}/images/portal_purple.gif" alt="" draggable="false" />
+				<img src="{base}/images/portal_purple.webp" alt="" draggable="false" loading="lazy" />
 			</button>
 
 			{#if startArrow}

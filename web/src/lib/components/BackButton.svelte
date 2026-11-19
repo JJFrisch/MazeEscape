@@ -12,12 +12,12 @@
 
 {#if href}
 	<a class="back" {href}>
-		<img src="{base}/images/classic/arrow.png" alt="" />
+		<img src="{base}/images/classic/arrow.webp" alt="" />
 		<span>{label}</span>
 	</a>
 {:else}
 	<button class="back" type="button" {onclick}>
-		<img src="{base}/images/classic/arrow.png" alt="" />
+		<img src="{base}/images/classic/arrow.webp" alt="" />
 		<span>{label}</span>
 	</button>
 {/if}

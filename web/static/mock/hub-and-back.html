@@ -119,7 +119,7 @@
 
   /* ================= Hub C: play first ================= */
   .hubC { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 4fr); gap: 24px; padding: 24px; }
-  .wcard { position: relative; min-height: 560px; border: 0; padding: 0; border-radius: 12px; overflow: hidden; background: #000 url('../images/background_maze_3.png') center / cover; color: #fff; text-align: center; display: block; text-decoration: none; transition: transform 120ms ease; }
+  .wcard { position: relative; min-height: 560px; border: 0; padding: 0; border-radius: 12px; overflow: hidden; background: #000 url('../images/background_maze_3.webp') center / cover; color: #fff; text-align: center; display: block; text-decoration: none; transition: transform 120ms ease; }
   .wcard:active { transform: scale(0.98); }
   .wcard .titles { position: absolute; inset: 20px 0 auto; }
   .wcard .titles p { margin: 0; font: 400 22px/1.5 var(--body); color: whitesmoke; }
@@ -150,14 +150,14 @@
   }
 
   /* ================= Back buttons ================= */
-  .strip { position: relative; display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: linear-gradient(135deg, rgba(4, 12, 28, 0.82), rgba(4, 12, 28, 0.55)), url('../images/background_maze_3.png') center / cover; border-bottom: 2px solid var(--blue); }
+  .strip { position: relative; display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: linear-gradient(135deg, rgba(4, 12, 28, 0.82), rgba(4, 12, 28, 0.55)), url('../images/background_maze_3.webp') center / cover; border-bottom: 2px solid var(--blue); }
   .strip .mid { flex: 1; min-width: 0; }
   .strip .mid small { display: block; font: 700 10px/1.4 var(--body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); }
   .strip .mid h3 { margin: 0; font: 700 20px/1.2 var(--display); }
   .strip .stars { display: flex; align-items: center; gap: 6px; font: 600 13px/1 var(--display); color: var(--gold); flex: none; }
   .strip .stars img { width: 16px; height: 16px; }
   .strip .stars span { color: var(--fg-2); font-weight: 500; }
-  .mapslice { height: 200px; background: #0a0f1a url('../images/classic/campaign_background_1.png') left center / auto 100% no-repeat; opacity: 0.9; }
+  .mapslice { height: 200px; background: #0a0f1a url('../images/classic/campaign_background_1.webp') left center / auto 100% no-repeat; opacity: 0.9; }
 
   /* Back A: the native button (Settings and Info on MainPage.xaml) */
   .backA { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 16px 0 12px; border: 0; border-radius: 12px; background: var(--native); color: #fff; font: 600 14px/1 var(--body); text-decoration: none; flex: none; transition: transform 120ms ease, opacity 120ms ease; }
@@ -212,7 +212,7 @@
 <div class="notes" id="notes"></div>
 
 <script>
-  const LOCK = '<img src="../images/lock.png" alt="" />';
+  const LOCK = '<img src="../images/lock.webp" alt="" />';
   const CHEV = '<svg class="X" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const SEP = '<svg class="X" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const LOGO = '<svg width="18" height="18" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="1.5" y="1.5" width="25" height="25" rx="4" stroke="currentColor" stroke-width="2"/><path d="M7 7h14v5H12v4h9v5H7v-5h5v-4H7z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>';
@@ -245,7 +245,7 @@
 
   function header(trail) {
     const coins = zones()[3].stat.split(' ')[0];
-    return `<div class="hdr"><a class="logo" href="#"><i>${LOGO}</i><span>Maze Escape<span> Pathbound</span></span></a>${trail ?? ''}<span class="grow"></span><span class="chip"><img src="../images/coin.png" alt="" />${coins}</span></div>`;
+    return `<div class="hdr"><a class="logo" href="#"><i>${LOGO}</i><span>Maze Escape<span> Pathbound</span></span></a>${trail ?? ''}<span class="grow"></span><span class="chip"><img src="../images/coin.webp" alt="" />${coins}</span></div>`;
   }
   const footer = () => `<div class="foot"><a class="dl" href="#">Desktop App</a><a href="#">Privacy</a><a href="#">Terms</a><span class="end">© 2026 Jake Frischmann</span></div>`;
 
@@ -281,8 +281,8 @@
       <a class="wcard" href="#" aria-label="Cybernetic Labyrinths">
         <span class="titles"><p>Maze Escape</p><h3>Worlds</h3></span>
         <span class="name">Cybernetic Labyrinths</span>
-        <span class="panel"><img src="../images/classic/grid_background.png" alt="" /><span class="a">${beaten} / 89</span><span class="b">${stars} Stars</span></span>
-        <img class="play" src="../images/classic/play_world_button.png" alt="Play World" />
+        <span class="panel"><img src="../images/classic/grid_background.webp" alt="" /><span class="a">${beaten} / 89</span><span class="b">${stars} Stars</span></span>
+        <img class="play" src="../images/classic/play_world_button.webp" alt="Play World" />
       </a>
       <div class="rows">${rest.map(row).join('')}</div>
     </div>${footer()}`;
@@ -291,9 +291,9 @@
   function back() {
     const v = state.back;
     const mk = (cls, label, extra = '') => v === 'A'
-      ? `<a class="backA ${extra}" href="#"><img src="../images/classic/arrow.png" alt="" /><span>${label}</span></a>`
+      ? `<a class="backA ${extra}" href="#"><img src="../images/classic/arrow.webp" alt="" /><span>${label}</span></a>`
       : `<a class="backB ${extra}" href="#">${CHEV.replace('class="X"', '')}<span>${label}</span></a>`;
-    const strip = (btn) => `<div class="strip">${btn}<div class="mid"><small>World 1</small><h3>Cybernetic Labyrinths</h3></div><div class="stars"><img src="../images/full_star.png" alt="" />0 <span>/ 267</span></div></div><div class="mapslice"></div>`;
+    const strip = (btn) => `<div class="strip">${btn}<div class="mid"><small>World 1</small><h3>Cybernetic Labyrinths</h3></div><div class="stars"><img src="../images/full_star.webp" alt="" />0 <span>/ 267</span></div></div><div class="mapslice"></div>`;
     if (v === 'C') {
       const trail = `<span class="trail">${SEP.replace('class="X"', 'class="far"')}<a class="far" href="#">The Dungeon</a>${SEP.replace('class="X"', '')}<a href="#">All Worlds</a>${SEP.replace('class="X"', '')}<b>Cybernetic Labyrinths</b></span>`;
       return `${header(trail)}${strip('')}`;

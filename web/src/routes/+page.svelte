@@ -16,9 +16,9 @@
 	const worlds = getAllWorlds();
 	// The same art the worlds picker puts behind each card.
 	const ART: Record<number, string> = {
-		1: 'background_maze_3.png',
-		2: 'space_background11.png',
-		3: 'classic/carousel_maze_4.png'
+		1: 'background_maze_3.webp',
+		2: 'space_background11.webp',
+		3: 'classic/carousel_maze_4.webp'
 	};
 
 	// A player who has not finished a level yet arrives on the World 1 map, one
@@ -150,11 +150,11 @@
 			</span>
 			<span class="name">{world.worldName}</span>
 			<span class="panel">
-				<img src="{base}/images/classic/grid_background.png" alt="" draggable="false" />
+				<img src="{base}/images/classic/grid_background.webp" alt="" draggable="false" />
 				<span class="score beaten">{beaten} / {mainLevels.length}</span>
 				<span class="score stars">{stars} Stars</span>
 			</span>
-			<img class="play" src="{base}/images/classic/play_world_button.png" alt="Play World" draggable="false" />
+			<img class="play" src="{base}/images/classic/play_world_button.webp" alt="Play World" draggable="false" />
 		</a>
 
 		<nav class="rows" aria-label="Game zones">
@@ -163,7 +163,7 @@
 					<div class="row locked">
 						<h2>{row.name}<span>{row.subtitle}</span></h2>
 						<span class="stat"></span>
-						<p class="desc"><img src="{base}/images/lock.png" alt="" />{row.lockReason}</p>
+						<p class="desc"><img src="{base}/images/lock.webp" alt="" />{row.lockReason}</p>
 					</div>
 				{:else}
 					<!-- The zone name is the row's link and covers the whole row; the
